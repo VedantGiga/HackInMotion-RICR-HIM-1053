@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import { usePathname } from "next/navigation";
 import gsap from "gsap";
 
 const LINKS = [
-  { label: "Problem & Vision", href: "#problem" },
-  { label: "Auto Categorization", href: "#categorization" },
-  { label: "Health Score", href: "#health" },
-  { label: "Features", href: "#features" },
-  { label: "Live Dashboard", href: "#demo" },
+  { label: "Problem & Vision", href: "/#problem" },
+  { label: "Auto Categorization", href: "/#categorization" },
+  { label: "Health Score", href: "/#health" },
+  { label: "Features", href: "/#features" },
+  { label: "Live Dashboard", href: "/dashboard" },
 ];
 
 export function Navbar() {
+  const pathname = usePathname();
+  const isDashboard = pathname === "/dashboard";
   const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -28,7 +31,7 @@ export function Navbar() {
 
       setScrolled(currentScrollY > 15);
 
-      if (nearFooter) {
+      if (nearFooter && !isDashboard) {
         // Reached footer -> hide top navbar so logo smoothly slides into footer position
         setVisible(false);
       } else if (currentScrollY <= 15) {
@@ -45,7 +48,7 @@ export function Navbar() {
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isDashboard]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -54,14 +57,16 @@ export function Navbar() {
         { opacity: 0, y: -14 },
         { opacity: 1, y: 0, duration: 0.9, ease: "power3.out" },
       );
-      gsap.fromTo(
-        "[data-nav-item]",
-        { opacity: 0, y: -12 },
-        { opacity: 1, y: 0, duration: 0.8, stagger: 0.07, delay: 0.15, ease: "power3.out" },
-      );
+      if (!isDashboard) {
+        gsap.fromTo(
+          "[data-nav-item]",
+          { opacity: 0, y: -12 },
+          { opacity: 1, y: 0, duration: 0.8, stagger: 0.07, delay: 0.15, ease: "power3.out" },
+        );
+      }
     });
     return () => ctx.revert();
-  }, []);
+  }, [isDashboard]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -78,63 +83,84 @@ export function Navbar() {
             ? "-translate-y-full opacity-0 pointer-events-none"
             : "translate-y-0 opacity-100 " +
               (scrolled
-                ? "border-b border-hairline bg-background/90 backdrop-blur-md shadow-sm"
+                ? isDashboard
+                  ? "border-b border-white/10 bg-navy/95 backdrop-blur-md shadow-lg"
+                  : "border-b border-hairline bg-background/90 backdrop-blur-md shadow-sm"
                 : "bg-transparent")
         }`}
       >
         <div className="shell flex items-center justify-between gap-6 py-2.5 sm:py-3">
-          <a href="#top" data-nav-logo className="relative inline-flex items-center group">
-            <img src="/logofinal-bgremoved.png" alt="Koshin logo" className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+          <a href={isDashboard ? "/" : "#top"} data-nav-logo className="relative inline-flex items-center group">
+            <img 
+              src="/logofinal-bgremoved.png" 
+              alt="Koshin logo" 
+              className={`h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 ${isDashboard ? "brightness-0 invert" : ""}`} 
+            />
           </a>
 
-          <nav className="hidden items-center gap-8 lg:flex">
-            {LINKS.map((l) => (
-              <a
-                key={l.label}
-                data-nav-item
-                href={l.href}
-                className="group relative text-[14px] font-medium text-ink transition-opacity hover:opacity-70"
-              >
-                {l.label}
-                <span className="absolute -bottom-1 left-0 h-px w-0 bg-ink transition-all duration-300 group-hover:w-full" />
-              </a>
-            ))}
-          </nav>
+          {!isDashboard && (
+            <nav className="hidden items-center gap-8 lg:flex">
+              {LINKS.map((l) => (
+                <a
+                  key={l.label}
+                  data-nav-item
+                  href={l.href}
+                  className="group relative text-[14px] font-medium text-ink transition-opacity hover:opacity-70"
+                >
+                  {l.label}
+                  <span className="absolute -bottom-1 left-0 h-px w-0 bg-ink transition-all duration-300 group-hover:w-full" />
+                </a>
+              ))}
+            </nav>
+          )}
 
           <div className="hidden sm:flex items-center gap-3">
-            <a
-              href="/login"
-              className="inline-flex items-center justify-center rounded-full border border-ink/20 bg-transparent px-4 py-2 text-xs font-semibold text-ink transition-all hover:border-ink hover:bg-ink/5"
-            >
-              Sign In
-            </a>
-            <a
-              href="#demo"
-              className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02] shadow-sm"
-            >
-              Open Live Dashboard
-            </a>
+            {isDashboard ? (
+              <a
+                href="/"
+                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-transparent px-5 py-2 text-xs font-semibold text-white transition-all hover:bg-white/10"
+              >
+                Sign Out
+              </a>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  className="inline-flex items-center justify-center rounded-full border border-ink/20 bg-transparent px-4 py-2 text-xs font-semibold text-ink transition-all hover:border-ink hover:bg-ink/5"
+                >
+                  Sign In
+                </a>
+                <a
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02] shadow-sm"
+                >
+                  Open Live Dashboard
+                </a>
+              </>
+            )}
           </div>
 
-          <motion.button
-            type="button"
-            aria-label="Open menu"
-            onClick={() => setOpen(true)}
-            whileTap={{ scale: 0.92 }}
-            whileHover={{ rotate: -3 }}
-            className="grid size-10 shrink-0 place-items-center bg-purple lg:hidden"
-          >
-            <span className="flex flex-col gap-[5px]">
-              <span className="block h-[2px] w-5 bg-ink" />
-              <span className="block h-[2px] w-5 bg-ink" />
-              <span className="block h-[2px] w-5 bg-ink" />
-            </span>
-          </motion.button>
+          {!isDashboard && (
+            <motion.button
+              type="button"
+              aria-label="Open menu"
+              onClick={() => setOpen(true)}
+              whileTap={{ scale: 0.92 }}
+              whileHover={{ rotate: -3 }}
+              className="grid size-10 shrink-0 place-items-center bg-purple lg:hidden"
+            >
+              <span className="flex flex-col gap-[5px]">
+                <span className="block h-[2px] w-5 bg-ink" />
+                <span className="block h-[2px] w-5 bg-ink" />
+                <span className="block h-[2px] w-5 bg-ink" />
+              </span>
+            </motion.button>
+          )}
         </div>
       </header>
 
       <AnimatePresence>
-        {open && (
+        {open && !isDashboard && (
           <motion.div
             initial={{ clipPath: "inset(0 0 100% 0)" }}
             animate={{ clipPath: "inset(0 0 0% 0)" }}
