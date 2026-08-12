@@ -52,20 +52,7 @@ export type Transaction = {
   type: "expense" | "income";
 };
 
-const INITIAL_TRANSACTIONS: Transaction[] = [
-  { id: "tx-1", date: "2026-08-10", merchant: "DoorDash Food Delivery", amount: 48.50, category: "Food & Dining", confidence: 0.98, isRecurring: false, type: "expense" },
-  { id: "tx-2", date: "2026-08-09", merchant: "Netflix Premium Subscription", amount: 19.99, category: "Subscriptions", confidence: 0.99, isRecurring: true, type: "expense" },
-  { id: "tx-3", date: "2026-08-08", merchant: "Uber Trip Downtown", amount: 24.30, category: "Travel & Transport", confidence: 0.95, isRecurring: false, type: "expense" },
-  { id: "tx-4", date: "2026-08-05", merchant: "Whole Foods Market", amount: 142.80, category: "Food & Dining", confidence: 0.96, isRecurring: false, type: "expense" },
-  { id: "tx-5", date: "2026-08-01", merchant: "Apex Property Management (Rent)", amount: 1650.00, category: "Housing & Rent", confidence: 1.0, isRecurring: true, type: "expense" },
-  { id: "tx-6", date: "2026-08-01", merchant: "Employer Direct Deposit (Salary)", amount: 4500.00, category: "Salary & Income", confidence: 1.0, isRecurring: true, type: "income" },
-  { id: "tx-7", date: "2026-07-28", merchant: "Spotify Family Plan", amount: 16.99, category: "Subscriptions", confidence: 0.99, isRecurring: true, type: "expense" },
-  { id: "tx-8", date: "2026-07-26", merchant: "ConEd Electric Bill", amount: 94.20, category: "Bills & Utilities", confidence: 0.97, isRecurring: true, type: "expense" },
-  { id: "tx-9", date: "2026-07-22", merchant: "Amazon Online Store", amount: 89.40, category: "Shopping", confidence: 0.91, isRecurring: false, type: "expense" },
-  { id: "tx-10", date: "2026-07-20", merchant: "Steam Games Digital", amount: 49.99, category: "Entertainment", confidence: 0.94, isRecurring: false, type: "expense" },
-  { id: "tx-11", date: "2026-07-18", merchant: "Uber Eats Dinner", amount: 62.10, category: "Food & Dining", confidence: 0.98, isRecurring: false, type: "expense" },
-  { id: "tx-12", date: "2026-07-15", merchant: "Gym Membership Monthly", amount: 45.00, category: "Subscriptions", confidence: 0.99, isRecurring: true, type: "expense" },
-];
+const INITIAL_TRANSACTIONS: Transaction[] = [];
 
 export function autoCategorize(description: string): { category: string; confidence: number; isRecurring: boolean } {
   const desc = description.toLowerCase();
@@ -270,14 +257,14 @@ export function KoshinDashboard() {
   return (
     <div className={`flex flex-col lg:flex-row bg-background relative text-ink ${
       isDashboardPage
-        ? "min-h-screen rounded-none border-none w-full"
-        : "min-h-[85vh] border border-hairline rounded-3xl overflow-hidden shadow-2xl"
+        ? "h-screen overflow-hidden rounded-none border-none w-full"
+        : "h-[85vh] border border-hairline rounded-3xl overflow-hidden shadow-2xl"
     }`}>
 
       {/* ── Mobile top bar ── */}
       <div className="lg:hidden flex items-center justify-between px-5 py-3.5 bg-background border-b border-hairline z-20 relative">
         <div className="flex items-center gap-2.5">
-          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-6 object-contain" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-6 w-auto object-contain scale-[2.5] origin-left ml-2" />
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -295,7 +282,7 @@ export function KoshinDashboard() {
       `}>
         {/* Logo */}
         <div className="hidden lg:flex items-center gap-3 px-6 pt-7 pb-6">
-          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 object-contain" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 w-auto object-contain scale-[2.5] origin-left ml-3" />
         </div>
 
         {/* Nav section label */}
@@ -377,7 +364,7 @@ export function KoshinDashboard() {
       </aside>
 
       {/* ── Main content ── */}
-      <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-offwhite/30">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-offwhite/30 h-full overflow-hidden">
         
         {/* Top bar */}
         <div className="flex items-center justify-between px-6 lg:px-10 py-6 border-b border-hairline bg-background">
@@ -412,7 +399,7 @@ export function KoshinDashboard() {
         </div>
 
         {/* Content area */}
-        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-8">
+        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-8" data-lenis-prevent="true">
           
           {/* Success banner */}
           <AnimatePresence>
