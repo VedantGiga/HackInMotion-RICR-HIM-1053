@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
 import {
@@ -19,7 +19,6 @@ import {
   Bell,
   SlidersHorizontal,
   Bot,
-  Filter,
   ArrowUpRight,
   ArrowDownLeft,
   LayoutDashboard,
@@ -27,7 +26,19 @@ import {
   Menu,
   X,
   Search,
-  ChevronRight
+  ChevronRight,
+  Activity,
+  RefreshCw,
+  Wallet,
+  Target,
+  LogOut,
+  Star,
+  Coffee,
+  ShoppingBag,
+  Home,
+  Tv,
+  Car,
+  Lightbulb,
 } from "lucide-react";
 
 export type Transaction = {
@@ -79,32 +90,47 @@ export function autoCategorize(description: string): { category: string; confide
   return { category: "Bills & Utilities", confidence: 0.72, isRecurring: false };
 }
 
+const CATEGORY_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; gradient: string }> = {
+  "Food & Dining":      { icon: Coffee,      color: "text-orange-500",  bg: "bg-orange-50",  border: "border-orange-200",  gradient: "from-orange-400" },
+  "Subscriptions":      { icon: Tv,          color: "text-purple",      bg: "bg-purple/10",  border: "border-purple/20",   gradient: "from-purple" },
+  "Travel & Transport": { icon: Car,         color: "text-skyblue",     bg: "bg-skyblue/10", border: "border-skyblue/20",  gradient: "from-skyblue" },
+  "Housing & Rent":     { icon: Home,        color: "text-cyan",        bg: "bg-cyan/10",    border: "border-cyan/20",     gradient: "from-cyan" },
+  "Bills & Utilities":  { icon: Lightbulb,   color: "text-yellow-600",  bg: "bg-yellow-50",  border: "border-yellow-200",  gradient: "from-yellow-400" },
+  "Shopping":           { icon: ShoppingBag, color: "text-pinkish",     bg: "bg-pinkish/10", border: "border-pinkish/20",  gradient: "from-pinkish" },
+  "Entertainment":      { icon: Star,        color: "text-violet",      bg: "bg-violet/10",  border: "border-violet/20",   gradient: "from-violet" },
+  "Salary & Income":    { icon: Wallet,      color: "text-green-600",   bg: "bg-green-50",   border: "border-green-200",   gradient: "from-green-500" },
+};
+
+const DEFAULT_CATEGORY = { icon: DollarSign, color: "text-gray-500", bg: "bg-gray-100", border: "border-gray-200", gradient: "from-gray-400" };
+
+function getCatConfig(cat: string) {
+  return CATEGORY_CONFIG[cat] ?? DEFAULT_CATEGORY;
+}
+
 export function KoshinDashboard() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "subscriptions" | "simulator" | "ai">("dashboard");
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  
-  // Manual transaction form states
+
   const [newMerchant, setNewMerchant] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
   const [newType, setNewType] = useState<"expense" | "income">("expense");
   const [uploadSuccess, setUploadSuccess] = useState(false);
 
-  // Simulator state
   const [foodCut, setFoodCut] = useState(35);
   const [subCut, setSubCut] = useState(25);
   const [shoppingCut, setShoppingCut] = useState(20);
 
-  // AI chat state
+  const chatEndRef = useRef<HTMLDivElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
     { role: "assistant", text: "Hello! I am Koshin AI, your personal financial advisor. Ask me anything about your spending, subscriptions, or savings goals!", time: "12:00 PM" }
   ]);
   const [chatInput, setChatInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Metrics
   const totalIncome = useMemo(() => {
     return transactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);
   }, [transactions]);
@@ -129,17 +155,16 @@ export function KoshinDashboard() {
     if (savingsRate > 20) score += 10;
     else if (savingsRate > 10) score += 5;
     else if (savingsRate < 0) score -= 15;
-
     const subAmount = transactions.filter(t => t.category === "Subscriptions").reduce((acc, t) => acc + t.amount, 0);
     const subRatio = totalIncome > 0 ? subAmount / totalIncome : 0;
     if (subRatio > 0.08) score -= 8;
     else score += 3;
-
     return Math.min(100, Math.max(0, score));
   }, [totalIncome, netSavings, transactions]);
 
   const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
-  const healthBadgeColor = healthScore >= 80 ? "bg-purple/10 text-purple border-purple/30" : healthScore >= 65 ? "bg-purple/20 text-purple border-purple/30" : "bg-amber-500/10 text-amber-600 border-amber-500/30";
+  const healthBadgeColor = healthScore >= 80 ? "bg-cyan/10 text-cyan-700 border-cyan/20" : healthScore >= 65 ? "bg-purple/10 text-purple border-purple/20" : "bg-orange-100 text-orange-600 border-orange-200";
+  const healthRingColor = healthScore >= 80 ? "text-cyan" : healthScore >= 65 ? "text-purple" : "text-orange-500";
 
   const recurringBills = useMemo(() => {
     return transactions.filter(t => t.isRecurring);
@@ -148,10 +173,8 @@ export function KoshinDashboard() {
   const handleAddTransaction = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMerchant || !newAmount) return;
-
     const amt = parseFloat(newAmount);
     if (isNaN(amt)) return;
-
     const { category, confidence, isRecurring } = autoCategorize(newMerchant);
     const newTx: Transaction = {
       id: `tx-${Date.now()}`,
@@ -163,7 +186,6 @@ export function KoshinDashboard() {
       isRecurring,
       type: newType
     };
-
     setTransactions(prev => [newTx, ...prev]);
     setNewMerchant("");
     setNewAmount("");
@@ -190,7 +212,6 @@ export function KoshinDashboard() {
     });
   }, [transactions, selectedCategory, searchTerm]);
 
-  // Simulator savings calculations
   const originalFood = categoryBreakdown["Food & Dining"] || 0;
   const originalSubs = categoryBreakdown["Subscriptions"] || 0;
   const originalShopping = categoryBreakdown["Shopping"] || 0;
@@ -202,19 +223,20 @@ export function KoshinDashboard() {
   const totalMonthlySimSavings = simFoodSavings + simSubSavings + simShopSavings;
   const totalAnnualSimSavings = totalMonthlySimSavings * 12;
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [chatMessages, isTyping]);
+
   const handleSendMessage = (textToSend?: string) => {
     const messageText = textToSend || chatInput;
     if (!messageText.trim()) return;
-
     const userMsg = { role: "user" as const, text: messageText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
     setChatMessages(prev => [...prev, userMsg]);
     if (!textToSend) setChatInput("");
-
-    // Simulate AI response
+    setIsTyping(true);
     setTimeout(() => {
       let reply = "I analyzed your transactions. What specific details would you like to examine?";
       const q = messageText.toLowerCase();
-
       if (q.includes("food") || q.includes("dining") || q.includes("eat")) {
         const amt = categoryBreakdown["Food & Dining"] || 0;
         reply = `You have spent a total of $${amt.toFixed(2)} on Food & Dining. Your largest transaction here is Whole Foods at $142.80.`;
@@ -225,251 +247,368 @@ export function KoshinDashboard() {
       } else if (q.includes("save") || q.includes("reduce") || q.includes("cut")) {
         reply = `Based on your logs, cutting Food & Dining and Subscriptions by 20% would save you around $${(simFoodSavings + simSubSavings).toFixed(2)} monthly.`;
       }
-
+      setIsTyping(false);
       setChatMessages(prev => [...prev, {
         role: "assistant",
         text: reply,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }]);
-    }, 800);
+    }, 1200);
   };
 
   const navItems = [
-    { id: "dashboard", label: "Overview", icon: LayoutDashboard },
-    { id: "transactions", label: "Transactions", icon: CreditCard },
-    { id: "subscriptions", label: "Subscriptions", icon: Bell },
-    { id: "simulator", label: "What-If Simulator", icon: SlidersHorizontal },
-    { id: "ai", label: "Koshin AI", icon: Bot }
+    { id: "dashboard", label: "Overview", icon: LayoutDashboard, badge: null },
+    { id: "transactions", label: "Transactions", icon: CreditCard, badge: transactions.length.toString() },
+    { id: "subscriptions", label: "Subscriptions", icon: Bell, badge: recurringBills.length.toString() },
+    { id: "simulator", label: "What-If Simulator", icon: SlidersHorizontal, badge: null },
+    { id: "ai", label: "Koshin AI", icon: Bot, badge: "NEW" },
   ] as const;
 
   const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
 
   return (
-    <div className={`flex flex-col lg:flex-row bg-navy relative ${
-      isDashboardPage 
-        ? "min-h-screen rounded-none border-none w-full" 
-        : "min-h-[85vh] border border-white/5 rounded-3xl overflow-hidden shadow-2xl"
+    <div className={`flex flex-col lg:flex-row bg-background relative text-ink ${
+      isDashboardPage
+        ? "min-h-screen rounded-none border-none w-full"
+        : "min-h-[85vh] border border-hairline rounded-3xl overflow-hidden shadow-2xl"
     }`}>
-      
-      {/* Decorative Orbs */}
-      <div className="absolute top-0 right-1/4 size-[400px] bg-purple/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 size-[400px] bg-cyan/10 rounded-full blur-[140px] pointer-events-none" />
 
-      {/* MOBILE HEADER */}
-      <div className="lg:hidden flex items-center justify-between px-6 py-4 bg-navy/80 backdrop-blur-md border-b border-white/10 z-20">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-5 text-purple" />
-          <span className="display font-bold text-white text-lg tracking-tight">Koshin Control Center</span>
+      {/* ── Mobile top bar ── */}
+      <div className="lg:hidden flex items-center justify-between px-5 py-3.5 bg-background border-b border-hairline z-20 relative">
+        <div className="flex items-center gap-2.5">
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-6 object-contain" />
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 text-white/80 hover:text-white rounded-lg bg-white/5"
+          className="p-2 text-ink hover:bg-offwhite rounded-xl border border-hairline transition-all"
         >
-          {sidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+          {sidebarOpen ? <X className="size-4.5" /> : <Menu className="size-4.5" />}
         </button>
       </div>
 
-      {/* SIDEBAR NAVIGATION */}
-      <div className={`
-        fixed inset-y-0 left-0 w-64 bg-navy/95 border-r border-white/10 p-6 flex flex-col justify-between z-30 transition-transform duration-300 lg:relative lg:transform-none lg:bg-navy/30 lg:z-10
+      {/* ── Sidebar ── */}
+      <aside className={`
+        fixed inset-y-0 left-0 w-64 z-30 transition-transform duration-300 lg:relative lg:transform-none
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+        flex flex-col bg-background lg:bg-offwhite/50 border-r border-hairline
       `}>
-        <div className="space-y-8">
-          <div className="hidden lg:flex items-center gap-2.5">
-            <div className="size-8 rounded-lg bg-gradient-to-tr from-purple to-cyan flex items-center justify-center shadow-lg">
-              <Sparkles className="size-4 text-ink" />
-            </div>
-            <span className="display font-bold text-white text-lg tracking-tight">Koshin Control</span>
-          </div>
-
-          <nav className="space-y-1.5">
-            {navItems.map(item => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveTab(item.id);
-                    setSidebarOpen(false);
-                  }}
-                  className={`
-                    w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
-                    ${isActive 
-                      ? "bg-purple text-white shadow-lg shadow-purple/15 font-semibold" 
-                      : "text-white/60 hover:text-white hover:bg-white/5"
-                    }
-                  `}
-                >
-                  <Icon className={`size-4.5 ${isActive ? "text-white" : "text-white/60"}`} />
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
+        {/* Logo */}
+        <div className="hidden lg:flex items-center gap-3 px-6 pt-7 pb-6">
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 object-contain" />
         </div>
 
-        {/* User Card */}
-        <div className="pt-6 border-t border-white/5 flex flex-col gap-4">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/80">
-              <User className="size-5" />
+        {/* Nav section label */}
+        <div className="px-6 mb-2">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Navigation</span>
+        </div>
+
+        {/* Nav items */}
+        <nav className="px-3 space-y-1 flex-1">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setSidebarOpen(false);
+                }}
+                className={`
+                  w-full flex items-center gap-3.5 px-3.5 py-2.5 rounded-xl text-[14px] font-medium transition-all duration-200 group relative
+                  ${isActive
+                    ? "bg-white text-ink border border-hairline shadow-sm"
+                    : "text-muted-foreground hover:text-ink hover:bg-black/5"
+                  }
+                `}
+              >
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-purple rounded-r-full" />
+                )}
+                <Icon className={`size-4.5 shrink-0 transition-colors ${isActive ? "text-purple" : "text-muted-foreground group-hover:text-ink"}`} strokeWidth={isActive ? 2.5 : 2} />
+                <span className="flex-1 text-left">{item.label}</span>
+                {item.badge && (
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${
+                    item.badge === "NEW"
+                      ? "bg-purple text-white shadow-sm"
+                      : "bg-black/5 text-muted-foreground"
+                  }`}>
+                    {item.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Divider + bottom section */}
+        <div className="mt-auto px-3 pb-5 pt-4 border-t border-hairline bg-white lg:bg-transparent">
+          {/* Quick stats pill */}
+          <div className="mx-1 mb-4 p-4 rounded-xl bg-background border border-hairline shadow-sm">
+            <div className="flex items-center justify-between text-[11px] mb-2.5">
+              <span className="text-muted-foreground font-semibold">Monthly Health</span>
+              <span className={`font-bold ${healthRingColor}`}>{healthScore}/100</span>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-white">Alex Morgan</div>
-              <div className="text-[10px] text-white/40 font-mono">Premium User</div>
+            <div className="h-1.5 w-full bg-offwhite rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full bg-purple transition-all duration-700"
+                style={{ width: `${healthScore}%` }}
+              />
             </div>
           </div>
-          {isDashboardPage && (
-            <a
-              href="/"
-              className="text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-white/80 hover:text-white transition-all"
-            >
-              Sign Out to Home
-            </a>
-          )}
-        </div>
-      </div>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="flex-1 p-6 lg:p-8 overflow-y-auto z-10 flex flex-col justify-between">
+          {/* User card */}
+          <div className="flex items-center gap-3 px-2 py-1">
+            <div className="size-9 rounded-full bg-offwhite border border-hairline flex items-center justify-center shrink-0 shadow-sm">
+              <User className="size-4 text-ink" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[13px] font-bold text-ink truncate">Alex Morgan</div>
+              <div className="text-[10px] text-purple font-semibold tracking-wide">Premium User</div>
+            </div>
+            {isDashboardPage && (
+              <a href="/" title="Sign out" className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
+                <LogOut className="size-4" />
+              </a>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ── Main content ── */}
+      <div className="flex-1 flex flex-col min-w-0 relative z-10 bg-offwhite/30">
         
-        {/* Top Header Row */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="text-[10px] font-bold text-purple uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+        {/* Top bar */}
+        <div className="flex items-center justify-between px-6 lg:px-10 py-6 border-b border-hairline bg-background">
+          <div className="flex items-center gap-4">
+            <h2 className="display text-2xl font-bold text-ink tracking-tight">
+              {navItems.find(n => n.id === activeTab)?.label}
+            </h2>
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple/10 border border-purple/20 text-[10px] font-bold text-purple uppercase tracking-widest">
               <span className="size-1.5 rounded-full bg-purple animate-pulse" />
               Live Workspace
             </div>
-            <h2 className="display text-2xl lg:text-3xl text-white font-bold">
-              {navItems.find(n => n.id === activeTab)?.label}
-            </h2>
           </div>
 
-          {activeTab === "transactions" && (
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 max-w-xs w-full">
-              <Search className="size-4 text-white/40" />
-              <input
-                type="text"
-                placeholder="Search description..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="bg-transparent border-none outline-none text-xs text-white placeholder-white/35 w-full"
-              />
+          <div className="flex items-center gap-3">
+            {activeTab === "transactions" && (
+              <div className="flex items-center gap-2 bg-background border border-hairline shadow-sm rounded-full px-4 py-2 max-w-[240px] w-full">
+                <Search className="size-4 text-muted-foreground shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="bg-transparent border-none outline-none text-[13px] text-ink placeholder-muted-foreground w-full"
+                />
+              </div>
+            )}
+            <div className="hidden sm:flex items-center gap-1.5 bg-background border border-hairline shadow-sm rounded-full px-4 py-2 text-[12px] text-muted-foreground font-medium">
+              <Activity className="size-3.5 text-ink" />
+              August 2026
             </div>
-          )}
+          </div>
         </div>
 
-        {/* NOTIFICATIONS BANNER */}
-        {uploadSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-purple/15 border border-purple/35 rounded-2xl flex items-center gap-3 text-purple text-xs font-medium"
-          >
-            <CheckCircle2 className="size-4 shrink-0" />
-            Workspace successfully updated by Koshin Intelligence Engine.
-          </motion.div>
-        )}
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-8">
+          
+          {/* Success banner */}
+          <AnimatePresence>
+            {uploadSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                className="mb-6 p-4 bg-purple/10 border border-purple/20 rounded-2xl flex items-center gap-3 shadow-sm"
+              >
+                <div className="size-8 rounded-full bg-purple border border-purple flex items-center justify-center shrink-0 shadow-sm">
+                  <CheckCircle2 className="size-4 text-white" />
+                </div>
+                <div>
+                  <div className="text-[13px] font-bold text-ink">Workspace Updated</div>
+                  <div className="text-[12px] text-muted-foreground mt-0.5">Koshin Intelligence Engine processed and categorized your transactions.</div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-        {/* TAB CONTENTS */}
-        <div className="flex-1">
+          {/* Tab content */}
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
-              initial={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              
-              {/* TAB 1: OVERVIEW */}
+
+              {/* ──────────────────────────────────────────
+                  TAB 1: OVERVIEW DASHBOARD
+              ────────────────────────────────────────── */}
               {activeTab === "dashboard" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  
-                  {/* Bento Left: Stats & Category Breakdown */}
-                  <div className="lg:col-span-8 space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+                  {/* LEFT: stats + breakdown */}
+                  <div className="xl:col-span-8 space-y-6">
+
+                    {/* Stat cards row */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                       
-                      {/* Stat Card 1 */}
-                      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-purple/30 transition-all duration-300 relative group overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-cyan/5 rounded-full blur-2xl pointer-events-none group-hover:bg-cyan/10 transition-all" />
-                        <div className="flex items-center justify-between text-white/40 text-[10px] font-bold uppercase tracking-wider mb-3">
-                          <span>Monthly Income</span>
-                          <div className="p-1 rounded-lg bg-cyan/10 text-cyan">
-                            <ArrowDownLeft className="size-3.5" />
+                      {/* Income */}
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        className="rounded-2xl border border-hairline bg-background p-6 shadow-sm flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Income</span>
+                            <div className="p-1.5 rounded-lg bg-cyan/10 text-cyan">
+                              <ArrowDownLeft className="size-4" />
+                            </div>
+                          </div>
+                          <div className="display text-3xl font-bold text-ink tracking-tight mt-1">
+                            ${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-white font-mono">${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                        <div className="text-[10px] text-cyan mt-1 font-medium flex items-center gap-1">
-                          <CheckCircle2 className="size-3" /> Auto-Verified Deposits
+                        <div className="flex items-center gap-1.5 mt-4 pt-4 border-t border-hairline">
+                          <CheckCircle2 className="size-3.5 text-cyan" />
+                          <span className="text-[11px] text-muted-foreground font-semibold">Auto-Verified Deposits</span>
                         </div>
-                      </div>
+                      </motion.div>
 
-                      {/* Stat Card 2 */}
-                      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-pinkish/30 transition-all duration-300 relative group overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-pinkish/5 rounded-full blur-2xl pointer-events-none group-hover:bg-pinkish/10 transition-all" />
-                        <div className="flex items-center justify-between text-white/40 text-[10px] font-bold uppercase tracking-wider mb-3">
-                          <span>Expenses</span>
-                          <div className="p-1 rounded-lg bg-pinkish/10 text-pinkish">
-                            <ArrowUpRight className="size-3.5" />
+                      {/* Expenses */}
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        className="rounded-2xl border border-hairline bg-background p-6 shadow-sm flex flex-col justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Total Expenses</span>
+                            <div className="p-1.5 rounded-lg bg-pinkish/10 text-pinkish">
+                              <ArrowUpRight className="size-4" />
+                            </div>
+                          </div>
+                          <div className="display text-3xl font-bold text-ink tracking-tight mt-1">
+                            ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-white font-mono">${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                        <div className="text-[10px] text-pinkish mt-1 font-medium flex items-center gap-1">
-                          <CreditCard className="size-3" /> {transactions.filter(t => t.type === 'expense').length} Items Tracked
+                        <div className="flex items-center gap-1.5 mt-4 pt-4 border-t border-hairline">
+                          <CreditCard className="size-3.5 text-pinkish" />
+                          <span className="text-[11px] text-muted-foreground font-semibold">{transactions.filter(t => t.type === 'expense').length} Items Tracked</span>
                         </div>
-                      </div>
+                      </motion.div>
 
-                      {/* Stat Card 3 */}
-                      <div className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-purple/30 transition-all duration-300 relative group overflow-hidden">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-purple/5 rounded-full blur-2xl pointer-events-none group-hover:bg-purple/10 transition-all" />
-                        <div className="flex items-center justify-between text-white/40 text-[10px] font-bold uppercase tracking-wider mb-3">
-                          <span>Net Reserve</span>
-                          <div className="p-1 rounded-lg bg-purple/10 text-purple">
-                            <DollarSign className="size-3.5" />
+                      {/* Net Reserve */}
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        className="rounded-2xl border border-hairline bg-background p-6 shadow-sm flex flex-col justify-between relative overflow-hidden"
+                      >
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-purple/5 rounded-full blur-3xl pointer-events-none" />
+                        <div className="relative">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Net Reserve</span>
+                            <div className="p-1.5 rounded-lg bg-purple/10 text-purple">
+                              <Wallet className="size-4" />
+                            </div>
+                          </div>
+                          <div className={`display text-3xl font-bold tracking-tight mt-1 ${netSavings >= 0 ? 'text-purple' : 'text-pinkish'}`}>
+                            {netSavings >= 0 ? '+' : ''}${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </div>
                         </div>
-                        <div className="text-2xl font-bold text-purple font-mono">${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                        <div className="text-[10px] text-purple/80 mt-1 font-medium flex items-center gap-1">
-                          <Zap className="size-3" /> {savingsRate}% Savings Rate
+                        <div className="flex items-center gap-1.5 mt-4 pt-4 border-t border-hairline relative">
+                          <Zap className="size-3.5 text-purple" />
+                          <span className="text-[11px] text-muted-foreground font-semibold">{savingsRate}% Savings Rate</span>
                         </div>
-                      </div>
-
+                      </motion.div>
                     </div>
 
-                    {/* Breakdown */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    {/* Spending Breakdown */}
+                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                         <div>
-                          <h3 className="text-sm font-bold text-white tracking-wide uppercase">Spending Breakdown</h3>
-                          <p className="text-[10px] text-white/40">Koshin NLP Categorization Engine</p>
+                          <h3 className="display text-lg font-bold text-ink tracking-tight">
+                            Spending Breakdown
+                          </h3>
+                          <p className="text-[13px] text-muted-foreground mt-1">Koshin NLP Categorization Engine</p>
                         </div>
                         <button
                           onClick={handleImportMockCSV}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-white transition-all"
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-offwhite hover:bg-black/5 border border-hairline rounded-full text-[13px] font-semibold text-ink transition-all"
                         >
-                          <FileSpreadsheet className="size-3.5" /> Ingest mock Statement CSV
+                          <FileSpreadsheet className="size-4 text-purple" />
+                          Import CSV Statement
                         </button>
                       </div>
 
-                      <div className="space-y-4">
-                        {Object.entries(categoryBreakdown).map(([cat, amount]) => {
-                          const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
-                          return (
-                            <div key={cat} className="space-y-1.5">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-medium text-white/80">{cat}</span>
-                                <span className="text-[10px] text-white/50 font-mono">
-                                  ${amount.toFixed(2)} ({pct}%)
-                                </span>
+                      <div className="space-y-5">
+                        {Object.entries(categoryBreakdown)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([cat, amount]) => {
+                            const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
+                            const cfg = getCatConfig(cat);
+                            const Icon = cfg.icon;
+                            return (
+                              <div key={cat} className="group">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <div className={`size-8 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0`}>
+                                    <Icon className={`size-4 ${cfg.color}`} strokeWidth={2.5} />
+                                  </div>
+                                  <div className="flex items-center justify-between flex-1">
+                                    <span className="text-[14px] font-semibold text-ink">{cat}</span>
+                                    <span className="text-ink font-bold text-[14px]">
+                                      ${amount.toFixed(2)} <span className="text-muted-foreground font-medium ml-1">({pct}%)</span>
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden ml-11">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${pct}%` }}
+                                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
+                                    className={`h-full rounded-full bg-gradient-to-r ${cfg.gradient} to-transparent`}
+                                  />
+                                </div>
                               </div>
-                              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-gradient-to-r from-purple via-cyan to-brandblue transition-all duration-500"
-                                  style={{ width: `${pct}%` }}
-                                />
+                            );
+                          })}
+                      </div>
+                    </div>
+
+                    {/* Recent Transactions mini-list */}
+                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="display text-lg font-bold text-ink tracking-tight">
+                          Recent Activity
+                        </h3>
+                        <button
+                          onClick={() => setActiveTab("transactions")}
+                          className="text-[13px] text-purple hover:text-purple/80 font-bold flex items-center gap-1 transition-colors"
+                        >
+                          View All <ChevronRight className="size-4" />
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {transactions.slice(0, 5).map(tx => {
+                          const cfg = getCatConfig(tx.category);
+                          const Icon = cfg.icon;
+                          return (
+                            <div key={tx.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-offwhite border border-transparent hover:border-hairline transition-all -mx-3">
+                              <div className={`size-10 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0 shadow-sm`}>
+                                <Icon className={`size-4.5 ${cfg.color}`} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-[14px] font-bold text-ink truncate">{tx.merchant}</span>
+                                  {tx.isRecurring && (
+                                    <span className="px-1.5 py-0.5 rounded-md bg-cyan/10 border border-cyan/20 text-cyan text-[10px] font-bold shrink-0">REC</span>
+                                  )}
+                                </div>
+                                <div className="text-[12px] text-muted-foreground mt-0.5 font-medium">{tx.date} · {tx.category}</div>
+                              </div>
+                              <div className={`text-[15px] font-bold shrink-0 ${tx.type === 'income' ? 'text-cyan' : 'text-ink'}`}>
+                                {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
                               </div>
                             </div>
                           );
@@ -478,414 +617,684 @@ export function KoshinDashboard() {
                     </div>
                   </div>
 
-                  {/* Bento Right: Health Score & Recommendations */}
-                  <div className="lg:col-span-4 space-y-6">
-                    
-                    {/* Health Circle Card */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col items-center text-center">
-                      <span className="text-xs font-bold text-white/40 uppercase tracking-widest mb-4">Financial Health</span>
-                      
-                      <div className="relative size-40 grid place-items-center mb-4">
-                        <svg className="size-full transform -rotate-90" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="6" className="text-white/5" fill="transparent" />
+                  {/* RIGHT: Health score + recommendations */}
+                  <div className="xl:col-span-4 space-y-6">
+
+                    {/* Health score card */}
+                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm flex flex-col items-center text-center">
+                      <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-6">Financial Health Score</div>
+
+                      <div className="relative size-48 mb-6">
+                        {/* Background ring */}
+                        <svg className="size-full -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
+                          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="6" className="text-offwhite" fill="transparent" />
                           <circle
-                            cx="50"
-                            cy="50"
-                            r="42"
-                            stroke="currentColor"
+                            cx="50" cy="50" r="42"
+                            stroke="url(#healthGrad)"
                             strokeWidth="6"
-                            className="text-purple transition-all duration-1000"
                             fill="transparent"
                             strokeDasharray={263.89}
                             strokeDashoffset={263.89 - (263.89 * healthScore) / 100}
                             strokeLinecap="round"
+                            className="transition-all duration-1000"
                           />
+                          <defs>
+                            <linearGradient id="healthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                              <stop offset="0%" stopColor="#8b5cf6" />
+                              <stop offset="100%" stopColor="#00e5ff" />
+                            </linearGradient>
+                          </defs>
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-4xl font-extrabold text-white tracking-tight">{healthScore}</span>
-                          <span className="text-[9px] text-white/30 uppercase font-semibold">Score Index</span>
+                          <span className="display text-6xl font-extrabold text-ink tracking-tight">
+                            {healthScore}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">/ 100</span>
                         </div>
                       </div>
 
-                      <div className={`px-3 py-1 rounded-full text-xs font-semibold border ${healthBadgeColor} mb-2`}>
+                      <div className={`px-5 py-2 rounded-full text-[13px] font-bold border ${healthBadgeColor} mb-4 shadow-sm`}>
                         {healthRatingText}
                       </div>
-
-                      <p className="text-[11px] text-white/50 max-w-xs leading-relaxed">
+                      <p className="text-[13px] text-muted-foreground leading-relaxed max-w-[220px]">
                         Calculated from income/expense ratio, savings rate, and subscription commitments.
                       </p>
-                    </div>
 
-                    {/* Recommendations Panel */}
-                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-3">
-                      <div className="flex items-center gap-2 text-purple font-semibold text-xs uppercase tracking-wider mb-2">
-                        <Zap className="size-4" /> Smart Recommendations
-                      </div>
-                      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-xs text-amber-200 leading-relaxed">
-                        <div className="font-semibold flex items-center gap-1.5 mb-1 text-amber-300">
-                          <AlertCircle className="size-3.5" /> Optimize Subscriptions
+                      {/* Mini metric row */}
+                      <div className="mt-6 w-full grid grid-cols-2 gap-4 border-t border-hairline pt-6">
+                        <div className="text-center">
+                          <div className="text-xl font-bold text-purple">{savingsRate}%</div>
+                          <div className="text-[11px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Savings Rate</div>
                         </div>
-                        You spend ${(categoryBreakdown["Subscriptions"] || 0).toFixed(2)} on memberships. Trimming unused trials could boost health index.
+                        <div className="text-center">
+                          <div className="text-xl font-bold text-cyan">{recurringBills.length}</div>
+                          <div className="text-[11px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Recurring Bills</div>
+                        </div>
                       </div>
                     </div>
 
+                    {/* Recommendations */}
+                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm space-y-5">
+                      <div className="flex items-center gap-2.5 border-b border-hairline pb-4">
+                        <Zap className="size-5 text-purple" />
+                        <span className="display text-[15px] font-bold text-ink">
+                          Smart Recommendations
+                        </span>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="size-4 text-orange-500 shrink-0" />
+                          <span className="text-[13px] font-bold text-orange-700">Optimize Subscriptions</span>
+                        </div>
+                        <p className="text-[13px] text-orange-800/80 leading-relaxed">
+                          You spend ${(categoryBreakdown["Subscriptions"] || 0).toFixed(2)} on memberships monthly. Trimming unused trials could boost your health index.
+                        </p>
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-cyan/10 border border-cyan/20 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Target className="size-4 text-cyan shrink-0" />
+                          <span className="text-[13px] font-bold text-cyan-800">Savings Opportunity</span>
+                        </div>
+                        <p className="text-[13px] text-cyan-800/80 leading-relaxed">
+                          Reducing dining by 20% could free up ${(originalFood * 0.2).toFixed(2)}/month for your emergency reserve.
+                        </p>
+                      </div>
+
+                      <button
+                        onClick={() => setActiveTab("simulator")}
+                        className="w-full py-3 mt-2 rounded-full border border-purple bg-purple hover:bg-purple/90 text-white text-[14px] font-bold transition-all flex items-center justify-center gap-2 shadow-md"
+                      >
+                        <SlidersHorizontal className="size-4" />
+                        Run What-If Simulation
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* TAB 2: TRANSACTIONS */}
+              {/* ──────────────────────────────────────────
+                  TAB 2: TRANSACTIONS
+              ────────────────────────────────────────── */}
               {activeTab === "transactions" && (
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                  
-                  {/* Controls */}
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {["All", "Food & Dining", "Subscriptions", "Travel & Transport", "Housing & Rent", "Shopping", "Bills & Utilities"].map(cat => (
+                <div className="space-y-6">
+                  {/* Filter chips */}
+                  <div className="flex flex-wrap gap-2.5">
+                    {["All", "Food & Dining", "Subscriptions", "Travel & Transport", "Housing & Rent", "Shopping", "Bills & Utilities"].map(cat => {
+                      const isActive = selectedCategory === cat;
+                      return (
                         <button
                           key={cat}
                           onClick={() => setSelectedCategory(cat)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-medium transition-all ${
-                            selectedCategory === cat ? "bg-purple text-white font-semibold" : "bg-white/5 text-white/60 hover:bg-white/10 border border-white/5"
+                          className={`px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 border ${
+                            isActive
+                              ? "bg-ink text-white border-ink shadow-md"
+                              : "bg-background text-muted-foreground hover:text-ink border-hairline hover:bg-offwhite shadow-sm"
                           }`}
                         >
                           {cat}
                         </button>
-                      ))}
+                      );
+                    })}
+                  </div>
+
+                  {/* Transaction table */}
+                  <div className="rounded-2xl border border-hairline bg-background shadow-sm overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left">
+                        <thead>
+                          <tr className="border-b border-hairline bg-offwhite/50">
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant</th>
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Confidence</th>
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Type</th>
+                            <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredTransactions.map((tx, idx) => {
+                            const cfg = getCatConfig(tx.category);
+                            const Icon = cfg.icon;
+                            return (
+                              <tr key={tx.id} className="border-b border-hairline hover:bg-offwhite transition-colors last:border-0">
+                                <td className="py-4 px-6 text-[13px] font-medium text-muted-foreground whitespace-nowrap">{tx.date}</td>
+                                <td className="py-4 px-6">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`size-8 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0`}>
+                                      <Icon className={`size-4 ${cfg.color}`} />
+                                    </div>
+                                    <div>
+                                      <div className="font-bold text-ink text-[14px]">{tx.merchant}</div>
+                                      {tx.isRecurring && (
+                                        <span className="mt-1 inline-block text-[10px] font-bold text-cyan-700 bg-cyan/10 border border-cyan/20 px-2 py-0.5 rounded-md">Recurring</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <span className={`px-2.5 py-1 rounded-md ${cfg.bg} ${cfg.color} text-[12px] font-bold border ${cfg.border}`}>
+                                    {tx.category}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="h-1.5 w-12 bg-offwhite rounded-full overflow-hidden">
+                                      <div className="h-full bg-cyan rounded-full" style={{ width: `${Math.round(tx.confidence * 100)}%` }} />
+                                    </div>
+                                    <span className="font-bold text-[12px] text-ink">{Math.round(tx.confidence * 100)}%</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6">
+                                  <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase border ${
+                                    tx.type === 'income' ? 'bg-purple/10 text-purple border-purple/20' : 'bg-pinkish/10 text-pinkish border-pinkish/20'
+                                  }`}>
+                                    {tx.type}
+                                  </span>
+                                </td>
+                                <td className={`py-4 px-6 text-right font-bold text-[15px] whitespace-nowrap ${
+                                  tx.type === 'income' ? 'text-cyan-700' : 'text-ink'
+                                }`}>
+                                  {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
 
-                  {/* Table */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead>
-                        <tr className="border-b border-white/10 text-white/40 uppercase text-[9px] tracking-wider">
-                          <th className="py-3 px-4">Date</th>
-                          <th className="py-3 px-4">Merchant / Description</th>
-                          <th className="py-3 px-4">Category</th>
-                          <th className="py-3 px-4">Confidence</th>
-                          <th className="py-3 px-4">Type</th>
-                          <th className="py-3 px-4 text-right">Amount</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5 text-white/80">
-                        {filteredTransactions.map(tx => (
-                          <tr key={tx.id} className="hover:bg-white/5 transition-all">
-                            <td className="py-3.5 px-4 font-mono text-white/40">{tx.date}</td>
-                            <td className="py-3.5 px-4 font-semibold text-white">
-                              <div className="flex items-center gap-2">
-                                {tx.merchant}
-                                {tx.isRecurring && (
-                                  <span className="px-1.5 py-0.5 rounded-md bg-cyan/10 text-cyan text-[9px] font-bold">
-                                    Recurring
-                                  </span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="px-2 py-1 rounded-md bg-white/5 text-white/80 text-[10px] border border-white/5">
-                                {tx.category}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-cyan">
-                              {Math.round(tx.confidence * 100)}%
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className={`px-2 py-0.5 rounded-md text-[9px] font-bold uppercase ${
-                                tx.type === 'income' ? 'bg-purple/10 text-purple' : 'bg-pinkish/10 text-pinkish'
-                              }`}>
-                                {tx.type}
-                              </span>
-                            </td>
-                            <td className={`py-3.5 px-4 text-right font-semibold font-mono ${
-                              tx.type === 'income' ? 'text-purple' : 'text-white'
-                            }`}>
-                              {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Fast Add Widget */}
-                  <div className="p-5 border border-white/10 rounded-2xl bg-white/5">
-                    <h4 className="text-xs font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-wide">
-                      <PlusCircle className="size-4 text-purple" /> Quick Add transaction records
-                    </h4>
-                    <form onSubmit={handleAddTransaction} className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                  {/* Quick Add form */}
+                  <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7">
+                    <div className="flex items-center gap-2.5 mb-2">
+                      <PlusCircle className="size-5 text-purple" />
+                      <h4 className="display text-lg font-bold text-ink">
+                        Quick Add Transaction
+                      </h4>
+                    </div>
+                    <p className="text-[13px] text-muted-foreground mb-6">AI will auto-categorize based on merchant description</p>
+                    <form onSubmit={handleAddTransaction} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                       <input
                         type="text"
-                        placeholder="Merchant Description (e.g. Starbucks)"
+                        placeholder="Merchant (e.g. Starbucks)"
                         value={newMerchant}
                         onChange={e => setNewMerchant(e.target.value)}
-                        className="px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-xs text-white placeholder-white/30 focus:outline-none focus:border-purple"
+                        className="sm:col-span-2 px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
                       />
                       <input
                         type="number"
                         placeholder="Amount ($)"
                         value={newAmount}
                         onChange={e => setNewAmount(e.target.value)}
-                        className="px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-xs text-white placeholder-white/30 focus:outline-none focus:border-purple"
+                        className="px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
                       />
-                      <select
-                        value={newType}
-                        onChange={e => setNewType(e.target.value as any)}
-                        className="px-3.5 py-2.5 rounded-xl bg-black/30 border border-white/10 text-xs text-white focus:outline-none focus:border-purple"
-                      >
-                        <option value="expense">Expense</option>
-                        <option value="income">Income</option>
-                      </select>
-                      <button
-                        type="submit"
-                        className="py-2.5 bg-purple hover:bg-purple/90 text-white font-semibold rounded-xl text-xs transition-all shadow-md"
-                      >
-                        Auto-Categorize & Add
-                      </button>
+                      <div className="flex gap-2">
+                        <select
+                          value={newType}
+                          onChange={e => setNewType(e.target.value as any)}
+                          className="flex-1 px-3 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
+                        >
+                          <option value="expense">Expense</option>
+                          <option value="income">Income</option>
+                        </select>
+                        <button
+                          type="submit"
+                          className="px-5 py-3 bg-purple hover:bg-purple/90 text-white font-bold rounded-xl text-[14px] transition-all shadow-md shrink-0 whitespace-nowrap"
+                        >
+                          Add
+                        </button>
+                      </div>
                     </form>
                   </div>
-
                 </div>
               )}
 
-              {/* TAB 3: SUBSCRIPTIONS */}
+              {/* ──────────────────────────────────────────
+                  TAB 3: SUBSCRIPTIONS
+              ────────────────────────────────────────── */}
               {activeTab === "subscriptions" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  
-                  {/* Commited subscriptions list */}
-                  <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                    <div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">Active Commitments</h3>
-                      <p className="text-[10px] text-white/40">Silent recurring bills auto-detected from statement logs</p>
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+                  <div className="xl:col-span-8 space-y-6">
+                    {/* Header summary */}
+                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-6">
+                      <div className="size-16 rounded-2xl bg-purple/10 border border-purple/20 flex items-center justify-center shrink-0">
+                        <Bell className="size-7 text-purple" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="display text-3xl font-bold text-ink">
+                          ${recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0).toFixed(2)}
+                          <span className="text-[15px] text-muted-foreground font-medium ml-2">/ month</span>
+                        </div>
+                        <div className="text-[13px] font-medium text-muted-foreground mt-1">{recurringBills.length} active commitments auto-detected</div>
+                      </div>
+                      <div className="sm:text-right p-4 bg-offwhite rounded-xl border border-hairline">
+                        <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Annual Cost</div>
+                        <div className="text-xl font-bold text-pinkish">${(recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0) * 12).toFixed(0)}</div>
+                      </div>
                     </div>
 
-                    <div className="space-y-3.5">
-                      {recurringBills.map(item => (
-                        <div key={item.id} className="p-4 rounded-xl bg-black/20 border border-white/5 flex items-center justify-between gap-4 hover:border-purple/30 transition-all duration-300">
-                          <div className="flex items-center gap-3">
-                            <div className="size-9 rounded-xl bg-purple/10 border border-purple/35 grid place-items-center text-purple font-bold text-sm">
-                              {item.merchant[0]}
-                            </div>
-                            <div>
-                              <div className="font-semibold text-white text-xs">{item.merchant}</div>
-                              <div className="text-[10px] text-white/40 flex items-center gap-1.5 mt-0.5">
-                                <span>{item.category}</span>
-                                <span>•</span>
-                                <span className="text-cyan">Monthly billing</span>
+                    {/* Subscriptions list */}
+                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7">
+                      <div className="mb-6 border-b border-hairline pb-4">
+                        <h3 className="display text-lg font-bold text-ink">
+                          Active Commitments
+                        </h3>
+                        <p className="text-[13px] text-muted-foreground mt-1">Silent recurring bills auto-detected from statement logs</p>
+                      </div>
+                      <div className="space-y-4">
+                        {recurringBills.map(item => {
+                          const cfg = getCatConfig(item.category);
+                          const Icon = cfg.icon;
+                          return (
+                            <motion.div
+                              key={item.id}
+                              whileHover={{ x: 4 }}
+                              className="p-4 rounded-xl bg-offwhite/50 border border-hairline hover:border-purple/30 transition-all duration-200 flex items-center justify-between gap-4 shadow-sm"
+                            >
+                              <div className="flex items-center gap-4">
+                                <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white`}>
+                                  <Icon className={`size-5 ${cfg.color}`} />
+                                </div>
+                                <div>
+                                  <div className="font-bold text-ink text-[15px]">{item.merchant}</div>
+                                  <div className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
+                                    <span className={`${cfg.color}`}>{item.category}</span>
+                                    <span className="text-hairline">•</span>
+                                    <span>Monthly billing</span>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
+                              <div className="text-right shrink-0">
+                                <div className="text-[16px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[12px]">/mo</span></div>
+                                <div className="text-[10px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
 
-                          <div className="text-right">
-                            <div className="text-xs font-bold text-white font-mono">${item.amount.toFixed(2)}/mo</div>
-                            <div className="text-[9px] text-purple font-semibold">Monitored</div>
+                  {/* Sidebar */}
+                  <div className="xl:col-span-4 space-y-6">
+                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-5">
+                      <div className="flex items-center gap-2.5 mb-2 border-b border-hairline pb-4">
+                        <RefreshCw className="size-5 text-purple" />
+                        <h4 className="display text-[15px] font-bold text-ink">
+                          Renewal Calendar
+                        </h4>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground font-medium">Next predicted billing statements:</p>
+
+                      <div className="p-5 rounded-xl bg-purple/5 border border-purple/20 space-y-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-ink text-[14px]">ConEd Electric</span>
+                          <span className="text-cyan-700 font-bold text-[11px] bg-cyan/10 border border-cyan/20 px-2.5 py-1 rounded-md">Aug 18</span>
+                        </div>
+                        <div className="text-2xl font-bold text-ink">${94.20.toFixed(2)}</div>
+                        <div className="text-[12px] font-medium text-muted-foreground">Bills & Utilities</div>
+                      </div>
+
+                      <div className="p-5 rounded-xl bg-pinkish/5 border border-pinkish/20 space-y-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-ink text-[14px]">Netflix Premium</span>
+                          <span className="text-pinkish font-bold text-[11px] bg-pinkish/10 border border-pinkish/20 px-2.5 py-1 rounded-md">Aug 24</span>
+                        </div>
+                        <div className="text-2xl font-bold text-ink">${19.99.toFixed(2)}</div>
+                        <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
+                      </div>
+
+                      <div className="p-5 rounded-xl bg-skyblue/5 border border-skyblue/20 space-y-2 shadow-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-ink text-[14px]">Spotify Family</span>
+                          <span className="text-skyblue-700 font-bold text-[11px] bg-skyblue/10 border border-skyblue/20 px-2.5 py-1 rounded-md">Aug 28</span>
+                        </div>
+                        <div className="text-2xl font-bold text-ink">${16.99.toFixed(2)}</div>
+                        <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ──────────────────────────────────────────
+                  TAB 4: WHAT-IF SIMULATOR
+              ────────────────────────────────────────── */}
+              {activeTab === "simulator" && (
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+                  {/* Sliders */}
+                  <div className="xl:col-span-7 rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-8">
+                    <div className="border-b border-hairline pb-5">
+                      <h3 className="display text-xl font-bold text-ink">
+                        Interactive What-If Tool
+                      </h3>
+                      <p className="text-[14px] font-medium text-muted-foreground mt-2">Adjust sliders to simulate reductions in non-essential expenses</p>
+                    </div>
+
+                    {/* Slider: Food */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center shadow-sm">
+                            <Coffee className="size-4 text-orange-500" />
                           </div>
+                          <span className="text-[14px] font-bold text-ink">Food & Dining</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[16px] font-bold text-orange-500">{foodCut}%</span>
+                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simFoodSavings.toFixed(2)}/mo)</span>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: `${foodCut}%` }} />
+                        </div>
+                        <input
+                          type="range" min="0" max="100" value={foodCut}
+                          onChange={e => setFoodCut(Number(e.target.value))}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Slider: Subs */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-xl bg-purple/10 border border-purple/20 flex items-center justify-center shadow-sm">
+                            <Tv className="size-4 text-purple" />
+                          </div>
+                          <span className="text-[14px] font-bold text-ink">Subscriptions</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[16px] font-bold text-purple">{subCut}%</span>
+                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simSubSavings.toFixed(2)}/mo)</span>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-purple rounded-full transition-all" style={{ width: `${subCut}%` }} />
+                        </div>
+                        <input
+                          type="range" min="0" max="100" value={subCut}
+                          onChange={e => setSubCut(Number(e.target.value))}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Slider: Shopping */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="size-8 rounded-xl bg-pinkish/10 border border-pinkish/20 flex items-center justify-center shadow-sm">
+                            <ShoppingBag className="size-4 text-pinkish" />
+                          </div>
+                          <span className="text-[14px] font-bold text-ink">Shopping</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[16px] font-bold text-pinkish">{shoppingCut}%</span>
+                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simShopSavings.toFixed(2)}/mo)</span>
+                        </div>
+                      </div>
+                      <div className="relative">
+                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
+                          <div className="h-full bg-pinkish rounded-full transition-all" style={{ width: `${shoppingCut}%` }} />
+                        </div>
+                        <input
+                          type="range" min="0" max="100" value={shoppingCut}
+                          onChange={e => setShoppingCut(Number(e.target.value))}
+                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Breakdown mini-table */}
+                    <div className="pt-6 border-t border-hairline space-y-3">
+                      <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Projected Savings Summary</div>
+                      {[
+                        { label: "Food & Dining", saving: simFoodSavings, color: "text-orange-500" },
+                        { label: "Subscriptions", saving: simSubSavings, color: "text-purple" },
+                        { label: "Shopping", saving: simShopSavings, color: "text-pinkish" },
+                      ].map(r => (
+                        <div key={r.label} className="flex items-center justify-between text-[13px] font-bold border-b border-hairline pb-2 last:border-0 last:pb-0">
+                          <span className="text-ink">{r.label}</span>
+                          <span className={`${r.color}`}>-${r.saving.toFixed(2)}/mo</span>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Sidebar stats/alerts */}
-                  <div className="lg:col-span-4 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider text-purple">Renewal Calendar</h4>
-                    <p className="text-[11px] text-white/40 leading-relaxed">Next predicted recurring billing statements:</p>
-
-                    <div className="p-4 rounded-xl bg-purple/10 border border-purple/20 space-y-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-white">ConEd Electric</span>
-                        <span className="text-cyan font-mono text-[10px]">Aug 18</span>
-                      </div>
-                      <div className="text-lg font-bold text-white font-mono">$94.20</div>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-pinkish/10 border border-pinkish/20 space-y-3">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-white">Netflix Premium</span>
-                        <span className="text-pinkish font-mono text-[10px]">Aug 24</span>
-                      </div>
-                      <div className="text-lg font-bold text-white font-mono">$19.99</div>
-                    </div>
-                  </div>
-
-                </div>
-              )}
-
-              {/* TAB 4: SIMULATOR */}
-              {activeTab === "simulator" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  
-                  {/* Sliders panel */}
-                  <div className="lg:col-span-7 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                    <div>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">Interactive What-If Tool</h3>
-                      <p className="text-[10px] text-white/40">Adjust sliders to simulate reductions in non-essential expenses</p>
-                    </div>
-
-                    {/* Food Slider */}
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-white/80">Reduce Food Delivery & Dining</span>
-                        <span className="font-bold text-purple font-mono">{foodCut}% (-${simFoodSavings.toFixed(2)}/mo)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={foodCut}
-                        onChange={e => setFoodCut(Number(e.target.value))}
-                        className="w-full accent-purple cursor-pointer bg-white/10 h-1 rounded-full appearance-none"
-                      />
-                    </div>
-
-                    {/* Subs Slider */}
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-white/80">Trim Subscriptions</span>
-                        <span className="font-bold text-cyan font-mono">{subCut}% (-${simSubSavings.toFixed(2)}/mo)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={subCut}
-                        onChange={e => setSubCut(Number(e.target.value))}
-                        className="w-full accent-cyan cursor-pointer bg-white/10 h-1 rounded-full appearance-none"
-                      />
-                    </div>
-
-                    {/* Shopping Slider */}
-                    <div className="space-y-2.5">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-medium text-white/80">Scale down non-essential Shopping</span>
-                        <span className="font-bold text-pinkish font-mono">{shoppingCut}% (-${simShopSavings.toFixed(2)}/mo)</span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={shoppingCut}
-                        onChange={e => setShoppingCut(Number(e.target.value))}
-                        className="w-full accent-pinkish cursor-pointer bg-white/10 h-1 rounded-full appearance-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Impact projection panel */}
-                  <div className="lg:col-span-5 bg-gradient-to-br from-purple/15 via-white/5 to-cyan/15 border border-purple/35 rounded-2xl p-6 flex flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] font-bold text-purple uppercase tracking-widest mb-1 block">Projection Analysis</span>
-                      <h4 className="text-sm font-bold text-white/60 mb-4 uppercase">Projected Savings</h4>
-                      <div className="text-4xl font-extrabold text-white font-mono my-2 tracking-tight">
-                        +${totalAnnualSimSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        <span className="text-xs text-white/40 font-normal block mt-1">/ annually</span>
-                      </div>
-                      <p className="text-xs text-white/50 leading-relaxed mt-2">
-                        Simulating a combined reduction saves <strong className="text-white">${totalMonthlySimSavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
-                      </p>
-                    </div>
-
-                    <div className="mt-8 pt-4 border-t border-white/5 space-y-3">
-                      <div className="text-[10px] font-bold text-white uppercase tracking-wider">Suggested Allocations</div>
-                      <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold text-white/70">
-                        <div className="p-3 rounded-xl bg-black/40 text-center border border-white/5 hover:border-purple/35 transition-all">
-                          Emergency Reserve
+                  {/* Impact panel */}
+                  <div className="xl:col-span-5 flex flex-col gap-6">
+                    <div className="rounded-2xl border border-purple bg-purple/5 shadow-md p-8 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple/10 border border-purple/20 text-[11px] font-bold text-purple uppercase tracking-widest mb-6">
+                          <Activity className="size-3.5" /> Projection Analysis
                         </div>
-                        <div className="p-3 rounded-xl bg-black/40 text-center border border-white/5 hover:border-cyan/35 transition-all">
-                          Growth Portfolio
+                        
+                        <h4 className="display text-2xl font-bold text-ink mb-3">
+                          Projected Annual Savings
+                        </h4>
+
+                        <div className="display text-[56px] font-extrabold text-purple tracking-tight leading-none mb-2">
+                          +${totalAnnualSimSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </div>
+                        <div className="text-[15px] font-bold text-muted-foreground">per year · ${totalMonthlySimSavings.toFixed(2)}/mo</div>
+
+                        <p className="text-[14px] text-ink leading-relaxed mt-6 font-medium">
+                          This combined reduction frees up <strong className="text-purple">${totalMonthlySimSavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
+                        </p>
+                      </div>
+
+                      <div className="mt-8 pt-6 border-t border-purple/20">
+                        <div className="text-[11px] font-bold text-purple uppercase tracking-widest mb-4">Suggested Allocations</div>
+                        <div className="grid grid-cols-2 gap-3">
+                          {[
+                            { label: "Emergency Reserve", icon: ShieldCheck, color: "text-cyan-700", bg: "bg-cyan-50", border: "border-cyan-200 hover:border-cyan-400" },
+                            { label: "Growth Portfolio", icon: TrendingUp, color: "text-purple", bg: "bg-purple/10", border: "border-purple/20 hover:border-purple/40" },
+                            { label: "Vacation Fund", icon: Target, color: "text-pinkish", bg: "bg-pinkish/10", border: "border-pinkish/20 hover:border-pinkish/40" },
+                            { label: "Retirement IRA", icon: Activity, color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200 hover:border-orange-400" },
+                          ].map(a => {
+                            const Icon = a.icon;
+                            return (
+                              <div key={a.label} className={`p-4 rounded-xl ${a.bg} border ${a.border} text-center transition-all cursor-pointer group shadow-sm`}>
+                                <Icon className={`size-5 ${a.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
+                                <div className="text-[11px] font-bold text-ink">{a.label}</div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     </div>
                   </div>
-
                 </div>
               )}
 
-              {/* TAB 5: AI CHAT */}
+              {/* ──────────────────────────────────────────
+                  TAB 5: KOSHIN AI CHAT
+              ────────────────────────────────────────── */}
               {activeTab === "ai" && (
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  
-                  {/* Chat layout */}
-                  <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col h-[480px]">
-                    <div className="flex-1 overflow-y-auto space-y-3 pr-2 scrollbar-thin">
+                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+
+                  {/* Chat panel */}
+                  <div className="xl:col-span-8 rounded-2xl border border-hairline bg-background shadow-sm flex flex-col overflow-hidden" style={{ height: "600px" }}>
+                    {/* Chat header */}
+                    <div className="flex items-center gap-4 px-6 py-5 border-b border-hairline bg-offwhite/50">
+                      <div className="size-11 rounded-xl bg-purple text-white flex items-center justify-center shadow-md">
+                        <Bot className="size-6" />
+                      </div>
+                      <div>
+                        <div className="display text-[16px] font-bold text-ink">Koshin AI</div>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <span className="size-2 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[12px] text-muted-foreground font-bold">Online — Ready to assist</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Messages */}
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
                       {chatMessages.map((msg, i) => {
                         const isUser = msg.role === "user";
                         return (
-                          <div
+                          <motion.div
                             key={i}
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.2 }}
                             className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                           >
-                            <div className={`max-w-md p-3.5 rounded-2xl text-xs leading-relaxed ${
-                              isUser ? "bg-purple text-white rounded-tr-none" : "bg-white/5 text-white/90 border border-white/5 rounded-tl-none"
+                            {!isUser && (
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="size-6 rounded-md bg-purple text-white flex items-center justify-center shadow-sm">
+                                  <Bot className="size-3.5" />
+                                </div>
+                                <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Koshin AI</span>
+                              </div>
+                            )}
+                            <div className={`max-w-[80%] px-5 py-4 rounded-2xl text-[14px] font-medium leading-relaxed shadow-sm ${
+                              isUser
+                                ? "bg-ink text-white rounded-tr-sm"
+                                : "bg-offwhite text-ink border border-hairline rounded-tl-sm"
                             }`}>
                               {msg.text}
                             </div>
-                            <span className="text-[9px] text-white/30 mt-1 px-1">{msg.time}</span>
-                          </div>
+                            <span className="text-[10px] text-muted-foreground font-semibold mt-2 px-1">{msg.time}</span>
+                          </motion.div>
                         );
                       })}
+
+                      {/* Typing indicator */}
+                      <AnimatePresence>
+                        {isTyping && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 6 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-start gap-2"
+                          >
+                            <div className="size-6 rounded-md bg-purple text-white flex items-center justify-center shadow-sm">
+                              <Bot className="size-3.5" />
+                            </div>
+                            <div className="px-5 py-4 rounded-2xl rounded-tl-sm bg-offwhite border border-hairline flex items-center gap-1.5 shadow-sm">
+                              {[0, 0.2, 0.4].map((delay, i) => (
+                                <motion.span
+                                  key={i}
+                                  className="size-2 rounded-full bg-purple"
+                                  animate={{ y: [0, -4, 0] }}
+                                  transition={{ duration: 0.6, repeat: Infinity, delay, ease: "easeInOut" }}
+                                />
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <div ref={chatEndRef} />
                     </div>
 
-                    {/* chips */}
-                    <div className="pt-2 pb-3 flex gap-1.5 overflow-x-auto whitespace-nowrap scrollbar-none">
+                    {/* Quick chip suggestions */}
+                    <div className="px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none border-t border-hairline pt-4 bg-offwhite/50">
                       {["How much did I spend on food?", "List active subscriptions", "What is my health score?", "How can I save more?"].map(chip => (
                         <button
                           key={chip}
                           onClick={() => handleSendMessage(chip)}
-                          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-white/70 rounded-full text-[10px] font-medium transition-all"
+                          className="px-4 py-2 bg-background hover:bg-white border border-hairline text-ink rounded-full text-[12px] font-bold transition-all shadow-sm whitespace-nowrap"
                         >
                           {chip}
                         </button>
                       ))}
                     </div>
 
-                    {/* Form */}
-                    <form
-                      onSubmit={e => {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }}
-                      className="flex items-center gap-2 pt-3 border-t border-white/5"
-                    >
-                      <input
-                        type="text"
-                        placeholder="Ask Koshin AI about your transaction logs..."
-                        value={chatInput}
-                        onChange={e => setChatInput(e.target.value)}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-black/30 border border-white/10 text-xs text-white placeholder-white/30 focus:outline-none focus:border-purple"
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 py-2.5 bg-purple hover:bg-purple/90 text-white font-semibold rounded-xl text-xs transition-all flex items-center gap-1.5 shadow-md"
+                    {/* Input */}
+                    <div className="px-6 pb-6 pt-2 bg-offwhite/50">
+                      <form
+                        onSubmit={e => { e.preventDefault(); handleSendMessage(); }}
+                        className="flex items-center gap-3"
                       >
-                        <Send className="size-3.5" /> Send
-                      </button>
-                    </form>
-                  </div>
-
-                  {/* Sidebar description */}
-                  <div className="lg:col-span-4 bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider text-purple">AI Core Technicals</h4>
-                    <p className="text-[11px] text-white/50 leading-relaxed">
-                      Koshin AI indexes your merchant descriptions, transaction dates, and categories in an in-memory database to execute immediate NLP queries.
-                    </p>
-                    <div className="p-4 rounded-xl bg-black/30 border border-white/5 text-[10px] text-white/70 space-y-2 font-mono">
-                      <div className="flex items-center justify-between">
-                        <span>Accuracy Ratio:</span>
-                        <span className="text-cyan font-bold">98.6%</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>NLP Framework:</span>
-                        <span className="text-purple font-bold">In-Memory Rule/Model Hybrid</span>
-                      </div>
+                        <input
+                          type="text"
+                          placeholder="Ask Koshin AI about your finances..."
+                          value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          className="flex-1 px-5 py-3.5 rounded-full bg-background border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple shadow-sm transition-all"
+                        />
+                        <button
+                          type="submit"
+                          disabled={isTyping}
+                          className="px-6 py-3.5 bg-purple hover:bg-purple/90 text-white font-bold rounded-full text-[14px] transition-all flex items-center gap-2 shadow-md disabled:opacity-50 shrink-0"
+                        >
+                          <Send className="size-4" />
+                          Send
+                        </button>
+                      </form>
                     </div>
                   </div>
 
+                  {/* AI info sidebar */}
+                  <div className="xl:col-span-4 space-y-6">
+                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-5">
+                      <div className="flex items-center gap-2.5 border-b border-hairline pb-4">
+                        <Sparkles className="size-5 text-purple" />
+                        <h4 className="display text-[15px] font-bold text-ink">
+                          AI Core Technicals
+                        </h4>
+                      </div>
+                      <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">
+                        Koshin AI indexes your merchant descriptions, transaction dates, and categories in an in-memory database to execute immediate NLP queries.
+                      </p>
+
+                      <div className="rounded-xl bg-offwhite border border-hairline p-5 space-y-4">
+                        {[
+                          { label: "Accuracy Ratio", value: "98.6%", color: "text-purple" },
+                          { label: "NLP Framework", value: "Hybrid Model", color: "text-ink" },
+                          { label: "Response Time", value: "< 800ms", color: "text-ink" },
+                          { label: "Data Source", value: "In-Memory DB", color: "text-ink" },
+                        ].map(stat => (
+                          <div key={stat.label} className="flex items-center justify-between border-b border-hairline pb-2 last:border-0 last:pb-0">
+                            <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
+                            <span className={`text-[13px] font-bold ${stat.color}`}>{stat.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Suggested topics */}
+                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-4">
+                      <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Suggested Topics</h4>
+                      {[
+                        { q: "How much did I spend on food?", icon: Coffee, color: "text-orange-500", bg: "bg-orange-50", border: "border-orange-200" },
+                        { q: "List active subscriptions", icon: Bell, color: "text-purple", bg: "bg-purple/10", border: "border-purple/20" },
+                        { q: "What is my health score?", icon: ShieldCheck, color: "text-cyan-700", bg: "bg-cyan-50", border: "border-cyan-200" },
+                        { q: "How can I save more?", icon: Target, color: "text-pinkish", bg: "bg-pinkish/10", border: "border-pinkish/20" },
+                      ].map(s => {
+                        const Icon = s.icon;
+                        return (
+                          <button
+                            key={s.q}
+                            onClick={() => handleSendMessage(s.q)}
+                            className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-background hover:bg-offwhite border border-hairline transition-all text-left group shadow-sm hover:shadow-md"
+                          >
+                            <div className={`size-8 rounded-lg ${s.bg} border ${s.border} flex items-center justify-center shrink-0`}>
+                              <Icon className={`size-4 ${s.color}`} />
+                            </div>
+                            <span className="text-[13px] font-bold text-ink flex-1">{s.q}</span>
+                            <ChevronRight className="size-4 text-muted-foreground group-hover:text-ink transition-colors shrink-0" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               )}
 
             </motion.div>
           </AnimatePresence>
         </div>
-
       </div>
     </div>
   );
