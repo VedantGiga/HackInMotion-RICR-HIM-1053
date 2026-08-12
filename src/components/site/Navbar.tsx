@@ -47,8 +47,8 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-          scrolled ? "border-b border-hairline bg-background/80 backdrop-blur-md" : "bg-transparent"
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${
+          scrolled ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100 bg-transparent"
         }`}
       >
         <div className="shell flex items-center justify-between gap-6 py-5">

@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { LineReveal, Reveal } from "@/lib/motion-primitives";
-import { ParticleField } from "./ParticleField";
+import bg0 from "@/assets/particle-bg-0.png";
+import bg1 from "@/assets/particle-bg-1.png";
+import bg2 from "@/assets/particle-bg-2.png";
 
 const CASES = [
   {
     title: ["Subscription", "Detector & Cleaner"],
     body: "Automatically flags repeating monthly bills, unused free trials, and silent price hikes.",
-    light: true,
   },
   {
     title: ["Upcoming Bill", "Predictor & Reminders"],
@@ -18,66 +20,105 @@ const CASES = [
   },
 ];
 
+const BACKGROUNDS = [bg0, bg1, bg2];
+
 export function CaseStudies() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
   return (
-    <section id="features" className="relative overflow-hidden bg-navy py-24 text-white md:py-32 lg:py-40">
-      <ParticleField />
-      <div className="shell relative">
-        <div className="text-center text-xs font-semibold text-lime uppercase tracking-widest mb-3">
-          Advanced Innovations
-        </div>
+    <section
+      id="features"
+      className="relative overflow-hidden bg-black py-20 text-white md:py-28 lg:py-36 min-h-[680px] flex flex-col justify-center transition-colors duration-700"
+    >
+      {/* Particle Background Image Layers (Fades in ONLY when hovered) */}
+      {BACKGROUNDS.map((bg, idx) => (
+        <div
+          key={idx}
+          className={`absolute inset-0 transition-all duration-700 ease-out pointer-events-none bg-cover bg-center ${
+            hoveredIndex === idx ? "opacity-100 scale-105" : "opacity-0 scale-100"
+          }`}
+          style={{ backgroundImage: `url(${bg})` }}
+        />
+      ))}
+
+      {/* Dark Overlay when active */}
+      <div
+        className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-700 pointer-events-none ${
+          hoveredIndex !== null ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      <div className="shell relative z-10 max-w-6xl mx-auto">
         <LineReveal
-          className="display text-center text-[clamp(2.2rem,5.6vw,4.4rem)]"
-          lines={["Intelligent Features", "Built for Real Impact"]}
+          className="display text-center text-[clamp(2.2rem,5vw,4.2rem)] text-white tracking-tight"
+          lines={["From ambition to", "tangible results"]}
         />
 
-        <div className="mt-16 grid gap-6 md:grid-cols-3 md:gap-4">
-          {CASES.map((c, i) => (
-            <Reveal key={c.title.join(" ")} delay={i * 0.08}>
-              <article
-                className={`group flex h-full min-h-[420px] flex-col justify-between p-8 transition-transform duration-500 hover:-translate-y-2 ${
-                  c.light
-                    ? "bg-white text-ink rounded-r-[50%]"
-                    : "border border-white/25 bg-white/[0.03] rounded-r-[50%]"
-                }`}
-              >
-                <h3 className="display max-w-[12ch] text-[clamp(1.6rem,2.4vw,2.1rem)]">
-                  {c.title.map((t) => (
-                    <span key={t} className="block">
-                      {t}
-                    </span>
-                  ))}
-                </h3>
-                <div>
-                  <p
-                    className={`max-w-[22ch] text-[15px] leading-[1.6] ${c.light ? "text-muted-foreground" : "text-white/75"}`}
-                  >
-                    {c.body}
-                  </p>
-                  <a
-                    href="#demo"
-                    className={`mt-8 inline-flex items-center gap-3 rounded-full border py-2 pr-2 pl-5 text-sm font-semibold transition-colors ${
-                      c.light
-                        ? "border-ink/25 hover:border-ink"
-                        : "border-white/35 hover:border-white"
-                    }`}
-                  >
-                    Test Live Module
-                    <span
-                      className={`grid size-8 place-items-center rounded-full border transition-transform duration-300 group-hover:translate-x-1 ${
-                        c.light ? "border-ink/25" : "border-white/35"
+        <div
+          onMouseLeave={() => setHoveredIndex(null)}
+          className="mt-12 grid gap-5 md:grid-cols-3 md:gap-5 items-stretch"
+        >
+          {CASES.map((c, i) => {
+            const isHovered = hoveredIndex === i;
+            const isAnyHovered = hoveredIndex !== null;
+
+            return (
+              <Reveal key={c.title.join(" ")} delay={i * 0.08}>
+                <article
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  className={`group relative flex h-full min-h-[400px] sm:min-h-[430px] flex-col justify-between p-6 sm:p-8 transition-all duration-500 rounded-l-none rounded-r-[50%] md:rounded-r-[180px] cursor-pointer ${
+                    isHovered
+                      ? "bg-white text-ink shadow-[0_20px_50px_-10px_rgba(0,0,0,0.6)] scale-[1.03] z-20"
+                      : isAnyHovered
+                      ? "border border-white/20 bg-black/40 text-white opacity-50 scale-100 z-10"
+                      : "border border-white/30 bg-white/[0.03] backdrop-blur-sm text-white hover:border-white/60 scale-100 z-10"
+                  }`}
+                >
+                  <div>
+                    <h3 className="display max-w-[11ch] text-[clamp(1.5rem,2.2vw,2rem)] leading-[1.15] font-bold tracking-tight">
+                      {c.title.map((t) => (
+                        <span key={t} className={`block ${isHovered ? "text-ink" : "text-white"}`}>
+                          {t}
+                        </span>
+                      ))}
+                    </h3>
+                  </div>
+
+                  <div className="mt-auto space-y-6">
+                    <p
+                      className={`max-w-[21ch] text-xs sm:text-sm leading-[1.6] ${
+                        isHovered ? "text-muted-foreground font-normal" : "text-white/80 font-normal"
                       }`}
                     >
-                      <ArrowRight className="size-4" strokeWidth={2} />
-                    </span>
-                  </a>
-                </div>
-              </article>
-            </Reveal>
-          ))}
+                      {c.body}
+                    </p>
+
+                    <div>
+                      <a
+                        href="#demo"
+                        className={`inline-flex items-center justify-between gap-3 rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
+                          isHovered
+                            ? "border-ink/25 bg-white text-ink hover:border-ink hover:bg-ink hover:text-white"
+                            : "border-white/35 bg-white/5 text-white hover:border-white hover:bg-white/10"
+                        }`}
+                      >
+                        <span>Read more</span>
+                        <span
+                          className={`grid size-6 place-items-center rounded-full border transition-transform duration-300 group-hover:translate-x-1 ${
+                            isHovered ? "border-ink/25 text-current" : "border-white/35 text-white"
+                          }`}
+                        >
+                          <ArrowRight className="size-3" strokeWidth={2} />
+                        </span>
+                      </a>
+                    </div>
+                  </div>
+                </article>
+              </Reveal>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
-
