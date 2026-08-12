@@ -1,4 +1,4 @@
-// File: E:\him-hackathon-lovable\matrixpay-launchpad-main\src\app\layout.tsx
+// File: D:\72 hr hackthon\HackInMotion-RICR-HIM-1053\src\app\layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
