@@ -1,0 +1,145 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* MatrixPay brand */
+  --color-ink: var(--ink);
+  --color-offwhite: var(--offwhite);
+  --color-hairline: var(--hairline);
+  --color-grayed: var(--grayed);
+  --color-lime: var(--lime);
+  --color-cyan: var(--cyan);
+  --color-brandblue: var(--brandblue);
+  --color-navy: var(--navy);
+  --color-pinkish: var(--pinkish);
+  --color-mint: var(--mint);
+  --color-skyblue: var(--skyblue);
+
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+}
+
+:root {
+  --radius: 0.125rem;
+
+  --ink: oklch(0.145 0 0);
+  --offwhite: oklch(0.977 0.002 106);
+  --hairline: oklch(0.925 0.002 106);
+  --grayed: oklch(0.72 0 0);
+  --lime: oklch(0.94 0.24 118);
+  --cyan: oklch(0.78 0.13 195);
+  --brandblue: oklch(0.53 0.24 266);
+  --navy: oklch(0.19 0.05 265);
+  --pinkish: oklch(0.66 0.23 12);
+  --mint: oklch(0.79 0.17 158);
+  --skyblue: oklch(0.75 0.11 262);
+
+  --background: oklch(1 0 0);
+  --foreground: var(--ink);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--ink);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: var(--offwhite);
+  --secondary-foreground: var(--ink);
+  --muted: var(--offwhite);
+  --muted-foreground: var(--grayed);
+  --accent: var(--lime);
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: var(--hairline);
+  --input: var(--hairline);
+  --ring: var(--ink);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  ::selection {
+    background: var(--lime);
+    color: var(--ink);
+  }
+}
+
+@utility shell {
+  width: 100%;
+  max-width: 1460px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+
+  @media (min-width: 768px) {
+    padding-inline: 2.5rem;
+  }
+
+  @media (min-width: 1280px) {
+    padding-inline: 4rem;
+  }
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+@utility line-mask {
+  overflow: hidden;
+  display: block;
+}
+
+@utility dot-field {
+  background-image: radial-gradient(var(--ink) 1.1px, transparent 1.1px);
+  background-size: 86px 86px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
