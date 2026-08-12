@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { LineReveal, Reveal } from "@/lib/motion-primitives";

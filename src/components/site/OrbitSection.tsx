@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { Rocket } from "lucide-react";
@@ -53,7 +55,7 @@ export function OrbitSection() {
                 className="relative h-full min-h-[260px] md:min-h-[290px] overflow-hidden rounded-[140px] bg-black cursor-pointer group shadow-lg"
               >
                 <img
-                  src={events}
+                  src={typeof events === "string" ? events : events.src}
                   alt="Upcoming fintech events"
                   width={960}
                   height={640}
@@ -90,7 +92,7 @@ export function OrbitSection() {
                 className="relative h-full min-h-[260px] md:min-h-[290px] overflow-hidden rounded-2xl bg-black shadow-lg"
               >
                 <img
-                  src={team}
+                  src={typeof team === "string" ? team : team.src}
                   alt="Engineering team at work"
                   width={960}
                   height={640}
@@ -127,7 +129,7 @@ export function OrbitSection() {
                 {/* Wireframe 3D Globe Graphic positioned inside on the right */}
                 <div className="absolute top-1/2 -right-8 md:right-4 -translate-y-1/2 size-72 sm:size-96 opacity-95 pointer-events-none">
                   <img
-                    src={globe}
+                    src={typeof globe === "string" ? globe : globe.src}
                     alt="3D Wireframe Globe"
                     width={800}
                     height={800}

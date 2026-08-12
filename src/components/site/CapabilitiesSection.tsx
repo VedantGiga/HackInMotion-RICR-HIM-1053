@@ -1,3 +1,5 @@
+"use client";
+
 import { Activity, ShieldCheck, HeartPulse, Sparkles, AlertTriangle } from "lucide-react";
 import block from "@/assets/capabilities-block.png";
 import { Reveal, usePointerParallax } from "@/lib/motion-primitives";
@@ -26,7 +28,7 @@ export function CapabilitiesSection() {
       <div className="shell grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
         <div ref={pointer} className="relative order-2 mx-auto w-full max-w-[520px] lg:order-1">
           <img
-            src={block}
+            src={typeof block === "string" ? block : block.src}
             alt="Koshin financial health engine block"
             width={1200}
             height={1200}

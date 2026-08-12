@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ArrowDown, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
@@ -116,7 +118,7 @@ export function Hero() {
         <div ref={parallax} className="relative mx-auto w-full max-w-[640px]">
           <img
             data-hero-object
-            src={torus}
+            src={typeof torus === "string" ? torus : torus.src}
             alt="Koshin financial intelligence graphic"
             width={1200}
             height={1200}
@@ -138,7 +140,7 @@ export function Hero() {
 
           <div data-hero-float className="absolute bottom-[18%] left-[0%] flex items-end shadow-2xl">
             <img
-              src={personB}
+              src={typeof personB === "string" ? personB : personB.src}
               alt="Koshin user"
               width={512}
               height={512}

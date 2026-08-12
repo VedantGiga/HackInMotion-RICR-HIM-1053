@@ -1,3 +1,5 @@
+"use client";
+
 import cubes from "@/assets/overview-cubes.png";
 import personA from "@/assets/person-a.jpg";
 import { LineReveal, Reveal, usePointerParallax, useScrollParallax } from "@/lib/motion-primitives";
@@ -47,7 +49,7 @@ export function OverviewSection() {
         <div ref={drift} className="relative">
           <div ref={pointer} className="relative">
             <img
-              src={cubes}
+              src={typeof cubes === "string" ? cubes : cubes.src}
               alt="Koshin categorization engine visualization"
               width={1200}
               height={1200}
@@ -58,7 +60,7 @@ export function OverviewSection() {
             <span className="absolute top-[32%] left-[38%] size-10 bg-cyan" aria-hidden />
             <span className="absolute top-[24%] right-[26%] size-2 bg-pinkish" aria-hidden />
             <img
-              src={personA}
+              src={typeof personA === "string" ? personA : personA.src}
               alt="Koshin auto tag example"
               width={512}
               height={640}

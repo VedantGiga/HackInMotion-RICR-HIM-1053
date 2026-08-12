@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef } from "react";
 
 /** Lightweight canvas flow-field particle background (deep blue + lime streams). */
