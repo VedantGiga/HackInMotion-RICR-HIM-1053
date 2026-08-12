@@ -4,7 +4,7 @@ import { PerformanceSection } from "@/components/site/PerformanceSection";
 import { OverviewSection } from "@/components/site/OverviewSection";
 import { CapabilitiesSection } from "@/components/site/CapabilitiesSection";
 import { CaseStudies } from "@/components/site/CaseStudies";
-import { KoshinDashboard } from "@/components/site/KoshinDashboard";
+import { CardStackingSection } from "@/components/site/CardStackingSection";
 import { StatsSection } from "@/components/site/StatsSection";
 import { OrbitSection } from "@/components/site/OrbitSection";
 import { FinalCTA } from "@/components/site/FinalCTA";
@@ -19,7 +19,7 @@ export default function Home() {
       <OverviewSection />
       <CapabilitiesSection />
       <CaseStudies />
-      <KoshinDashboard />
+      <CardStackingSection />
       <StatsSection />
       <OrbitSection />
       <FinalCTA />
