@@ -2,7 +2,6 @@
 
 import { Navbar } from "@/components/site/Navbar";
 import { KoshinDashboard } from "@/components/site/KoshinDashboard";
-import { Footer } from "@/components/site/Footer";
 
 export default function DashboardPage() {
   return (
@@ -11,7 +10,6 @@ export default function DashboardPage() {
       <div className="pt-16">
         <KoshinDashboard />
       </div>
-      <Footer />
     </main>
   );
 }
