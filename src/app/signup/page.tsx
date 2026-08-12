@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles } from "lucide-react";
 
 export default function SignUpPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [success, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +76,7 @@ export default function SignUpPage() {
                 Welcome to Koshin. Your financial health workspace is ready.
               </p>
               <Link
-                href="/#demo"
+                href="/dashboard"
                 className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-ink transition-all hover:bg-purple/90 shadow-lg"
               >
                 Launch Intelligence Dashboard

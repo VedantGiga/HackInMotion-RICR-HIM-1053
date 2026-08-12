@@ -1,15 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        router.push("/dashboard");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [success, router]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +45,22 @@ export default function LoginPage() {
     <div className="relative min-h-screen bg-offwhite text-ink flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel: Premium Visual */}
       <div className="relative hidden lg:flex lg:w-1/2 bg-navy p-12 flex-col justify-between overflow-hidden">
+        {/* Full background image */}
+        <img
+          src="/bgimage2.png"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+        />
+        {/* Gradient overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/80 to-navy/50 pointer-events-none" />
+
         {/* Glow effects */}
-        <div className="absolute top-0 left-0 size-[400px] bg-purple/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-0 size-[400px] bg-pinkish/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-purple/15 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] size-[500px] bg-cyan/10 rounded-full blur-[150px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[300px] bg-brandblue/10 rounded-full blur-[100px] pointer-events-none" />
+
+        {/* Decorative grid dots */}
+        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
         {/* Logo and Brand */}
         <Link href="/" className="relative z-10 flex items-center gap-3">
@@ -50,25 +74,18 @@ export default function LoginPage() {
             <Sparkles className="size-3.5" /> Financial Intelligence Platform
           </div>
           <h2 className="display text-4xl sm:text-5xl font-bold leading-tight text-white">
-            Smart Financial Intelligence.
+            Smart Financial<br />Intelligence.
           </h2>
-          <p className="text-sm text-white/60 leading-relaxed">
+          <p className="text-sm text-white/60 leading-relaxed max-w-md">
             Automated transaction categorization, instant financial health scores, and premium automated tracking that keeps you ahead of your subscriptions.
           </p>
 
-          {/* Floating graphic element */}
-          <div className="relative border border-white/10 bg-white/5 rounded-2xl p-6 shadow-2xl backdrop-blur-md mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">Health Score Analysis</span>
-              <span className="text-[10px] font-semibold text-purple bg-purple/10 px-2 py-0.5 rounded-full">Good & Healthy</span>
-            </div>
-            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-2">
-              <div className="h-full w-[78%] bg-gradient-to-r from-purple to-cyan transition-all duration-500" />
-            </div>
-            <div className="flex justify-between text-xs text-white/70 font-mono">
-              <span>78 / 100</span>
-              <span>18.4% average savings</span>
-            </div>
+          {/* Floating decorative squares */}
+          <div className="flex items-center gap-3 pt-4" aria-hidden>
+            <span className="size-3 bg-purple rounded-sm" />
+            <span className="size-3 bg-cyan rounded-sm" />
+            <span className="size-3 bg-brandblue rounded-sm" />
+            <span className="h-px flex-1 bg-white/10" />
           </div>
         </div>
 
@@ -113,7 +130,7 @@ export default function LoginPage() {
                   Redirecting to your personalized Koshin Intelligence Dashboard...
                 </p>
                 <Link
-                  href="/#demo"
+                  href="/dashboard"
                   className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-white transition-all hover:bg-purple/90 shadow-lg"
                 >
                   Go to Live Dashboard
