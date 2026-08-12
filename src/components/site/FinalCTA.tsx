@@ -17,14 +17,14 @@ export function FinalCTA() {
         <Reveal delay={0.08} className="mt-12 flex flex-wrap items-center gap-4">
           <a
             href="#demo"
-            className="group inline-flex items-center gap-6 bg-lime py-3 pr-3 pl-6 text-ink transition-colors hover:bg-white"
+            className="group inline-flex items-center gap-5 rounded-full bg-lime py-3 pr-4 pl-7 text-ink transition-colors hover:bg-white shadow-lg"
           >
             <span className="text-[15px] font-semibold">Launch Koshin Dashboard</span>
             <ArrowUpRight className="size-5 transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1" />
           </a>
           <a
             href="#categorization"
-            className="inline-flex items-center border border-white/30 px-6 py-3 text-[15px] font-medium transition-colors hover:border-white"
+            className="inline-flex items-center rounded-full border border-white/30 px-6 py-3 text-[15px] font-medium transition-colors hover:border-white hover:bg-white/10"
           >
             Categorization Engine Docs
           </a>

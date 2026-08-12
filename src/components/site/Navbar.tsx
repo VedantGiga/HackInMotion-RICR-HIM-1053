@@ -13,14 +13,38 @@ const LINKS = [
 ];
 
 export function Navbar() {
+  const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollHeight = document.documentElement.scrollHeight;
+      const clientHeight = window.innerHeight;
+      const nearFooter = currentScrollY + clientHeight >= scrollHeight - 450;
+
+      setScrolled(currentScrollY > 15);
+
+      if (nearFooter) {
+        // Reached footer -> hide top navbar so logo smoothly slides into footer position
+        setVisible(false);
+      } else if (currentScrollY <= 15) {
+        setVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        // Scroll DOWN -> hide navbar
+        setVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        // Scroll UP -> show navbar!
+        setVisible(true);
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -49,12 +73,18 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${scrolled ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100 bg-transparent"
-          }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${
+          !visible
+            ? "-translate-y-full opacity-0 pointer-events-none"
+            : "translate-y-0 opacity-100 " +
+              (scrolled
+                ? "border-b border-hairline bg-background/90 backdrop-blur-md shadow-sm"
+                : "bg-transparent")
+        }`}
       >
-        <div className="shell flex items-center justify-between gap-6 py-5">
-          <a href="#top" data-nav-logo className="relative inline-flex items-center">
-            <img src="/logo.png" alt="Koshin logo" className="h-10 w-auto object-contain" />
+        <div className="shell flex items-center justify-between gap-6 py-2.5 sm:py-3">
+          <a href="#top" data-nav-logo className="relative inline-flex items-center group">
+            <img src="/logofinal-bgremoved.png" alt="Koshin logo" className="h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
           </a>
 
           <nav className="hidden items-center gap-8 lg:flex">
@@ -73,8 +103,14 @@ export function Navbar() {
 
           <div className="hidden sm:flex items-center gap-3">
             <a
+              href="/login"
+              className="inline-flex items-center justify-center rounded-full border border-ink/20 bg-transparent px-4 py-2 text-xs font-semibold text-ink transition-all hover:border-ink hover:bg-ink/5"
+            >
+              Sign In
+            </a>
+            <a
               href="#demo"
-              className="inline-flex items-center justify-center rounded-md bg-ink px-4 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02]"
+              className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02] shadow-sm"
             >
               Open Live Dashboard
             </a>
@@ -108,7 +144,7 @@ export function Navbar() {
           >
             <div className="shell flex items-center justify-between py-5">
               <div className="flex items-center gap-3">
-                <img src="/logo.png" alt="Koshin logo" className="h-8 w-auto object-contain brightness-0 invert" />
+                <img src="/logofinal-bgremoved.png" alt="Koshin logo" className="h-8 w-auto object-contain brightness-0 invert" />
 
               </div>
               <button

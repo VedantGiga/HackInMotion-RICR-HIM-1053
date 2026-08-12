@@ -93,17 +93,17 @@ export function Hero() {
             <a
               data-hero-cta
               href="#demo"
-              className="group inline-flex items-center gap-6 border border-ink bg-ink text-background py-2.5 pr-2 pl-6 transition-colors hover:bg-lime hover:text-ink hover:border-ink"
+              className="group inline-flex items-center gap-5 rounded-full border border-ink bg-ink text-background py-2 pr-2 pl-6 transition-all hover:bg-lime hover:text-ink hover:border-ink shadow-md"
             >
               <span className="text-[15px] font-semibold">Try Interactive Dashboard</span>
-              <span className="grid size-9 place-items-center bg-lime text-ink transition-transform duration-300 group-hover:translate-y-1">
+              <span className="grid size-9 place-items-center rounded-full bg-lime text-ink transition-transform duration-300 group-hover:translate-y-1">
                 <ArrowDown className="size-4" strokeWidth={2} />
               </span>
             </a>
 
             <a
               href="#categorization"
-              className="inline-flex items-center gap-2 border border-hairline py-3 px-5 text-[14px] font-medium text-ink transition-colors hover:border-ink"
+              className="inline-flex items-center gap-2 rounded-full border border-hairline py-3 px-6 text-[14px] font-medium text-ink transition-colors hover:border-ink hover:bg-hairline/30"
             >
               Auto-Categorization Engine
             </a>

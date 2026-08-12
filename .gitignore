@@ -1,9 +1,19 @@
-# Next.js build output
+# Next.js build output & cache
 .next/
+.next
 out/
-.vinxi
 .tanstack/
+.tanstack
 .nitro/
+.nitro
+.vinxi/
+.vinxi
+
+# Build artifacts
+dist/
+dist-ssr/
+.output/
+*.local
 
 # Dependencies
 node_modules/
@@ -17,21 +27,16 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Production builds
-dist
-dist-ssr
-.output
-*.local
-
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
 
-# Editor directories and files
+# Editor & OS files
 .vscode/*
 !.vscode/extensions.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
