@@ -118,7 +118,7 @@ export function Footer() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
                 href="#demo"
-                className="inline-flex items-center justify-between gap-3 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white transition-all hover:bg-lime hover:text-ink shadow-md"
+                className="inline-flex items-center justify-between gap-3 rounded-full bg-ink px-5 py-2.5 text-xs font-semibold text-white transition-all hover:bg-purple hover:text-ink shadow-md"
               >
                 <span>Launch Dashboard</span>
                 <ArrowUpRight className="size-3.5" />
@@ -138,7 +138,7 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between border-t border-hairline pt-8 text-xs text-muted-foreground gap-4">
           <span>© {new Date().getFullYear()} Koshin Financial Intelligence. All rights reserved.</span>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="size-4 text-emerald-600" />
+            <ShieldCheck className="size-4 text-purple" />
             <span>Bank-Grade 256-Bit Security</span>
           </div>
         </div>

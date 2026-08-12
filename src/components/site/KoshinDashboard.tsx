@@ -143,7 +143,7 @@ export function KoshinDashboard() {
   }, [totalIncome, netSavings, categoryBreakdown]);
 
   const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
-  const healthBadgeColor = healthScore >= 80 ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" : healthScore >= 65 ? "bg-lime text-ink border-ink/20" : "bg-amber-500/10 text-amber-600 border-amber-500/30";
+  const healthBadgeColor = healthScore >= 80 ? "bg-purple/10 text-purple border-purple/30" : healthScore >= 65 ? "bg-purple text-ink border-ink/20" : "bg-amber-500/10 text-amber-600 border-amber-500/30";
 
   // Subscriptions & Recurring Bills
   const recurringBills = useMemo(() => {
@@ -236,13 +236,13 @@ export function KoshinDashboard() {
     <section id="demo" className="relative py-24 bg-ink text-background overflow-hidden border-t border-hairline/20">
       {/* Background Decorative Blur Gradients */}
       <div className="absolute -top-40 -left-40 size-96 rounded-full bg-brandblue/20 blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 size-96 rounded-full bg-lime/10 blur-[120px] pointer-events-none" />
+      <div className="absolute -bottom-40 -right-40 size-96 rounded-full bg-purple/10 blur-[120px] pointer-events-none" />
 
       <div className="shell relative z-10">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-lime/10 border border-lime/30 rounded-full text-xs font-semibold text-lime uppercase tracking-widest mb-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple/10 border border-purple/30 rounded-full text-xs font-semibold text-purple uppercase tracking-widest mb-3">
               <Sparkles className="size-3.5" /> Interactive Koshin Platform
             </div>
             <h2 className="display text-3xl sm:text-5xl tracking-tight text-background">
@@ -259,7 +259,7 @@ export function KoshinDashboard() {
               type="button"
               onClick={() => setActiveTab("dashboard")}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "dashboard" ? "bg-lime text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
+                activeTab === "dashboard" ? "bg-purple text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <PieChart className="size-4" /> Overview
@@ -268,7 +268,7 @@ export function KoshinDashboard() {
               type="button"
               onClick={() => setActiveTab("transactions")}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "transactions" ? "bg-lime text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
+                activeTab === "transactions" ? "bg-purple text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <CreditCard className="size-4" /> Transactions ({transactions.length})
@@ -277,7 +277,7 @@ export function KoshinDashboard() {
               type="button"
               onClick={() => setActiveTab("subscriptions")}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "subscriptions" ? "bg-lime text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
+                activeTab === "subscriptions" ? "bg-purple text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <Bell className="size-4" /> Subscriptions & Bills
@@ -286,7 +286,7 @@ export function KoshinDashboard() {
               type="button"
               onClick={() => setActiveTab("simulator")}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "simulator" ? "bg-lime text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
+                activeTab === "simulator" ? "bg-purple text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <SlidersHorizontal className="size-4" /> Savings Simulator
@@ -295,7 +295,7 @@ export function KoshinDashboard() {
               type="button"
               onClick={() => setActiveTab("ai")}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
-                activeTab === "ai" ? "bg-lime text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
+                activeTab === "ai" ? "bg-purple text-ink font-semibold shadow-sm" : "text-white/70 hover:text-white hover:bg-white/5"
               }`}
             >
               <Bot className="size-4" /> AI Assistant
@@ -309,7 +309,7 @@ export function KoshinDashboard() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="mb-6 p-4 bg-emerald-500/20 border border-emerald-500/40 rounded-xl flex items-center gap-3 text-emerald-300 text-sm font-medium"
+            className="mb-6 p-4 bg-purple/20 border border-purple/40 rounded-xl flex items-center gap-3 text-purple text-sm font-medium"
           >
             <CheckCircle2 className="size-5 shrink-0" />
             Transactions successfully ingested and auto-categorized by Koshin NLP Engine!
@@ -322,13 +322,13 @@ export function KoshinDashboard() {
             {/* Top Stat Cards Row */}
             <div className="lg:col-span-8 space-y-8">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-lime/30 transition-all">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-purple/30 transition-all">
                   <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-2">
                     <span>Monthly Income</span>
-                    <TrendingUp className="size-4 text-emerald-400" />
+                    <TrendingUp className="size-4 text-cyan" />
                   </div>
                   <div className="text-2xl sm:text-3xl font-bold text-white">${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-xs text-emerald-400 mt-1 font-medium">Verified Deposit Data</div>
+                  <div className="text-xs text-cyan mt-1 font-medium">Verified Deposit Data</div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-pinkish/30 transition-all">
@@ -340,13 +340,13 @@ export function KoshinDashboard() {
                   <div className="text-xs text-muted-foreground mt-1 font-medium">{transactions.filter(t => t.type === 'expense').length} items auto-tagged</div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-lime/30 transition-all">
+                <div className="p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-purple/30 transition-all">
                   <div className="flex items-center justify-between text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-2">
                     <span>Net Reserve</span>
-                    <DollarSign className="size-4 text-lime" />
+                    <DollarSign className="size-4 text-purple" />
                   </div>
-                  <div className="text-2xl sm:text-3xl font-bold text-lime">${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                  <div className="text-xs text-lime/80 mt-1 font-medium">{savingsRate}% savings rate</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-purple">${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                  <div className="text-xs text-purple/80 mt-1 font-medium">{savingsRate}% savings rate</div>
                 </div>
               </div>
 
@@ -379,7 +379,7 @@ export function KoshinDashboard() {
                         </div>
                         <div className="h-2.5 w-full bg-white/10 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-gradient-to-r from-lime via-cyan to-brandblue transition-all duration-500"
+                            className="h-full bg-gradient-to-r from-purple via-cyan to-brandblue transition-all duration-500"
                             style={{ width: `${pct}%` }}
                           />
                         </div>
@@ -391,7 +391,7 @@ export function KoshinDashboard() {
 
               {/* Actionable Plain-Language Insights Feed */}
               <div className="p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-                <div className="flex items-center gap-2 text-lime font-semibold text-sm uppercase tracking-wider">
+                <div className="flex items-center gap-2 text-purple font-semibold text-sm uppercase tracking-wider">
                   <Zap className="size-4" /> Koshin AI Plain-Language Recommendations
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -432,7 +432,7 @@ export function KoshinDashboard() {
                       r="42"
                       stroke="currentColor"
                       strokeWidth="8"
-                      className="text-lime transition-all duration-1000"
+                      className="text-purple transition-all duration-1000"
                       fill="transparent"
                       strokeDasharray={263.89}
                       strokeDashoffset={263.89 - (263.89 * healthScore) / 100}
@@ -456,11 +456,11 @@ export function KoshinDashboard() {
                 <div className="mt-6 w-full pt-4 border-t border-white/10 text-left space-y-2.5 text-xs text-white/80">
                   <div className="flex justify-between">
                     <span>Income vs Expense:</span>
-                    <span className="font-semibold text-emerald-400">Positive</span>
+                    <span className="font-semibold text-cyan">Positive</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Budget Adherence:</span>
-                    <span className="font-semibold text-lime">86%</span>
+                    <span className="font-semibold text-purple">86%</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Recurring Burden:</span>
@@ -472,7 +472,7 @@ export function KoshinDashboard() {
               {/* Add Fast Transaction Widget */}
               <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
                 <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                  <PlusCircle className="size-4 text-lime" /> Quick Add Transaction
+                  <PlusCircle className="size-4 text-purple" /> Quick Add Transaction
                 </h4>
                 <form onSubmit={handleAddTransaction} className="space-y-3">
                   <input
@@ -480,7 +480,7 @@ export function KoshinDashboard() {
                     placeholder="Merchant / Description (e.g. Uber)"
                     value={newMerchant}
                     onChange={e => setNewMerchant(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-lime"
+                    className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-purple"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <input
@@ -488,12 +488,12 @@ export function KoshinDashboard() {
                       placeholder="Amount ($)"
                       value={newAmount}
                       onChange={e => setNewAmount(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-lime"
+                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs placeholder:text-white/40 focus:outline-none focus:border-purple"
                     />
                     <select
                       value={newType}
                       onChange={e => setNewType(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs focus:outline-none focus:border-lime"
+                      className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/15 text-white text-xs focus:outline-none focus:border-purple"
                     >
                       <option value="expense" className="bg-ink text-white">Expense</option>
                       <option value="income" className="bg-ink text-white">Income</option>
@@ -501,7 +501,7 @@ export function KoshinDashboard() {
                   </div>
                   <button
                     type="submit"
-                    className="w-full py-2 bg-lime text-ink font-semibold rounded-lg text-xs hover:opacity-90 transition-all"
+                    className="w-full py-2 bg-purple text-ink font-semibold rounded-lg text-xs hover:opacity-90 transition-all"
                   >
                     Auto-Categorize & Add
                   </button>
@@ -529,7 +529,7 @@ export function KoshinDashboard() {
                     type="button"
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                      selectedCategory === cat ? "bg-lime text-ink" : "bg-white/10 text-white/70 hover:bg-white/20"
+                      selectedCategory === cat ? "bg-purple text-ink" : "bg-white/10 text-white/70 hover:bg-white/20"
                     }`}
                   >
                     {cat}
@@ -567,18 +567,18 @@ export function KoshinDashboard() {
                           {tx.category}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-mono text-emerald-400">
+                      <td className="py-3 px-4 font-mono text-cyan">
                         {Math.round(tx.confidence * 100)}%
                       </td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          tx.type === 'income' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-pinkish/20 text-pinkish'
+                          tx.type === 'income' ? 'bg-purple/20 text-purple' : 'bg-pinkish/20 text-pinkish'
                         }`}>
                           {tx.type}
                         </span>
                       </td>
                       <td className={`py-3 px-4 text-right font-semibold font-mono ${
-                        tx.type === 'income' ? 'text-emerald-400' : 'text-white'
+                        tx.type === 'income' ? 'text-purple' : 'text-white'
                       }`}>
                         {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
                       </td>
@@ -596,7 +596,7 @@ export function KoshinDashboard() {
             <div className="lg:col-span-8 p-6 rounded-2xl bg-white/5 border border-white/10 space-y-6">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <Bell className="size-5 text-lime" /> Subscription & Recurring Bill Detector
+                  <Bell className="size-5 text-purple" /> Subscription & Recurring Bill Detector
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Koshin automatically flags repeating monthly charges to detect unused trials and upcoming bill due dates.
@@ -605,9 +605,9 @@ export function KoshinDashboard() {
 
               <div className="space-y-4">
                 {recurringBills.map(item => (
-                  <div key={item.id} className="p-4 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-4 hover:border-lime/40 transition-all">
+                  <div key={item.id} className="p-4 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-4 hover:border-purple/40 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-lg bg-lime/10 border border-lime/30 grid place-items-center text-lime font-bold">
+                      <div className="size-10 rounded-lg bg-purple/10 border border-purple/30 grid place-items-center text-purple font-bold">
                         {item.merchant[0]}
                       </div>
                       <div>
@@ -622,7 +622,7 @@ export function KoshinDashboard() {
 
                     <div className="text-right">
                       <div className="text-base font-bold text-white font-mono">${item.amount.toFixed(2)}/mo</div>
-                      <div className="text-[10px] text-emerald-400 font-semibold">Active & Tracked</div>
+                      <div className="text-[10px] text-purple font-semibold">Active & Tracked</div>
                     </div>
                   </div>
                 ))}
@@ -630,7 +630,7 @@ export function KoshinDashboard() {
             </div>
 
             <div className="lg:col-span-4 p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider text-lime">Bill Prediction Alert</h4>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider text-purple">Bill Prediction Alert</h4>
               <p className="text-xs text-muted-foreground">Upcoming predicted bills for next 7 days based on transaction history:</p>
 
               <div className="p-4 rounded-xl bg-brandblue/10 border border-brandblue/30 space-y-3">
@@ -664,7 +664,7 @@ export function KoshinDashboard() {
             <div className="lg:col-span-7 p-6 rounded-2xl bg-white/5 border border-white/10 space-y-8">
               <div>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <SlidersHorizontal className="size-5 text-lime" /> "What-If" Savings Simulation Tool
+                  <SlidersHorizontal className="size-5 text-purple" /> "What-If" Savings Simulation Tool
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
                   Adjust sliders to simulate cutting spend in specific categories and see real-time projected impact on your annual wealth.
@@ -675,7 +675,7 @@ export function KoshinDashboard() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="font-medium text-white">Cut Food Delivery & Dining by:</span>
-                  <span className="font-bold text-lime font-mono">{foodCut}% (${simFoodSavings.toFixed(2)}/mo)</span>
+                  <span className="font-bold text-purple font-mono">{foodCut}% (${simFoodSavings.toFixed(2)}/mo)</span>
                 </div>
                 <input
                   type="range"
@@ -683,7 +683,7 @@ export function KoshinDashboard() {
                   max="100"
                   value={foodCut}
                   onChange={e => setFoodCut(Number(e.target.value))}
-                  className="w-full accent-lime cursor-pointer"
+                  className="w-full accent-purple cursor-pointer"
                 />
               </div>
 
@@ -721,11 +721,11 @@ export function KoshinDashboard() {
             </div>
 
             {/* Simulation Projection Result Card */}
-            <div className="lg:col-span-5 p-6 rounded-2xl bg-gradient-to-br from-lime/15 via-white/5 to-cyan/15 border border-lime/30 flex flex-col justify-between">
+            <div className="lg:col-span-5 p-6 rounded-2xl bg-gradient-to-br from-purple/15 via-white/5 to-cyan/15 border border-purple/30 flex flex-col justify-between">
               <div>
-                <div className="text-xs font-semibold text-lime uppercase tracking-widest mb-2">Simulated Wealth Impact</div>
+                <div className="text-xs font-semibold text-purple uppercase tracking-widest mb-2">Simulated Wealth Impact</div>
                 <h4 className="text-2xl font-extrabold text-white">Projected Annual Savings</h4>
-                <div className="text-4xl sm:text-5xl font-black text-lime font-mono my-4">
+                <div className="text-4xl sm:text-5xl font-black text-purple font-mono my-4">
                   +${totalAnnualSimSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
@@ -754,13 +754,13 @@ export function KoshinDashboard() {
             <div className="lg:col-span-8 p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col h-[520px]">
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-full bg-lime text-ink grid place-items-center font-bold">
+                  <div className="size-10 rounded-full bg-purple text-ink grid place-items-center font-bold">
                     <Bot className="size-5" />
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white">Koshin AI Natural-Language Assistant</h3>
-                    <div className="text-xs text-emerald-400 flex items-center gap-1 font-medium">
-                      <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" /> Active on Transaction Dataset
+                    <div className="text-xs text-purple flex items-center gap-1 font-medium">
+                      <span className="size-1.5 rounded-full bg-purple animate-pulse" /> Active on Transaction Dataset
                     </div>
                   </div>
                 </div>
@@ -774,7 +774,7 @@ export function KoshinDashboard() {
                     className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
                   >
                     <div className={`max-w-md p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                      msg.role === "user" ? "bg-lime text-ink font-medium rounded-br-none" : "bg-white/10 text-white rounded-bl-none border border-white/10"
+                      msg.role === "user" ? "bg-purple text-ink font-medium rounded-br-none" : "bg-white/10 text-white rounded-bl-none border border-white/10"
                     }`}>
                       {msg.text}
                     </div>
@@ -810,11 +810,11 @@ export function KoshinDashboard() {
                   placeholder="Ask Koshin about your transactions (e.g. 'How much did I spend on food?')"
                   value={chatInput}
                   onChange={e => setChatInput(e.target.value)}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white text-xs sm:text-sm placeholder:text-white/40 focus:outline-none focus:border-lime"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-black/40 border border-white/15 text-white text-xs sm:text-sm placeholder:text-white/40 focus:outline-none focus:border-purple"
                 />
                 <button
                   type="submit"
-                  className="px-4 py-2.5 bg-lime text-ink font-semibold rounded-xl text-xs sm:text-sm hover:opacity-90 transition-all flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-purple text-ink font-semibold rounded-xl text-xs sm:text-sm hover:opacity-90 transition-all flex items-center gap-1.5"
                 >
                   <Send className="size-4" /> Send
                 </button>
@@ -822,7 +822,7 @@ export function KoshinDashboard() {
             </div>
 
             <div className="lg:col-span-4 p-6 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider text-lime">AI NLP Technical Core</h4>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider text-purple">AI NLP Technical Core</h4>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Koshin’s Natural Language Processor indexes transaction merchant descriptions, amounts, and dates in memory.
               </p>

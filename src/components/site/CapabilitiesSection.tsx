@@ -36,7 +36,7 @@ export function CapabilitiesSection() {
             className="w-full object-contain"
           />
           <span className="absolute top-[38%] left-[2%] size-6 bg-cyan" aria-hidden />
-          <span className="absolute bottom-[18%] right-[16%] size-10 bg-lime" aria-hidden />
+          <span className="absolute bottom-[18%] right-[16%] size-10 bg-purple" aria-hidden />
           <div className="absolute top-[26%] right-[18%] grid grid-cols-3 gap-4" aria-hidden>
             {Array.from({ length: 9 }).map((_, i) => (
               <span key={i} className="size-[5px] bg-ink" />

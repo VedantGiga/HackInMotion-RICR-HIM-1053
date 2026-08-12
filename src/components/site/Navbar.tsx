@@ -122,7 +122,7 @@ export function Navbar() {
             onClick={() => setOpen(true)}
             whileTap={{ scale: 0.92 }}
             whileHover={{ rotate: -3 }}
-            className="grid size-10 shrink-0 place-items-center bg-lime lg:hidden"
+            className="grid size-10 shrink-0 place-items-center bg-purple lg:hidden"
           >
             <span className="flex flex-col gap-[5px]">
               <span className="block h-[2px] w-5 bg-ink" />
@@ -151,7 +151,7 @@ export function Navbar() {
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setOpen(false)}
-                className="grid size-10 place-items-center bg-lime text-ink"
+                className="grid size-10 place-items-center bg-purple text-ink"
               >
                 <span className="relative block size-5">
                   <span className="absolute top-1/2 left-0 h-[2px] w-5 rotate-45 bg-ink" />

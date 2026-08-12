@@ -33,7 +33,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen bg-navy text-white flex flex-col justify-between p-6 sm:p-10 overflow-hidden">
       {/* Background Ambient Glows */}
-      <div className="absolute top-0 left-1/4 size-[500px] bg-lime/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-0 left-1/4 size-[500px] bg-purple/10 rounded-full blur-[140px] pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 size-[500px] bg-pinkish/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Header Navigation */}
@@ -56,7 +56,7 @@ export default function LoginPage() {
         <div className="rounded-3xl border border-white/15 bg-black/40 p-8 sm:p-10 backdrop-blur-xl shadow-2xl space-y-8">
           
           <div className="text-center space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lime/20 text-lime text-xs font-semibold border border-lime/30 mb-2">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple/20 text-purple text-xs font-semibold border border-purple/30 mb-2">
               <Sparkles className="size-3" /> Financial Intelligence Platform
             </div>
             <h1 className="display text-3xl font-bold tracking-tight text-white">Welcome Back</h1>
@@ -66,15 +66,15 @@ export default function LoginPage() {
           </div>
 
           {success ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center space-y-3">
-              <CheckCircle2 className="size-10 text-emerald-400 mx-auto" />
+            <div className="rounded-2xl border border-purple/30 bg-purple/10 p-6 text-center space-y-3">
+              <CheckCircle2 className="size-10 text-purple mx-auto" />
               <h3 className="text-lg font-bold text-white">Authentication Successful!</h3>
-              <p className="text-xs text-emerald-200">
+              <p className="text-xs text-purple/85">
                 Redirecting to your personalized Koshin Intelligence Dashboard...
               </p>
               <Link
                 href="/#demo"
-                className="inline-flex items-center justify-center w-full rounded-full bg-emerald-400 py-3 text-xs font-bold text-ink transition-all hover:bg-emerald-300 shadow-lg"
+                className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-ink transition-all hover:bg-purple/90 shadow-lg"
               >
                 Go to Live Dashboard
               </Link>
@@ -91,7 +91,7 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime"
+                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                   />
                 </div>
               </div>
@@ -99,7 +99,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-white/80">Password</label>
-                  <a href="#" className="text-xs text-lime hover:underline">
+                  <a href="#" className="text-xs text-purple hover:underline">
                     Forgot password?
                   </a>
                 </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-11 pl-11 text-sm text-white placeholder-white/40 focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime"
+                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-11 pl-11 text-sm text-white placeholder-white/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                   />
                   <button
                     type="button"
@@ -126,7 +126,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-full bg-lime py-3.5 text-sm font-bold text-ink shadow-lg transition-all hover:bg-lime/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+                className="w-full rounded-full bg-purple py-3.5 text-sm font-bold text-ink shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
               >
                 {loading ? "Authenticating..." : "Sign In to Koshin"}
               </button>
@@ -148,7 +148,7 @@ export default function LoginPage() {
 
           <div className="text-center text-xs text-white/60">
             Don&apos;t have an account yet?{" "}
-            <Link href="/signup" className="font-semibold text-lime hover:underline">
+            <Link href="/signup" className="font-semibold text-purple hover:underline">
               Create an Account
             </Link>
           </div>

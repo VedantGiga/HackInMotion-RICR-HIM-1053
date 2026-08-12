@@ -53,7 +53,7 @@ export function ParticleField() {
         if (p.y < -5) p.y = h + 5;
         if (p.y > h + 5) p.y = -5;
 
-        ctx.fillStyle = p.lime ? "rgba(223,255,0,0.55)" : "rgba(120,170,255,0.42)";
+        ctx.fillStyle = p.lime ? "rgba(139,92,246,0.55)" : "rgba(120,170,255,0.42)";
         ctx.fillRect(p.x, p.y, p.s, p.s);
       }
       t += 1;

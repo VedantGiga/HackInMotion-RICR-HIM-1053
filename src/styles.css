@@ -9,12 +9,12 @@
   --color-offwhite: #f8f8f8;
   --color-hairline: #e5e5e5;
   --color-grayed: #8e8e93;
-  --color-lime: #ccff00;
+  --color-purple: #8b5cf6;
   --color-cyan: #00e5ff;
   --color-brandblue: #2563eb;
   --color-navy: #0b0d10;
   --color-pinkish: #ff3b60;
-  --color-mint: #00d26a;
+  --color-violet: #a855f7;
   --color-skyblue: #70a6ff;
 
   --color-background: #ffffff;
@@ -30,12 +30,12 @@
     --offwhite: #f8f8f8;
     --hairline: #e5e5e5;
     --grayed: #8e8e93;
-    --lime: #ccff00;
+    --purple: #8b5cf6;
     --cyan: #00e5ff;
     --brandblue: #2563eb;
     --navy: #0b0d10;
     --pinkish: #ff3b60;
-    --mint: #00d26a;
+    --violet: #a855f7;
     --skyblue: #70a6ff;
 
     --background: #ffffff;
@@ -60,7 +60,7 @@
   }
 
   ::selection {
-    background: var(--lime);
+    background: var(--purple);
     color: var(--ink);
   }
 }

@@ -36,10 +36,10 @@ export function OrbitSection() {
         {/* ROW 1: TOP BENTO ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 md:gap-6 items-stretch">
           
-          {/* Card 1: Mint Green D-Pill (The Latest from our Orbit) */}
+          {/* Card 1: Purple D-Pill (The Latest from our Orbit) */}
           <div className="sm:col-span-6 md:col-span-3">
             <Reveal className="h-full">
-              <div className="flex h-full min-h-[260px] md:min-h-[290px] flex-col justify-end bg-[#00d26a] p-8 sm:p-10 rounded-t-[140px] rounded-b-none border border-black/10">
+              <div className="flex h-full min-h-[260px] md:min-h-[290px] flex-col justify-end bg-purple p-8 sm:p-10 rounded-t-[140px] rounded-b-none border border-black/10">
                 <h3 className="display text-3xl sm:text-4xl leading-[1.05] tracking-tight text-black max-w-[10ch]">
                   The Latest from our Orbit
                 </h3>

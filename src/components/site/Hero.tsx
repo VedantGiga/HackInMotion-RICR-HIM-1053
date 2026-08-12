@@ -59,7 +59,7 @@ export function Hero() {
     <section
       id="top"
       ref={root}
-      className="relative overflow-hidden pt-28 pb-16 md:pt-36 lg:min-h-screen lg:pt-40"
+      className="relative overflow-hidden pt-20 pb-16 md:pt-24 lg:min-h-screen lg:pt-28"
     >
       <div className="shell grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
         <div className="relative">
@@ -93,10 +93,10 @@ export function Hero() {
             <a
               data-hero-cta
               href="#demo"
-              className="group inline-flex items-center gap-5 rounded-full border border-ink bg-ink text-background py-2 pr-2 pl-6 transition-all hover:bg-lime hover:text-ink hover:border-ink shadow-md"
+              className="group inline-flex items-center gap-5 rounded-full border border-ink bg-ink text-background py-2 pr-2 pl-6 transition-all hover:bg-purple hover:text-ink hover:border-ink shadow-md"
             >
               <span className="text-[15px] font-semibold">Try Interactive Dashboard</span>
-              <span className="grid size-9 place-items-center rounded-full bg-lime text-ink transition-transform duration-300 group-hover:translate-y-1">
+              <span className="grid size-9 place-items-center rounded-full bg-purple text-ink transition-transform duration-300 group-hover:translate-y-1">
                 <ArrowDown className="size-4" strokeWidth={2} />
               </span>
             </a>
@@ -130,10 +130,10 @@ export function Hero() {
             className="absolute top-[10%] right-[2%] w-32 overflow-hidden rounded-xl border border-hairline bg-background shadow-xl sm:w-44 p-3"
           >
             <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-              <ShieldCheck className="size-4 text-emerald-600" /> Koshin Health Score
+              <ShieldCheck className="size-4 text-purple" /> Koshin Health Score
             </div>
             <div className="text-2xl font-extrabold text-ink my-1">78 / 100</div>
-            <div className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block">
+            <div className="text-[10px] font-semibold text-purple bg-purple/10 px-2 py-0.5 rounded-full inline-block">
               Good & Healthy
             </div>
           </div>
@@ -156,7 +156,7 @@ export function Hero() {
 
           <span
             data-hero-float
-            className="absolute top-[46%] right-[6%] size-4 bg-lime"
+            className="absolute top-[46%] right-[6%] size-4 bg-purple"
             aria-hidden
           />
         </div>

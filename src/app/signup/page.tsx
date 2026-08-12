@@ -26,7 +26,7 @@ export default function SignUpPage() {
     <div className="relative min-h-screen bg-navy text-white flex flex-col justify-between p-6 sm:p-10 overflow-hidden">
       {/* Background Ambient Glows */}
       <div className="absolute top-0 right-1/4 size-[500px] bg-cyan/10 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 size-[500px] bg-lime/10 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute bottom-0 left-1/4 size-[500px] bg-purple/10 rounded-full blur-[140px] pointer-events-none" />
 
       {/* Top Header Navigation */}
       <header className="relative z-10 flex items-center justify-between w-full max-w-6xl mx-auto">
@@ -58,15 +58,15 @@ export default function SignUpPage() {
           </div>
 
           {success ? (
-            <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6 text-center space-y-3">
-              <CheckCircle2 className="size-10 text-emerald-400 mx-auto" />
+            <div className="rounded-2xl border border-purple/30 bg-purple/10 p-6 text-center space-y-3">
+              <CheckCircle2 className="size-10 text-purple mx-auto" />
               <h3 className="text-lg font-bold text-white">Account Created!</h3>
-              <p className="text-xs text-emerald-200">
+              <p className="text-xs text-purple/80">
                 Welcome to Koshin. Your financial health workspace is ready.
               </p>
               <Link
                 href="/#demo"
-                className="inline-flex items-center justify-center w-full rounded-full bg-lime py-3 text-xs font-bold text-ink transition-all hover:bg-lime/90 shadow-lg"
+                className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-ink transition-all hover:bg-purple/90 shadow-lg"
               >
                 Launch Intelligence Dashboard
               </Link>
@@ -83,7 +83,7 @@ export default function SignUpPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Alex Morgan"
-                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime"
+                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                   />
                 </div>
               </div>
@@ -98,7 +98,7 @@ export default function SignUpPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime"
+                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-4 pl-11 text-sm text-white placeholder-white/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                   />
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function SignUpPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Create password (min 8 chars)"
-                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-11 pl-11 text-sm text-white placeholder-white/40 focus:border-lime focus:outline-none focus:ring-1 focus:ring-lime"
+                    className="w-full rounded-full border border-white/20 bg-white/5 py-3 pr-11 pl-11 text-sm text-white placeholder-white/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                   />
                 </div>
               </div>
@@ -124,15 +124,15 @@ export default function SignUpPage() {
                   id="terms"
                   checked={agreed}
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="size-4 rounded border-white/20 bg-white/5 text-lime focus:ring-lime"
+                  className="size-4 rounded border-white/20 bg-white/5 text-purple focus:ring-purple"
                 />
                 <label htmlFor="terms" className="text-xs text-white/70">
                   I agree to Koshin&apos;s{" "}
-                  <a href="#" className="text-lime underline">
+                  <a href="#" className="text-purple underline">
                     Terms of Service
                   </a>{" "}
                   &{" "}
-                  <a href="#" className="text-lime underline">
+                  <a href="#" className="text-purple underline">
                     Privacy Policy
                   </a>
                 </label>
@@ -141,7 +141,7 @@ export default function SignUpPage() {
               <button
                 type="submit"
                 disabled={loading || !agreed}
-                className="w-full rounded-full bg-lime py-3.5 text-sm font-bold text-ink shadow-lg transition-all hover:bg-lime/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
+                className="w-full rounded-full bg-purple py-3.5 text-sm font-bold text-ink shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
               >
                 {loading ? "Creating Account..." : "Create Account"}
               </button>
@@ -150,7 +150,7 @@ export default function SignUpPage() {
 
           <div className="text-center text-xs text-white/60">
             Already have an account?{" "}
-            <Link href="/login" className="font-semibold text-lime hover:underline">
+            <Link href="/login" className="font-semibold text-purple hover:underline">
               Sign In Here
             </Link>
           </div>

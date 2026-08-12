@@ -56,7 +56,7 @@ export function OverviewSection() {
               loading="lazy"
               className="w-full object-contain"
             />
-            <span className="absolute top-[18%] right-[8%] size-5 bg-lime" aria-hidden />
+            <span className="absolute top-[18%] right-[8%] size-5 bg-purple" aria-hidden />
             <span className="absolute top-[32%] left-[38%] size-10 bg-cyan" aria-hidden />
             <span className="absolute top-[24%] right-[26%] size-2 bg-pinkish" aria-hidden />
             <img

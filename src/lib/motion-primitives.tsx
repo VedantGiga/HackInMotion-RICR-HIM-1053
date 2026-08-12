@@ -65,6 +65,53 @@ export function Reveal({
   );
 }
 
+/** Slide in from right for metrics numbers. */
+export function SlideInFromRight({
+  children,
+  className = "",
+  delay = 0,
+  x = 120,
+}: {
+  children: ReactNode;
+  className?: string;
+  delay?: number;
+  x?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  useGsapSetup();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (prefersReduced()) {
+      gsap.set(el, { opacity: 1, x: 0 });
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          io.disconnect();
+          gsap.fromTo(
+            el,
+            { opacity: 0, x },
+            { opacity: 1, x: 0, duration: 1.2, delay, ease: "power4.out" },
+          );
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [delay, x]);
+
+  return (
+    <div ref={ref} className={className} style={{ opacity: 0 }}>
+      {children}
+    </div>
+  );
+}
+
 /** Heading reveal: each line masked, translateY(100%) -> 0 */
 export function LineReveal({
   lines,
