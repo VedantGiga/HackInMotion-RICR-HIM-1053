@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { LineReveal, Reveal } from "@/lib/motion-primitives";
-import bg0 from "@/assets/particle-bg-0.png";
-import bg1 from "@/assets/particle-bg-1.png";
-import bg2 from "@/assets/particle-bg-2.png";
 
 const CASES = [
   {
@@ -20,7 +17,7 @@ const CASES = [
   },
 ];
 
-const BACKGROUNDS = [bg0, bg1, bg2];
+const BACKGROUNDS = ["/bgimage.png", "/bgimage2.png", "/bgimage3.png"];
 
 export function CaseStudies() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
@@ -30,20 +27,23 @@ export function CaseStudies() {
       id="features"
       className="relative overflow-hidden bg-black py-20 text-white md:py-28 lg:py-36 min-h-[680px] flex flex-col justify-center transition-colors duration-700"
     >
-      {/* Particle Background Image Layers (Fades in ONLY when hovered) */}
-      {BACKGROUNDS.map((bg, idx) => (
-        <div
-          key={idx}
-          className={`absolute inset-0 transition-all duration-700 ease-out pointer-events-none bg-cover bg-center ${
-            hoveredIndex === idx ? "opacity-100 scale-105" : "opacity-0 scale-100"
-          }`}
-          style={{ backgroundImage: `url(${bg})` }}
-        />
-      ))}
+      {/* Background Image Layers (Black by default; fades in ONLY when hovered) */}
+      {BACKGROUNDS.map((bg, idx) => {
+        const isVisible = hoveredIndex === idx;
+        return (
+          <div
+            key={idx}
+            className={`absolute inset-0 transition-all duration-700 ease-out pointer-events-none bg-cover bg-center ${
+              isVisible ? "opacity-100 scale-105" : "opacity-0 scale-100"
+            }`}
+            style={{ backgroundImage: `url(${bg})` }}
+          />
+        );
+      })}
 
       {/* Dark Overlay when active */}
       <div
-        className={`absolute inset-0 bg-black/40 backdrop-blur-[2px] transition-opacity duration-700 pointer-events-none ${
+        className={`absolute inset-0 bg-black/40 backdrop-blur-[1px] transition-opacity duration-700 pointer-events-none ${
           hoveredIndex !== null ? "opacity-100" : "opacity-0"
         }`}
       />

@@ -70,12 +70,8 @@ export function Hero() {
             ))}
           </div>
 
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-lime/30 border border-ink/20 rounded-full text-xs font-semibold text-ink uppercase tracking-wider mb-6">
-            <Sparkles className="size-3.5" /> FinTech & Personal Finance AI
-          </div>
-
-          <h1 className="display text-[clamp(2.4rem,8vw,5.4rem)]">
-            {["Smart Expense", "Analyzer & Financial", "Health Dashboard"].map((l) => (
+          <h1 className="display text-[clamp(2.6rem,7.5vw,5.2rem)] font-bold tracking-tight">
+            {["Smart Financial", "Intelligence."].map((l) => (
               <span key={l} className="line-mask">
                 <span data-hero-line className="block will-change-transform">
                   {l}
@@ -86,13 +82,9 @@ export function Hero() {
 
           <p
             data-hero-copy
-            className="mt-8 max-w-[32rem] text-[17px] leading-[1.7] text-muted-foreground"
+            className="mt-6 max-w-[28rem] text-[16px] leading-[1.65] text-muted-foreground"
           >
-            <em>"Because you can't fix what you can't see — and most people can't see where their money actually goes."</em>
-            <br />
-            <span className="mt-2 block font-normal text-ink/80">
-              Koshin turns raw bank transactions into real financial clarity, auto-categorized insights, and honest personalized advice in your pocket.
-            </span>
+            Automated transaction categorization, instant financial health score, and honest guidance in your pocket.
           </p>
 
           <div className="mt-10 flex flex-wrap items-center gap-4">

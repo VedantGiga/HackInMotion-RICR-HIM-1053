@@ -47,16 +47,12 @@ export function Navbar() {
   return (
     <>
       <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${
-          scrolled ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100 bg-transparent"
-        }`}
+        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${scrolled ? "-translate-y-full opacity-0 pointer-events-none" : "translate-y-0 opacity-100 bg-transparent"
+          }`}
       >
         <div className="shell flex items-center justify-between gap-6 py-5">
-          <a href="#top" data-nav-logo className="relative inline-flex items-center gap-2">
-            <span className="display text-2xl tracking-[-0.05em] text-ink">koshin.</span>
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-lime/20 text-ink text-[10px] font-semibold tracking-wide border border-lime/40">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Financial Health AI
-            </span>
+          <a href="#top" data-nav-logo className="relative inline-flex items-center">
+            <img src="/logo.png" alt="Koshin logo" className="h-10 w-auto object-contain" />
           </a>
 
           <nav className="hidden items-center gap-8 lg:flex">
@@ -109,7 +105,10 @@ export function Navbar() {
             className="fixed inset-0 z-[60] bg-ink text-background"
           >
             <div className="shell flex items-center justify-between py-5">
-              <span className="display text-2xl tracking-[-0.05em]">koshin.</span>
+              <div className="flex items-center gap-3">
+                <img src="/logo.png" alt="Koshin logo" className="h-8 w-auto object-contain brightness-0 invert" />
+
+              </div>
               <button
                 type="button"
                 aria-label="Close menu"
