@@ -44,12 +44,12 @@ export function Footer() {
   }, []);
 
   return (
-    <footer className="border-t border-hairline bg-white text-ink pt-16 md:pt-24 pb-12 overflow-hidden">
+    <footer className="bg-white text-ink pt-16 md:pt-24 pb-0 overflow-hidden flex flex-col justify-between">
       <div className="shell space-y-16">
-        
+
         {/* SURROUNDING FOOTER GRID: NAV & DESCRIPTION FLANKING THE CENTRAL ANIMATED LOGO */}
         <div ref={logoBoxRef} className="grid gap-12 grid-cols-1 md:grid-cols-12 items-center pb-12">
-          
+
           {/* LEFT SIDE: Platform & Legal Links */}
           <div className="md:col-span-4 grid grid-cols-2 gap-8">
             {/* Platform Column */}
@@ -97,9 +97,6 @@ export function Footer() {
             </a>
 
             <div ref={tagTextRef} className="space-y-1.5">
-              <h3 className="display text-2xl font-bold tracking-tight text-ink">
-                koshin.
-              </h3>
               <p className="text-xs text-muted-foreground max-w-xs mx-auto leading-[1.6]">
                 &quot;Because you can&apos;t fix what you can&apos;t see.&quot;
               </p>

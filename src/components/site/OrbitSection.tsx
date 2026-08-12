@@ -29,7 +29,7 @@ export function OrbitSection() {
   }, []);
 
   return (
-    <section ref={root} className="border-t border-hairline bg-white py-16 md:py-24 overflow-hidden w-full">
+    <section ref={root} className="bg-white py-16 md:py-24 overflow-hidden w-full">
       {/* Full-width container using full viewport width */}
       <div className="w-full px-3 sm:px-6 md:px-10 lg:px-12 space-y-4 md:space-y-6">
         
