@@ -6,7 +6,7 @@ import { errorResponse, successResponse } from "@/lib/api-response";
 
 const prisma = new PrismaClient();
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -14,7 +14,8 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     }
 
     const userId = (session.user as any).id;
-    const transactionId = params.id;
+    const resolvedParams = await params;
+    const transactionId = resolvedParams.id;
     const body = await req.json();
 
     const existingTransaction = await prisma.transaction.findUnique({
@@ -46,7 +47,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
@@ -54,7 +55,8 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     }
 
     const userId = (session.user as any).id;
-    const transactionId = params.id;
+    const resolvedParams = await params;
+    const transactionId = resolvedParams.id;
 
     const existingTransaction = await prisma.transaction.findUnique({
       where: { id: transactionId },
