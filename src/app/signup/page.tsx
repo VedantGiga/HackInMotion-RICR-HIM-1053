@@ -59,21 +59,6 @@ export default function SignUpPage() {
             Join Koshin today to start categorizing expenses, uncovering hidden leaks, and building a healthier financial future.
           </p>
 
-<<<<<<< HEAD
-          {success ? (
-            <div className="rounded-2xl border border-purple/30 bg-purple/10 p-6 text-center space-y-3">
-              <CheckCircle2 className="size-10 text-purple mx-auto" />
-              <h3 className="text-lg font-bold text-white">Account Created!</h3>
-              <p className="text-xs text-purple/80">
-                Welcome to Koshin. Your financial health workspace is ready.
-              </p>
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-ink transition-all hover:bg-purple/90 shadow-lg"
-              >
-                Launch Intelligence Dashboard
-              </Link>
-=======
           {/* Floating graphic element */}
           <div className="relative border border-white/10 bg-white/5 rounded-2xl p-6 shadow-2xl backdrop-blur-md mt-10">
             <div className="flex items-center justify-between mb-4">
@@ -86,7 +71,6 @@ export default function SignUpPage() {
             <div className="flex justify-between text-xs text-white/70 font-mono">
               <span>Step 1 of 3</span>
               <span>Fast & Encrypted</span>
->>>>>>> d64ede742135964c68fe326c92eb166207c7ab87
             </div>
           </div>
         </div>
@@ -132,7 +116,7 @@ export default function SignUpPage() {
                   Welcome to Koshin. Your financial health workspace is ready.
                 </p>
                 <Link
-                  href="/#demo"
+                  href="/dashboard"
                   className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-white transition-all hover:bg-purple/90 shadow-lg"
                 >
                   Launch Intelligence Dashboard
