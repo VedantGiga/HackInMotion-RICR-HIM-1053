@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
 import torus from "@/assets/hero-torus.png";
 import personA from "@/assets/person-a.jpg";
 import personB from "@/assets/person-b.jpg";
@@ -70,8 +70,12 @@ export function Hero() {
             ))}
           </div>
 
-          <h1 className="display text-[clamp(2.6rem,10vw,6.2rem)]">
-            {["Smarter", "Payments", "Start Here"].map((l) => (
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-lime/30 border border-ink/20 rounded-full text-xs font-semibold text-ink uppercase tracking-wider mb-6">
+            <Sparkles className="size-3.5" /> FinTech & Personal Finance AI
+          </div>
+
+          <h1 className="display text-[clamp(2.4rem,8vw,5.4rem)]">
+            {["Smart Expense", "Analyzer & Financial", "Health Dashboard"].map((l) => (
               <span key={l} className="line-mask">
                 <span data-hero-line className="block will-change-transform">
                   {l}
@@ -82,22 +86,34 @@ export function Hero() {
 
           <p
             data-hero-copy
-            className="mt-8 max-w-[30rem] text-[17px] leading-[1.7] text-muted-foreground"
+            className="mt-8 max-w-[32rem] text-[17px] leading-[1.7] text-muted-foreground"
           >
-            MatrixPay is a modern, white-label payment gateway designed for fintechs, PSPs, ISOs,
-            and ambitious merchants. Fast, flexible, and fully customizable.
+            <em>"Because you can't fix what you can't see — and most people can't see where their money actually goes."</em>
+            <br />
+            <span className="mt-2 block font-normal text-ink/80">
+              Koshin turns raw bank transactions into real financial clarity, auto-categorized insights, and honest personalized advice in your pocket.
+            </span>
           </p>
 
-          <a
-            data-hero-cta
-            href="#integrations"
-            className="group mt-10 inline-flex items-center gap-8 border border-ink py-2 pr-2 pl-5 transition-colors hover:bg-ink hover:text-background"
-          >
-            <span className="text-[15px] font-medium">Discover</span>
-            <span className="grid size-9 place-items-center bg-lime text-ink transition-transform duration-300 group-hover:translate-y-1">
-              <ArrowDown className="size-4" strokeWidth={2} />
-            </span>
-          </a>
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <a
+              data-hero-cta
+              href="#demo"
+              className="group inline-flex items-center gap-6 border border-ink bg-ink text-background py-2.5 pr-2 pl-6 transition-colors hover:bg-lime hover:text-ink hover:border-ink"
+            >
+              <span className="text-[15px] font-semibold">Try Interactive Dashboard</span>
+              <span className="grid size-9 place-items-center bg-lime text-ink transition-transform duration-300 group-hover:translate-y-1">
+                <ArrowDown className="size-4" strokeWidth={2} />
+              </span>
+            </a>
+
+            <a
+              href="#categorization"
+              className="inline-flex items-center gap-2 border border-hairline py-3 px-5 text-[14px] font-medium text-ink transition-colors hover:border-ink"
+            >
+              Auto-Categorization Engine
+            </a>
+          </div>
 
           <div
             className="dot-field pointer-events-none absolute -bottom-16 left-0 hidden h-6 w-[560px] opacity-70 md:block"
@@ -109,7 +125,7 @@ export function Hero() {
           <img
             data-hero-object
             src={torus}
-            alt="MatrixPay interlocking wireframe payment rails"
+            alt="Koshin financial intelligence graphic"
             width={1200}
             height={1200}
             className="w-full object-contain will-change-transform"
@@ -117,31 +133,30 @@ export function Hero() {
 
           <div
             data-hero-float
-            className="absolute top-[14%] right-[2%] w-24 overflow-hidden sm:w-32"
+            className="absolute top-[10%] right-[2%] w-32 overflow-hidden rounded-xl border border-hairline bg-background shadow-xl sm:w-44 p-3"
           >
-            <img
-              src={personA}
-              alt="Merchant using MatrixPay checkout"
-              width={512}
-              height={640}
-              loading="lazy"
-              className="h-full w-full object-cover"
-            />
+            <div className="flex items-center gap-2 text-xs font-semibold text-ink">
+              <ShieldCheck className="size-4 text-emerald-600" /> Koshin Health Score
+            </div>
+            <div className="text-2xl font-extrabold text-ink my-1">78 / 100</div>
+            <div className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full inline-block">
+              Good & Healthy
+            </div>
           </div>
 
-          <div data-hero-float className="absolute bottom-[22%] left-[0%] flex items-end">
+          <div data-hero-float className="absolute bottom-[18%] left-[0%] flex items-end shadow-2xl">
             <img
               src={personB}
-              alt="MatrixPay customer"
+              alt="Koshin user"
               width={512}
               height={512}
               loading="lazy"
               className="size-14 object-cover sm:size-16"
             />
-            <div className="-ml-2 bg-cyan px-3 py-2 text-ink">
-              <p className="text-[11px] font-medium">Payment Send</p>
-              <p className="text-[15px] font-bold">$ 35.04</p>
-              <p className="text-[10px] opacity-70">12th May, 2025</p>
+            <div className="-ml-2 bg-cyan px-4 py-2.5 text-ink border border-ink/10">
+              <p className="text-[11px] font-semibold uppercase tracking-wide">Auto-Categorized</p>
+              <p className="text-[14px] font-bold">DoorDash Food Delivery</p>
+              <p className="text-[11px] font-mono text-ink/80">$48.50 • Food & Dining</p>
             </div>
           </div>
 
@@ -155,3 +170,4 @@ export function Hero() {
     </section>
   );
 }
+

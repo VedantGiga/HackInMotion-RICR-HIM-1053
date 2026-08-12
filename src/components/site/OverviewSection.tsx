@@ -5,22 +5,28 @@ import { LineReveal, Reveal, usePointerParallax, useScrollParallax } from "@/lib
 const BLOCKS = [
   {
     n: "01",
-    body: "MatrixPay is a global, startup-friendly white-label payment gateway built for scale.",
+    body: "Rule-Based + AI/NLP Hybrid Engine: Merchant descriptions are matched against deterministic keyword patterns and natural language vector embeddings.",
   },
   {
     n: "02",
-    body: "Built to plug into your business with ease, MatrixPay delivers blazing-fast onboarding, powerful developer tools, and access to a vast network of acquirers, APMs, and banking rails.",
+    body: "8 Core Categories: Automatically tags Food & Dining, Housing & Rent, Subscriptions, Travel, Bills & Utilities, Shopping, Salary, and Entertainment.",
   },
-  { n: "03", body: "Flexible infrastructure designed around your business model." },
-  { n: "04", body: "Powerful payment capabilities without sacrificing control or customization." },
+  {
+    n: "03",
+    body: "Confidence Score: Every transaction is assigned a 0–100% confidence rating, allowing user override and active engine learning.",
+  },
+  {
+    n: "04",
+    body: "Recurrence Detection: Identifies recurring billing cycles to flag silent price increases, unused trials, and upcoming bill due dates.",
+  },
 ];
 
 const LABELS = [
-  { text: "white-label", top: "26%", left: "0%" },
-  { text: "payment", top: "58%", left: "4%" },
-  { text: "banking rails", top: "78%", left: "16%" },
-  { text: "API", top: "12%", left: "22%" },
-  { text: "security", top: "44%", left: "-4%" },
+  { text: "Food & Dining", top: "26%", left: "0%" },
+  { text: "Subscriptions", top: "58%", left: "4%" },
+  { text: "Housing & Rent", top: "78%", left: "16%" },
+  { text: "Travel & Transport", top: "12%", left: "22%" },
+  { text: "NLP Categorizer", top: "44%", left: "-4%" },
 ];
 
 export function OverviewSection() {
@@ -28,18 +34,21 @@ export function OverviewSection() {
   const drift = useScrollParallax(60);
 
   return (
-    <section id="overview" className="border-t border-hairline py-24 md:py-32 lg:py-40">
+    <section id="categorization" className="border-t border-hairline py-24 md:py-32 lg:py-40">
       <div className="shell grid items-center gap-16 lg:grid-cols-2">
         <div>
-          <Reveal className="text-sm text-muted-foreground">Overview</Reveal>
-          <LineReveal className="display mt-4 text-[clamp(2.2rem,5.6vw,4.2rem)]" lines={["What is MatrixPay?"]} />
+          <Reveal className="text-xs font-semibold text-ink uppercase tracking-widest">Technical Core</Reveal>
+          <LineReveal className="display mt-4 text-[clamp(2.2rem,5.6vw,4.2rem)]" lines={["The Automatic", "Categorization Engine"]} />
+          <Reveal className="mt-6 text-[17px] leading-[1.7] text-muted-foreground">
+            No more manual tagging. Koshin’s hybrid engine parses messy bank statement strings like <code className="bg-hairline px-2 py-0.5 rounded text-ink text-sm">DD *DOORDASH SAN FRANCISCO</code> and turns them into clean, structured data categories in milliseconds.
+          </Reveal>
         </div>
 
         <div ref={drift} className="relative">
           <div ref={pointer} className="relative">
             <img
               src={cubes}
-              alt="MatrixPay modular payment infrastructure"
+              alt="Koshin categorization engine visualization"
               width={1200}
               height={1200}
               loading="lazy"
@@ -50,11 +59,11 @@ export function OverviewSection() {
             <span className="absolute top-[24%] right-[26%] size-2 bg-pinkish" aria-hidden />
             <img
               src={personA}
-              alt="MatrixPay partner"
+              alt="Koshin auto tag example"
               width={512}
               height={640}
               loading="lazy"
-              className="absolute right-[6%] bottom-[16%] size-16 object-cover"
+              className="absolute right-[6%] bottom-[16%] size-16 object-cover border border-ink"
             />
           </div>
 
@@ -73,7 +82,7 @@ export function OverviewSection() {
             <span
               key={l.text}
               style={{ top: l.top, left: l.left }}
-              className="absolute hidden border border-hairline bg-background px-3 py-1.5 text-xs text-muted-foreground md:inline-block"
+              className="absolute hidden border border-hairline bg-background px-3 py-1.5 text-xs text-ink font-semibold md:inline-block shadow-sm"
             >
               {l.text}
             </span>
@@ -82,13 +91,14 @@ export function OverviewSection() {
       </div>
 
       <div className="shell mt-20 grid gap-x-12 gap-y-12 sm:grid-cols-2 lg:mt-28 lg:grid-cols-4">
-        {BLOCKS.map((b, i) => (
-          <Reveal key={b.n} delay={i * 0.06}>
-            <p className="text-sm text-muted-foreground">{b.n}</p>
-            <p className="mt-6 text-[16px] leading-[1.7]">{b.body}</p>
+        {BLOCKS.map((b) => (
+          <Reveal key={b.n}>
+            <p className="text-sm font-bold text-ink">{b.n}</p>
+            <p className="mt-4 text-[15px] leading-[1.7] text-muted-foreground">{b.body}</p>
           </Reveal>
         ))}
       </div>
     </section>
   );
 }
+
