@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { usePathname } from "next/navigation";
 import {
   TrendingUp,
   CreditCard,
@@ -241,8 +242,15 @@ export function KoshinDashboard() {
     { id: "ai", label: "Koshin AI", icon: Bot }
   ] as const;
 
+  const pathname = usePathname();
+  const isDashboardPage = pathname === "/dashboard";
+
   return (
-    <div className="flex flex-col lg:flex-row min-h-[85vh] bg-navy border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative">
+    <div className={`flex flex-col lg:flex-row bg-navy relative ${
+      isDashboardPage 
+        ? "min-h-screen rounded-none border-none w-full" 
+        : "min-h-[85vh] border border-white/5 rounded-3xl overflow-hidden shadow-2xl"
+    }`}>
       
       {/* Decorative Orbs */}
       <div className="absolute top-0 right-1/4 size-[400px] bg-purple/10 rounded-full blur-[140px] pointer-events-none" />
@@ -303,14 +311,24 @@ export function KoshinDashboard() {
         </div>
 
         {/* User Card */}
-        <div className="pt-6 border-t border-white/5 flex items-center gap-3">
-          <div className="size-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/80">
-            <User className="size-5" />
+        <div className="pt-6 border-t border-white/5 flex flex-col gap-4">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/80">
+              <User className="size-5" />
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-white">Alex Morgan</div>
+              <div className="text-[10px] text-white/40 font-mono">Premium User</div>
+            </div>
           </div>
-          <div>
-            <div className="text-xs font-semibold text-white">Alex Morgan</div>
-            <div className="text-[10px] text-white/40 font-mono">Premium User</div>
-          </div>
+          {isDashboardPage && (
+            <a
+              href="/"
+              className="text-center w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-white/80 hover:text-white transition-all"
+            >
+              Sign Out to Home
+            </a>
+          )}
         </div>
       </div>
 
