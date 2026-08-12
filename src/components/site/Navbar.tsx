@@ -3,11 +3,11 @@ import { AnimatePresence, motion } from "motion/react";
 import gsap from "gsap";
 
 const LINKS = [
-  { label: "Highlights", href: "#highlights" },
-  { label: "Integrations", href: "#integrations" },
-  { label: "Overview", href: "#overview" },
-  { label: "Use Cases", href: "#use-cases" },
-  { label: "About Us", href: "#about" },
+  { label: "Problem & Vision", href: "#problem" },
+  { label: "Auto Categorization", href: "#categorization" },
+  { label: "Health Score", href: "#health" },
+  { label: "Features", href: "#features" },
+  { label: "Live Dashboard", href: "#demo" },
 ];
 
 export function Navbar() {
@@ -51,27 +51,36 @@ export function Navbar() {
           scrolled ? "border-b border-hairline bg-background/80 backdrop-blur-md" : "bg-transparent"
         }`}
       >
-        <div className="shell grid grid-cols-[minmax(0,1fr)_auto] items-center gap-6 py-5">
-          <a href="#top" data-nav-logo className="relative inline-flex min-w-0 items-center">
-            <span className="absolute -top-3 left-8 size-2 bg-brandblue" aria-hidden />
-            <span className="absolute -top-4 right-0 size-2 bg-ink" aria-hidden />
-            <span className="absolute -bottom-2 left-4 size-2 bg-cyan" aria-hidden />
-            <span className="display truncate text-2xl tracking-[-0.05em] lowercase">matrixpay</span>
+        <div className="shell flex items-center justify-between gap-6 py-5">
+          <a href="#top" data-nav-logo className="relative inline-flex items-center gap-2">
+            <span className="display text-2xl tracking-[-0.05em] text-ink">koshin.</span>
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-lime/20 text-ink text-[10px] font-semibold tracking-wide border border-lime/40">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" /> Financial Health AI
+            </span>
           </a>
 
-          <nav className="hidden items-center gap-9 lg:flex">
+          <nav className="hidden items-center gap-8 lg:flex">
             {LINKS.map((l) => (
               <a
                 key={l.label}
                 data-nav-item
                 href={l.href}
-                className="group relative text-[15px] font-medium text-ink transition-opacity hover:opacity-70"
+                className="group relative text-[14px] font-medium text-ink transition-opacity hover:opacity-70"
               >
                 {l.label}
                 <span className="absolute -bottom-1 left-0 h-px w-0 bg-ink transition-all duration-300 group-hover:w-full" />
               </a>
             ))}
           </nav>
+
+          <div className="hidden sm:flex items-center gap-3">
+            <a
+              href="#demo"
+              className="inline-flex items-center justify-center rounded-md bg-ink px-4 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02]"
+            >
+              Open Live Dashboard
+            </a>
+          </div>
 
           <motion.button
             type="button"
@@ -100,7 +109,7 @@ export function Navbar() {
             className="fixed inset-0 z-[60] bg-ink text-background"
           >
             <div className="shell flex items-center justify-between py-5">
-              <span className="display text-2xl lowercase tracking-[-0.05em]">matrixpay</span>
+              <span className="display text-2xl tracking-[-0.05em]">koshin.</span>
               <button
                 type="button"
                 aria-label="Close menu"
@@ -134,3 +143,4 @@ export function Navbar() {
     </>
   );
 }
+

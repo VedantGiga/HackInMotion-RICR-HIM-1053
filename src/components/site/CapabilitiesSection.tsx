@@ -1,20 +1,20 @@
-import { Square, PieChart, Code2, LifeBuoy, Boxes } from "lucide-react";
+import { Activity, ShieldCheck, HeartPulse, Sparkles, AlertTriangle } from "lucide-react";
 import block from "@/assets/capabilities-block.png";
 import { Reveal, usePointerParallax } from "@/lib/motion-primitives";
 
 const ITEMS = [
-  { icon: Square, title: "Merchant Tools", body: "Intuitive Dashboard, Reporting, Reconciliation" },
-  { icon: PieChart, title: "White-Label Power", body: "Custom domain, branding & invoice templates" },
-  { icon: Code2, title: "Developer Friendly", body: "RESTful APIs, Hosted Checkout, SDKs, Sandbox" },
+  { icon: Activity, title: "0 - 100 Financial Health Index", body: "Weighted evaluation based on net reserve, savings rate, and recurring expense ratio." },
+  { icon: HeartPulse, title: "Income vs. Expense Ratio", body: "Tracks net reserve liquidity to ensure you stay cash-flow positive month after month." },
+  { icon: Sparkles, title: "Plain-Language Advice", body: "Direct, non-jargon advice: 'You spent $340 more on dining out than last month.'" },
   {
-    icon: LifeBuoy,
-    title: "24/7 Support",
-    body: "Dedicated account manager, technical support, onboarding assistance",
+    icon: AlertTriangle,
+    title: "Overspend Alerts",
+    body: "Immediate notifications when category spending breaches your set threshold limit.",
   },
   {
-    icon: Boxes,
-    title: "Flexible Deployment",
-    body: "MatrixPay can be run cloud-based or installed on-premise",
+    icon: ShieldCheck,
+    title: "Bank-Grade Encryption",
+    body: "Your sensitive financial data is stored with AES-256 zero-knowledge encryption.",
   },
 ];
 
@@ -22,12 +22,12 @@ export function CapabilitiesSection() {
   const pointer = usePointerParallax(16);
 
   return (
-    <section id="highlights" className="border-t border-hairline bg-offwhite py-24 md:py-32 lg:py-40">
+    <section id="health" className="border-t border-hairline bg-offwhite py-24 md:py-32 lg:py-40">
       <div className="shell grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
         <div ref={pointer} className="relative order-2 mx-auto w-full max-w-[520px] lg:order-1">
           <img
             src={block}
-            alt="MatrixPay deployment architecture block"
+            alt="Koshin financial health engine block"
             width={1200}
             height={1200}
             loading="lazy"
@@ -46,10 +46,10 @@ export function CapabilitiesSection() {
           {ITEMS.map((f, i) => (
             <Reveal key={f.title} delay={i * 0.05} className="group">
               <f.icon
-                className="size-7 transition-transform duration-500 group-hover:-translate-y-1"
+                className="size-7 transition-transform duration-500 group-hover:-translate-y-1 text-ink"
                 strokeWidth={1.5}
               />
-              <h3 className="display mt-7 text-lg tracking-[-0.02em]">{f.title}</h3>
+              <h3 className="display mt-7 text-lg tracking-[-0.02em] text-ink">{f.title}</h3>
               <p className="mt-3 max-w-[15rem] text-[15px] leading-[1.7] text-muted-foreground">
                 {f.body}
               </p>
@@ -60,3 +60,4 @@ export function CapabilitiesSection() {
     </section>
   );
 }
+

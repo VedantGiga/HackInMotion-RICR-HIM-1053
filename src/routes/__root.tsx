@@ -73,9 +73,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MatrixPay" },
-      { name: "description", content: "White-label payment gateway infrastructure." },
-      { name: "author", content: "MatrixPay" },
+      { title: "Koshin — Smart Expense Analyzer & Financial Health Dashboard" },
+      { name: "description", content: "Smart Expense Analyzer & Financial Health Dashboard." },
+      { name: "author", content: "Koshin" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
