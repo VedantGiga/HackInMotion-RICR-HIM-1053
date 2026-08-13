@@ -108,7 +108,7 @@ export function PricingSection() {
     <section ref={sectionRef} className="py-24 md:py-32 bg-offwhite relative overflow-hidden" id="pricing">
       {/* Background Ornaments */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-purple/5 rounded-full blur-[120px] pointer-events-none" />
-      
+
       <div className="shell relative z-10 max-w-6xl mx-auto px-6">
         <div className="text-center max-w-3xl mx-auto mb-16 pricing-heading">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-purple/10 border border-purple/20 text-purple text-xs font-bold uppercase tracking-widest mb-6">
@@ -121,15 +121,15 @@ export function PricingSection() {
           <p className="text-lg text-muted-foreground leading-relaxed">
             Choose the plan that best fits your needs. Our AI-driven insights easily pay for themselves by finding hidden subscriptions and optimizing your budget.
           </p>
-          
+
           {/* Toggle */}
           <div className="flex items-center justify-center gap-4 mt-10">
             <span className={`text-sm font-semibold transition-colors ${!isAnnual ? "text-ink" : "text-muted-foreground"}`}>Monthly</span>
-            <button 
+            <button
               onClick={() => setIsAnnual(!isAnnual)}
               className="relative w-14 h-8 rounded-full bg-ink/10 flex items-center px-1 transition-colors hover:bg-ink/20"
             >
-              <motion.div 
+              <motion.div
                 className="w-6 h-6 rounded-full bg-white shadow-sm border border-hairline"
                 animate={{ x: isAnnual ? 24 : 0 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -147,29 +147,28 @@ export function PricingSection() {
             <motion.div
               key={plan.name}
               whileHover={{ y: -8 }}
-              className={`pricing-card relative rounded-[2rem] p-8 md:p-10 transition-shadow duration-300 ${
-                plan.isPopular 
-                  ? "bg-navy text-white shadow-2xl shadow-purple/20 border border-white/10 md:-translate-y-4" 
+              className={`pricing-card relative rounded-[2rem] p-8 md:p-10 transition-shadow duration-300 ${plan.isPopular
+                  ? "bg-navy text-white shadow-2xl shadow-purple/20 border border-white/10 md:-translate-y-4"
                   : "bg-white text-ink border border-hairline shadow-lg shadow-black/5"
-              }`}
+                }`}
             >
               {plan.isPopular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple to-pink-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-md">
                   Most Popular
                 </div>
               )}
-              
+
               <div className="flex items-center gap-3 mb-6">
                 <div className={`p-2.5 rounded-xl ${plan.isPopular ? "bg-white/10" : "bg-offwhite"}`}>
                   {plan.icon}
                 </div>
                 <h3 className="text-xl font-bold">{plan.name}</h3>
               </div>
-              
+
               <p className={`text-sm mb-6 ${plan.isPopular ? "text-white/70" : "text-muted-foreground"}`}>
                 {plan.description}
               </p>
-              
+
               <div className="mb-8 flex items-baseline gap-1">
                 <span className="text-4xl md:text-5xl font-extrabold tracking-tight">
                   ${isAnnual ? plan.annualPrice : plan.monthlyPrice}
@@ -178,7 +177,7 @@ export function PricingSection() {
                   /mo
                 </span>
               </div>
-              
+
               <ul className="space-y-4 mb-10">
                 {plan.features.map((feature, i) => (
                   <li key={i} className="flex items-start gap-3 text-sm font-medium">
@@ -187,14 +186,13 @@ export function PricingSection() {
                   </li>
                 ))}
               </ul>
-              
-              <Link 
+
+              <Link
                 href="/signup"
-                className={`block w-full py-4 rounded-xl text-sm font-bold text-center transition-all duration-300 ${
-                  plan.isPopular
+                className={`block w-full py-4 rounded-xl text-sm font-bold text-center transition-all duration-300 ${plan.isPopular
                     ? "bg-white text-navy hover:bg-gray-100 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]"
                     : "bg-ink text-white hover:bg-ink/90 hover:shadow-lg"
-                }`}
+                  }`}
               >
                 {plan.buttonText}
               </Link>

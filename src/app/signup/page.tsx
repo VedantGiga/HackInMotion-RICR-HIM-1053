@@ -116,14 +116,17 @@ export default function SignUpPage() {
   return (
     <div className="relative min-h-screen bg-offwhite text-ink flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel: Premium Visual */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-navy p-12 flex-col justify-between overflow-hidden">
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[url('/bgimage.png')] bg-cover bg-center p-12 flex-col justify-between overflow-hidden">
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-navy/85 backdrop-blur-[2px] pointer-events-none" />
+        
         {/* Glow effects */}
         <div className="absolute top-0 left-0 size-[400px] bg-cyan/10 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-0 right-0 size-[400px] bg-purple/10 rounded-full blur-[120px] pointer-events-none" />
 
         {/* Logo and Brand */}
         <Link href="/" className="relative z-10 flex items-center gap-3">
-          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-20 w-auto object-contain brightness-0 invert" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-32 w-auto object-contain brightness-0 invert scale-110 origin-left" />
         </Link>
 
         {/* Visual Content */}
@@ -159,7 +162,7 @@ export default function SignUpPage() {
           </Link>
 
           <Link href="/" className="flex items-center gap-3 lg:hidden">
-            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-16 w-auto object-contain" />
+            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-24 w-auto object-contain" />
           </Link>
         </header>
 
