@@ -108,7 +108,7 @@ export function SettingsView() {
       
       {/* Save action */}
       <div className="flex justify-end pt-2">
-        <button className="px-6 py-3 bg-ink text-white rounded-xl text-[14px] font-bold shadow-md hover:bg-ink/90 transition-colors">
+        <button className="px-6 py-3 bg-purple hover:bg-purple/90 text-white rounded-xl text-[14px] font-bold shadow-md transition-colors cursor-pointer">
           Save Changes
         </button>
       </div>

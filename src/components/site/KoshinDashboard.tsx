@@ -294,9 +294,9 @@ export function KoshinDashboard() {
 
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink text-white text-xs font-semibold hover:bg-purple transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple/25 cursor-pointer"
             >
-              <UploadCloud className="size-4 text-lime" />
+              <UploadCloud className="size-4 text-lime-300" />
               <span>+ Upload Statement</span>
             </button>
 
@@ -394,7 +394,7 @@ export function KoshinDashboard() {
                           <div className="flex flex-wrap gap-3 pt-2">
                             <button
                               onClick={() => setIsUploadModalOpen(true)}
-                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-bold text-ink hover:scale-105 transition-transform shadow-md"
+                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-extrabold text-slate-950 hover:scale-105 transition-transform shadow-md cursor-pointer"
                             >
                               <UploadCloud className="size-4" />
                               <span>Import New Statement</span>
@@ -598,7 +598,7 @@ export function KoshinDashboard() {
                           onChange={e => setChatInput(e.target.value)}
                           className="flex-1 px-5 py-3 rounded-full border border-hairline bg-offwhite text-xs text-ink outline-none focus:border-purple"
                         />
-                        <button type="submit" className="p-3 rounded-full bg-ink text-white hover:bg-purple transition-colors">
+                        <button type="submit" className="p-3 rounded-full bg-purple hover:bg-purple/90 text-white transition-colors cursor-pointer shadow-sm">
                           <Send className="size-4" />
                         </button>
                       </form>
@@ -656,7 +656,7 @@ export function KoshinDashboard() {
                     <p className="text-sm font-bold text-ink">Drag & Drop Statement PDF / CSV</p>
                     <p className="text-xs text-muted-foreground mt-1">Supports HDFC, ICICI, SBI, Axis, Zerodha, or custom CSV</p>
                   </div>
-                  <button className="px-5 py-2 rounded-full bg-ink text-white text-xs font-bold hover:bg-purple transition-colors inline-block mt-2">
+                  <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
                     Select File
                   </button>
                 </div>

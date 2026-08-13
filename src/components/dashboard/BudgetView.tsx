@@ -15,7 +15,7 @@ export function BudgetView({ categoryBreakdown }: BudgetViewProps) {
           <h3 className="display text-2xl font-bold text-ink tracking-tight">Budget Management</h3>
           <p className="text-[13px] text-muted-foreground mt-1">Track your spending limits and stay on target.</p>
         </div>
-        <button className="px-4 py-2 bg-ink text-white rounded-lg text-[13px] font-bold shadow-md hover:bg-ink/90 transition-colors flex items-center gap-2">
+        <button className="px-4 py-2 bg-purple hover:bg-purple/90 text-white rounded-lg text-[13px] font-bold shadow-md transition-colors flex items-center gap-2 cursor-pointer">
           <PlusCircle className="size-4" /> Create Budget
         </button>
       </div>
