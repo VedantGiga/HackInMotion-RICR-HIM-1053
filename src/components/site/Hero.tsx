@@ -2,9 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ArrowDown, Sparkles, TrendingUp, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import torus from "@/assets/hero-torus.png";
-import personA from "@/assets/person-a.jpg";
 import personB from "@/assets/person-b.jpg";
 import { usePointerParallax } from "@/lib/motion-primitives";
 
@@ -83,65 +82,6 @@ export function Hero() {
           >
             Automated transaction categorization, instant financial health score, and honest guidance in your pocket.
           </p>
-
-          <div className="mt-10 flex flex-wrap items-center gap-4">
-            <a
-              data-hero-cta
-              href="#demo"
-              className="group inline-flex items-center gap-5 rounded-full border border-ink bg-ink text-background py-2 pr-2 pl-6 transition-all hover:bg-purple hover:text-ink hover:border-ink shadow-md"
-            >
-              <span className="text-[15px] font-semibold">Try Interactive Dashboard</span>
-              <span className="grid size-9 place-items-center rounded-full bg-purple text-ink transition-transform duration-300 group-hover:translate-y-1">
-                <ArrowDown className="size-4" strokeWidth={2} />
-              </span>
-            </a>
-
-            <a
-              href="#categorization"
-              className="inline-flex items-center gap-2 rounded-full border border-hairline py-3 px-6 text-[14px] font-medium text-ink transition-colors hover:border-ink hover:bg-hairline/30"
-            >
-              Auto-Categorization Engine
-            </a>
-          </div>
-
-          {/* ULTRA-PREMIUM AVATARS & SOCIAL PROOF BAR */}
-          <div className="mt-10 flex flex-wrap items-center gap-5 p-4 rounded-2xl bg-offwhite/80 border border-hairline/80 shadow-xs max-w-xl">
-            <div className="flex -space-x-3 items-center shrink-0">
-              <img
-                src={typeof personA === "string" ? personA : (personA as any)?.src || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"}
-                alt="User Avatar 1"
-                className="size-10 rounded-full border-2 border-white object-cover shadow-sm"
-              />
-              <img
-                src={typeof personB === "string" ? personB : (personB as any)?.src || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80"}
-                alt="User Avatar 2"
-                className="size-10 rounded-full border-2 border-white object-cover shadow-sm"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
-                alt="User Avatar 3"
-                className="size-10 rounded-full border-2 border-white object-cover shadow-sm"
-              />
-              <img
-                src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80"
-                alt="User Avatar 4"
-                className="size-10 rounded-full border-2 border-white object-cover shadow-sm"
-              />
-              <div className="size-10 rounded-full border-2 border-white bg-purple text-white text-xs font-bold flex items-center justify-center shadow-sm">
-                +12k
-              </div>
-            </div>
-
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
-                {"★".repeat(5)}
-                <span className="text-ink font-semibold ml-1">4.9 / 5.0</span>
-              </div>
-              <p className="text-xs font-medium text-muted-foreground">
-                Trusted by <span className="font-bold text-ink">12,400+</span> smart investors
-              </p>
-            </div>
-          </div>
 
           <div
             className="dot-field pointer-events-none absolute -bottom-16 left-0 hidden h-6 w-[560px] opacity-70 md:block"
