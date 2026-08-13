@@ -21,6 +21,7 @@ import {
   Bot,
   ArrowUpRight,
   ArrowDownLeft,
+  ArrowDownRight,
   LayoutDashboard,
   User,
   Menu,
