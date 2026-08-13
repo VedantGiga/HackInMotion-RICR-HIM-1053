@@ -14,9 +14,9 @@ export type NavItem = {
 
 interface SidebarProps {
   sidebarOpen: boolean;
-  setSidebarOpen: Dispatch<SetStateAction<boolean>>;
+  setSidebarOpen: (open: boolean) => void;
   activeTab: string;
-  setActiveTab: Dispatch<SetStateAction<any>>;
+  setActiveTab: (tab: any) => void;
   navItems: readonly NavItem[];
   healthScore: number;
   healthRingColor: string;

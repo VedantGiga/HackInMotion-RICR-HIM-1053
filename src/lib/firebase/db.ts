@@ -95,7 +95,7 @@ export const queryDocuments = async (
 
 // --- Specific Domain Helpers ---
 
-export const createUserProfile = async (userId: string, data: { email: string; name?: string; createdAt: Date }) => {
+export const createUserProfile = async (userId: string, data: { email: string; name?: string; phone?: string; createdAt: Date }) => {
   return createDocument("users", userId, data);
 };
 
