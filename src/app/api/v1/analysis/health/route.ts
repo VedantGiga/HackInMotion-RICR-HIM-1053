@@ -42,13 +42,13 @@ export async function GET(req: Request) {
     // Simple Scoring Logic
     let score = 100;
     const insights = [];
+    const savings = income - expense;
 
     if (transactions.length === 0) {
       score = 0;
       insights.push("You have no recorded transactions this month. Upload a statement to get started!");
     } else {
       // Savings Rate Insight
-      const savings = income - expense;
       if (income > 0) {
         const savingsRate = savings / income;
         if (savingsRate < 0.1) {
