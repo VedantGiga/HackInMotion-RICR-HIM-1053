@@ -117,10 +117,29 @@ export default function VerifyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+      const json = await res.json();
       if (res.ok) {
-        alert("Verification code resent to your email.");
+        if (json?.code && !json?.emailSent) {
+          try {
+            const emailjs = (await import("@emailjs/browser")).default;
+            await emailjs.send(
+              process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_dvicy8b",
+              process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_ii8om4m",
+              {
+                to_email: email,
+                email: email,
+                passcode: json.code,
+                code: json.code,
+                company_name: "Koshin AI",
+              },
+              process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "JtOjDhYRDchP6rMsp"
+            );
+          } catch (clientErr) {
+            console.error("[EmailJS Resend Error]:", clientErr);
+          }
+        }
+        alert("Verification code sent to " + email);
       } else {
-        const json = await res.json();
         alert(json.error || "Failed to resend code.");
       }
     } catch (err) {

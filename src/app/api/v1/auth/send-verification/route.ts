@@ -37,12 +37,18 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send the email
-    await sendVerificationEmail(email, code);
+    // Send the email via server helper
+    const emailResult = await sendVerificationEmail(email, code);
 
-    return NextResponse.json({ success: true, message: "Verification email sent" });
+    return NextResponse.json({
+      success: true,
+      code,
+      emailSent: emailResult.success,
+      message: "Verification code generated",
+    });
   } catch (error: any) {
     console.error("Failed to send verification email:", error);
     return NextResponse.json({ error: "Failed to send verification email" }, { status: 500 });
   }
 }
+

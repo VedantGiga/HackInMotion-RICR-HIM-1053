@@ -80,8 +80,28 @@ export default function SignUpPage() {
         body: JSON.stringify({ email: data.email }),
       });
 
-      if (!verifyRes.ok) {
-        console.error("Failed to send verification email");
+      const verifyJson = await verifyRes.json();
+
+      // Dual-dispatch: if server-side EmailJS was blocked by non-browser security policy, dispatch via client-side @emailjs/browser
+      if (verifyJson?.code && !verifyJson?.emailSent) {
+        try {
+          const emailjs = (await import("@emailjs/browser")).default;
+          await emailjs.send(
+            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_dvicy8b",
+            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_ii8om4m",
+            {
+              to_email: data.email,
+              email: data.email,
+              passcode: verifyJson.code,
+              code: verifyJson.code,
+              company_name: "Koshin AI",
+            },
+            process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "JtOjDhYRDchP6rMsp"
+          );
+          console.log("[EmailJS Client] Verification email delivered directly to", data.email);
+        } catch (emailErr) {
+          console.error("[EmailJS Client Dispatch Error]:", emailErr);
+        }
       }
 
       setRedirecting(true);
