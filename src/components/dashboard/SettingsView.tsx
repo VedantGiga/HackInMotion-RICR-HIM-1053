@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles } from "lucide-react";
+import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles, Trash2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 
 const AVATAR_PRESETS = [
@@ -14,6 +14,12 @@ const AVATAR_PRESETS = [
 export function SettingsView() {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[0]);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [rules, setRules] = useState([
+    { id: "1", keyword: "Gas Station", category: "Travel & Rides" },
+    { id: "2", keyword: "Starbucks", category: "Food & Dining" },
+  ]);
+  const [newKeyword, setNewKeyword] = useState("");
+  const [newCategory, setNewCategory] = useState("Food & Dining");
 
   const { data: session, update } = useSession();
   const userName = session?.user?.name || "User";
@@ -217,11 +223,88 @@ export function SettingsView() {
                 <div className="text-[12px] text-muted-foreground">3 Bank Accounts & Credit Cards synced</div>
               </div>
             </div>
-            <span className="text-[12px] font-bold text-purple bg-purple/10 px-3 py-1 rounded-full border border-purple/20">
-              3 Active Syncs
-            </span>
           </div>
 
+        </div>
+      </div>
+
+      {/* CUSTOM AI CATEGORIZATION RULES */}
+      <div className="rounded-3xl border border-hairline bg-white shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-hairline bg-offwhite/50">
+          <h4 className="text-[15px] font-bold text-ink">Custom AI Smart Categorization Rules</h4>
+          <p className="text-[13px] text-muted-foreground mt-1">Override default NLP categorizations. Matching merchants automatically route to your selected category.</p>
+        </div>
+
+        <div className="p-6 space-y-6">
+          {/* Rules List */}
+          <div className="space-y-3">
+            {rules.map((rule) => (
+              <div key={rule.id} className="flex items-center justify-between p-4 rounded-xl bg-offwhite border border-hairline">
+                <div className="flex items-center gap-4">
+                  <div className="text-sm font-semibold text-ink">
+                    If merchant contains <span className="font-mono text-purple px-1.5 py-0.5 bg-purple/10 rounded-md">&quot;{rule.keyword}&quot;</span>
+                  </div>
+                  <span className="text-muted-foreground">→</span>
+                  <span className="text-xs font-bold bg-white border border-hairline text-ink px-2.5 py-1 rounded-full">
+                    {rule.category}
+                  </span>
+                </div>
+                <button
+                  onClick={() => setRules((prev) => prev.filter((r) => r.id !== rule.id))}
+                  className="p-2 hover:bg-red-50 hover:text-red-600 rounded-lg text-muted-foreground transition-colors cursor-pointer"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Add Rule Form */}
+          <div className="flex flex-col sm:flex-row gap-4 items-end p-4 rounded-2xl bg-offwhite/50 border border-hairline/80">
+            <div className="flex-1 space-y-1.5 w-full">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant Keyword</label>
+              <input
+                type="text"
+                placeholder="e.g. Costco, Chevron, Uber"
+                value={newKeyword}
+                onChange={(e) => setNewKeyword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-full bg-white border border-hairline text-sm text-ink outline-none focus:border-purple"
+              />
+            </div>
+            <div className="flex-1 space-y-1.5 w-full">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Target Category</label>
+              <select
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-full bg-white border border-hairline text-sm text-ink outline-none focus:border-purple"
+              >
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Subscriptions">Subscriptions</option>
+                <option value="Housing & Rent">Housing & Rent</option>
+                <option value="Travel & Rides">Travel & Rides</option>
+                <option value="Utilities">Utilities</option>
+              </select>
+            </div>
+            <button
+              onClick={() => {
+                if (!newKeyword.trim()) return;
+                setRules((prev) => [
+                  ...prev,
+                  {
+                    id: Math.random().toString(),
+                    keyword: newKeyword.trim(),
+                    category: newCategory,
+                  },
+                ]);
+                setNewKeyword("");
+              }}
+              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md cursor-pointer shrink-0 w-full sm:w-auto justify-center"
+            >
+              <Plus className="size-4" />
+              <span>Add Override Rule</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
