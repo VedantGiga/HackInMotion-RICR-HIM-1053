@@ -105,6 +105,9 @@ export function KoshinDashboard() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [parsingStep, setParsingStep] = useState(0);
   const [isParsing, setIsParsing] = useState(false);
+  const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);
+  const [apiInsights, setApiInsights] = useState<string[]>([]);
+  const [apiSpending, setApiSpending] = useState<any>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
@@ -113,13 +116,18 @@ export function KoshinDashboard() {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Live API Integration with /api/v1/transactions
+  // Live API Integration with /api/v1/transactions, health, and spending
   useEffect(() => {
     async function loadApiData() {
       try {
-        const res = await fetch("/api/v1/transactions");
-        if (res.ok) {
-          const json = await res.json();
+        const [txRes, healthRes, spendingRes] = await Promise.all([
+          fetch("/api/v1/transactions").catch(() => null),
+          fetch("/api/v1/analysis/health").catch(() => null),
+          fetch("/api/v1/analysis/spending").catch(() => null),
+        ]);
+
+        if (txRes && txRes.ok) {
+          const json = await txRes.json();
           if (json.data && Array.isArray(json.data) && json.data.length > 0) {
             const mapped = json.data.map((t: any) => ({
               id: t.id,
@@ -134,8 +142,23 @@ export function KoshinDashboard() {
             setTransactions(mapped);
           }
         }
+
+        if (healthRes && healthRes.ok) {
+          const json = await healthRes.json();
+          if (json.data && typeof json.data.score === 'number') {
+            setApiHealthScore(json.data.score);
+            setApiInsights(json.data.insights || []);
+          }
+        }
+
+        if (spendingRes && spendingRes.ok) {
+          const json = await spendingRes.json();
+          if (json.data) {
+            setApiSpending(json.data);
+          }
+        }
       } catch (err) {
-        console.log("Using initialized demo transactions", err);
+        console.log("Error loading API data", err);
       } finally {
         setIsLoading(false);
       }
@@ -162,7 +185,7 @@ export function KoshinDashboard() {
     return breakDown;
   }, [transactions]);
 
-  const healthScore = useMemo(() => {
+  const calculatedHealthScore = useMemo(() => {
     let score = 100;
     
     // Fallback if no data
@@ -189,6 +212,8 @@ export function KoshinDashboard() {
     
     return Math.min(100, Math.max(0, score));
   }, [totalIncome, totalExpenses, categoryBreakdown, transactions]);
+
+  const healthScore = apiHealthScore !== null ? apiHealthScore : calculatedHealthScore;
 
   const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
   const healthRingColor = healthScore >= 80 ? "text-lime" : healthScore >= 65 ? "text-purple" : "text-orange-500";
@@ -421,6 +446,11 @@ export function KoshinDashboard() {
 
                           <p className="text-sm text-white/70 leading-relaxed font-normal">
                             You have <strong className="text-white">{healthRatingText}</strong> reserves with a {savingsRate}% savings rate. Your projected financial runway is <strong className="text-lime">14.2 months</strong>.
+                            {apiInsights.length > 0 && (
+                              <span className="block mt-2 text-lime/90 italic text-xs">
+                                💡 Insights: {apiInsights[0]}
+                              </span>
+                            )}
                           </p>
 
                           <div className="flex flex-wrap gap-3 pt-2">
@@ -470,7 +500,9 @@ export function KoshinDashboard() {
                           value={`$${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<CreditCard className="size-3.5" />}
                           trendIcon={<ArrowUpRight className="size-4" />}
-                          trendLabel={`${transactions.filter(t => t.type === 'expense').length} Items Tracked`}
+                          trendLabel={apiSpending && apiSpending.monthOverMonthChange !== undefined 
+                            ? `${apiSpending.monthOverMonthChange > 0 ? '+' : ''}${apiSpending.monthOverMonthChange.toFixed(1)}% vs Last Month` 
+                            : `${transactions.filter(t => t.type === 'expense').length} Items Tracked`}
                           colorTheme="pinkish"
                         />
 
