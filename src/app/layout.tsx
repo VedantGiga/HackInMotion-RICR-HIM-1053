@@ -1,7 +1,11 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "@/styles.css";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
 import { AuthProvider } from "@/context/AuthContext";
+
+export const viewport: Viewport = {
+  themeColor: "#8b5cf6",
+};
 
 export const metadata: Metadata = {
   title: "Koshin — Smart Expense Analyzer & Financial Health Dashboard",
@@ -10,6 +14,7 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  manifest: "/manifest.json",
 };
 
 

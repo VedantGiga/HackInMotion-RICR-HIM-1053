@@ -1,0 +1,21 @@
+{
+  "name": "Koshin AI",
+  "short_name": "Koshin",
+  "description": "Smart Financial Dashboard",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#8b5cf6",
+  "icons": [
+    {
+      "src": "/logofinal-bgremoved.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logofinal-bgremoved.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
