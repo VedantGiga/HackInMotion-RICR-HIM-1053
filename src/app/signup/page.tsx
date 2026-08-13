@@ -98,8 +98,7 @@ export default function SignUpPage() {
 
         {/* Logo and Brand */}
         <Link href="/" className="relative z-10 flex items-center gap-3">
-          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-9 w-auto object-contain brightness-0 invert" />
-          <span className="display text-2xl font-bold tracking-tight text-white">koshin</span>
+          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-20 w-auto object-contain brightness-0 invert" />
         </Link>
 
         {/* Visual Content */}
@@ -114,20 +113,7 @@ export default function SignUpPage() {
             Join Koshin today to start categorizing expenses, uncovering hidden leaks, and building a healthier financial future.
           </p>
 
-          {/* Floating graphic element */}
-          <div className="relative border border-white/10 bg-white/5 rounded-2xl p-6 shadow-2xl backdrop-blur-md mt-10">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-bold text-white uppercase tracking-wider">Account Setup</span>
-              <span className="text-[10px] font-semibold text-cyan bg-cyan/10 px-2 py-0.5 rounded-full">Secure</span>
-            </div>
-            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-2">
-              <div className="h-full w-[33%] bg-gradient-to-r from-purple to-cyan transition-all duration-500" />
-            </div>
-            <div className="flex justify-between text-xs text-white/70 font-mono">
-              <span>Step 1 of 3</span>
-              <span>Fast & Encrypted</span>
-            </div>
-          </div>
+
         </div>
 
         {/* Footer */}
@@ -148,8 +134,7 @@ export default function SignUpPage() {
           </Link>
 
           <Link href="/" className="flex items-center gap-3 lg:hidden">
-            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-8 w-auto object-contain" />
-            <span className="display text-lg font-bold tracking-tight text-ink">koshin</span>
+            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-16 w-auto object-contain" />
           </Link>
         </header>
 
