@@ -1,8 +1,9 @@
 "use client";
 
 import { Dispatch, SetStateAction } from "react";
-import { User, LogOut } from "lucide-react";
+import { User, LogOut, Sun, Moon } from "lucide-react";
 import { LucideIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export type NavItem = {
   id: string;
@@ -32,6 +33,8 @@ export function Sidebar({
   healthRingColor,
   isDashboardPage,
 }: SidebarProps) {
+  const { theme, setTheme } = useTheme();
+
   return (
     <aside className={`
       fixed inset-y-0 left-0 w-64 z-30 transition-transform duration-300 lg:relative lg:transform-none
@@ -112,6 +115,13 @@ export function Sidebar({
             <div className="text-[13px] font-bold text-ink truncate">Alex Morgan</div>
             <div className="text-[10px] text-purple font-semibold tracking-wide">Premium User</div>
           </div>
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all"
+            title="Toggle theme"
+          >
+            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+          </button>
           {isDashboardPage && (
             <a href="/" title="Sign out" className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
               <LogOut className="size-4" />
