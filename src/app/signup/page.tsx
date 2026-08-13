@@ -31,7 +31,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const {
@@ -45,15 +44,6 @@ export default function SignUpPage() {
     },
   });
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => {
-        router.push("/onboarding");
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [success, router]);
-
   const onSubmit = async (data: SignUpFormValues) => {
     setAuthError("");
     setLoading(true);
@@ -61,7 +51,7 @@ export default function SignUpPage() {
     try {
       // 1. Create user in Firebase Auth
       const userCredential = await signUp(data.email, data.password);
-      
+
       // 2. Create user profile in Firestore
       await createUserProfile(userCredential.user.uid, {
         name: data.name,
@@ -70,7 +60,7 @@ export default function SignUpPage() {
         createdAt: new Date(),
       });
       
-      setSuccess(true);
+      router.push("/onboarding");
     } catch (err: any) {
       let errorMessage = "Failed to create an account.";
       if (err.code === "auth/email-already-in-use") {
@@ -148,22 +138,7 @@ export default function SignUpPage() {
               </p>
             </div>
 
-            {success ? (
-              <div className="rounded-2xl border border-purple/30 bg-purple/10 p-6 text-center space-y-3">
-                <CheckCircle2 className="size-10 text-purple mx-auto" />
-                <h3 className="text-lg font-bold text-ink">Account Created!</h3>
-                <p className="text-xs text-muted-foreground">
-                  Welcome to Koshin. Let's set up your personalized engine.
-                </p>
-                <Link
-                  href="/onboarding"
-                  className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-white transition-all hover:bg-purple/90 shadow-lg"
-                >
-                  Start Onboarding Process
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
                 {authError && (
                   <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
                     <AlertCircle className="size-4 shrink-0" />
@@ -297,7 +272,6 @@ export default function SignUpPage() {
                   {loading ? "Creating..." : "Create Account"}
                 </button>
               </form>
-            )}
 
             <div className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{" "}

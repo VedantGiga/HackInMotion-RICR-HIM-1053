@@ -1,6 +1,6 @@
 "use client";
 
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { User, LogOut, Sun, Moon } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 import { useTheme } from "next-themes";
@@ -34,6 +34,11 @@ export function Sidebar({
   isDashboardPage,
 }: SidebarProps) {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <aside className={`
@@ -120,7 +125,7 @@ export function Sidebar({
             className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all"
             title="Toggle theme"
           >
-            {theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />}
+            {mounted ? (theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />) : <Sun className="size-4" />}
           </button>
           {isDashboardPage && (
             <a href="/" title="Sign out" className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
