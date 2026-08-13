@@ -7,19 +7,43 @@ import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone
 import { signUp } from "@/lib/firebase/auth";
 import { createUserProfile } from "@/lib/firebase/db";
 
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const signUpSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().optional(),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+  agreed: z.boolean().refine(val => val === true, "You must agree to the terms"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+type SignUpFormValues = z.infer<typeof signUpSchema>;
+
 export default function SignUpPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [authError, setAuthError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      agreed: false,
+    },
+  });
 
   useEffect(() => {
     if (success) {
@@ -30,27 +54,19 @@ export default function SignUpPage() {
     }
   }, [success, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (!agreed) return;
-    
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
-
+  const onSubmit = async (data: SignUpFormValues) => {
+    setAuthError("");
     setLoading(true);
     
     try {
       // 1. Create user in Firebase Auth
-      const userCredential = await signUp(email, password);
+      const userCredential = await signUp(data.email, data.password);
       
       // 2. Create user profile in Firestore
       await createUserProfile(userCredential.user.uid, {
-        name,
-        email,
-        phone, // Optional
+        name: data.name,
+        email: data.email,
+        phone: data.phone, // Optional
         createdAt: new Date(),
       });
       
@@ -64,10 +80,9 @@ export default function SignUpPage() {
       } else if (err.code === "auth/invalid-email") {
         errorMessage = "Please enter a valid email address.";
       } else if (err.message) {
-        // Fallback to original Firebase message if it's not handled above
         errorMessage = err.message.replace("Firebase: ", "");
       }
-      setError(errorMessage);
+      setAuthError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -163,13 +178,14 @@ export default function SignUpPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
-                {error && (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+                {authError && (
                   <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
                     <AlertCircle className="size-4 shrink-0" />
-                    <span>{error}</span>
+                    <span>{authError}</span>
                   </div>
                 )}
+                
                 <div className="flex gap-4">
                   <div className="space-y-1.5 flex-1">
                     <label className="text-sm font-medium text-ink/80">Full Name</label>
@@ -177,14 +193,13 @@ export default function SignUpPage() {
                       <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        {...register("name")}
                         placeholder="Full name"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                         suppressHydrationWarning
                       />
                     </div>
+                    {errors.name && <p className="text-xs text-red-500 pl-2 mt-1">{errors.name.message}</p>}
                   </div>
                   <div className="space-y-1.5 flex-1">
                     <label className="text-sm font-medium text-ink/80">Phone <span className="text-ink/40 font-normal">(Opt)</span></label>
@@ -192,8 +207,7 @@ export default function SignUpPage() {
                       <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        {...register("phone")}
                         placeholder="Phone number"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                         suppressHydrationWarning
@@ -208,14 +222,13 @@ export default function SignUpPage() {
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                     <input
                       type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      {...register("email")}
                       placeholder="you@example.com"
                       className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                       suppressHydrationWarning
                     />
                   </div>
+                  {errors.email && <p className="text-xs text-red-500 pl-2 mt-1">{errors.email.message}</p>}
                 </div>
 
                 <div className="flex gap-4">
@@ -225,9 +238,7 @@ export default function SignUpPage() {
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type={showPassword ? "text" : "password"}
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        {...register("password")}
                         placeholder="Create password"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                         suppressHydrationWarning
@@ -241,6 +252,7 @@ export default function SignUpPage() {
                         {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
                     </div>
+                    {errors.password && <p className="text-xs text-red-500 pl-2 mt-1">{errors.password.message}</p>}
                   </div>
                   <div className="space-y-1.5 flex-1">
                     <label className="text-sm font-medium text-ink/80">Confirm</label>
@@ -248,9 +260,7 @@ export default function SignUpPage() {
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type={showConfirmPassword ? "text" : "password"}
-                        required
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        {...register("confirmPassword")}
                         placeholder="Confirm password"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                         suppressHydrationWarning
@@ -264,6 +274,7 @@ export default function SignUpPage() {
                         {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
                     </div>
+                    {errors.confirmPassword && <p className="text-xs text-red-500 pl-2 mt-1">{errors.confirmPassword.message}</p>}
                   </div>
                 </div>
                 <div className="text-xs text-ink/60 pl-2 mt-1">
@@ -274,26 +285,27 @@ export default function SignUpPage() {
                   <input
                     type="checkbox"
                     id="terms"
-                    required
-                    checked={agreed}
-                    onChange={(e) => setAgreed(e.target.checked)}
+                    {...register("agreed")}
                     className="mt-0.5 size-4 rounded border-hairline bg-offwhite text-purple focus:ring-purple"
                   />
-                  <label htmlFor="terms" className="text-xs text-ink/70 leading-relaxed">
-                    I agree to Koshin&apos;s{" "}
-                    <a href="#" className="text-purple hover:underline">
-                      Terms of Service
-                    </a>{" "}
-                    and{" "}
-                    <a href="#" className="text-purple hover:underline">
-                      Privacy Policy
-                    </a>
+                  <label htmlFor="terms" className="text-xs text-ink/70 leading-relaxed flex flex-col">
+                    <span>
+                      I agree to Koshin&apos;s{" "}
+                      <a href="#" className="text-purple hover:underline">
+                        Terms of Service
+                      </a>{" "}
+                      and{" "}
+                      <a href="#" className="text-purple hover:underline">
+                        Privacy Policy
+                      </a>
+                    </span>
+                    {errors.agreed && <span className="text-red-500 mt-1">{errors.agreed.message}</span>}
                   </label>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || !agreed}
+                  disabled={loading}
                   className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
                   suppressHydrationWarning
                 >
