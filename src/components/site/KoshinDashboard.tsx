@@ -95,7 +95,7 @@ function getCatConfig(cat: string) {
 }
 
 export function KoshinDashboard() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "subscriptions" | "simulator" | "ai">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "spending-analysis" | "subscriptions" | "simulator" | "ai">("dashboard");
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -246,6 +246,7 @@ export function KoshinDashboard() {
   const navItems = [
     { id: "dashboard", label: "Overview", icon: LayoutDashboard, badge: null },
     { id: "transactions", label: "Transactions", icon: CreditCard, badge: transactions.length.toString() },
+    { id: "spending-analysis", label: "Spending Analysis", icon: PieChart, badge: null },
     { id: "subscriptions", label: "Subscriptions", icon: Bell, badge: recurringBills.length.toString() },
     { id: "simulator", label: "What-If Simulator", icon: SlidersHorizontal, badge: null },
     { id: "ai", label: "Koshin AI", icon: Bot, badge: "NEW" },
@@ -834,6 +835,103 @@ export function KoshinDashboard() {
                         </button>
                       </div>
                     </form>
+                  </div>
+                </div>
+              )}
+              {/* ──────────────────────────────────────────
+                  TAB: SPENDING ANALYSIS
+              ────────────────────────────────────────── */}
+              {activeTab === "spending-analysis" && (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h3 className="display text-2xl font-bold text-ink tracking-tight">Spending Analysis</h3>
+                      <p className="text-[13px] text-muted-foreground mt-1">Deep dive into your financial habits and trends.</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="px-4 py-2 bg-offwhite border border-hairline rounded-lg text-[13px] font-semibold text-ink">
+                        This Month
+                      </div>
+                      <button className="px-4 py-2 bg-purple text-white rounded-lg text-[13px] font-bold shadow-md hover:bg-purple/90 transition-colors">
+                        Download Report
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Insights & Summary */}
+                    <div className="lg:col-span-1 space-y-6">
+                      <div className="rounded-2xl border border-hairline bg-background p-6 shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-pinkish/5 rounded-full blur-2xl pointer-events-none" />
+                        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Total Outflow</h4>
+                        <div className="display text-4xl font-bold tracking-tight text-ink mb-2">
+                          ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded-md">
+                          <ArrowDownRight className="size-3.5" />
+                          <span>12.5% vs last month</span>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-hairline bg-gradient-to-br from-purple to-ink p-6 shadow-md text-white relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 size-24 bg-white/10 rounded-full blur-xl"></div>
+                        <div className="flex items-center gap-2 mb-3 text-cyan">
+                          <Zap className="size-5" />
+                          <span className="font-bold text-[13px] uppercase tracking-wide">AI Insight</span>
+                        </div>
+                        <p className="text-[14px] leading-relaxed text-white/90 relative z-10">
+                          Your spending on <strong>Food & Dining</strong> is 20% lower than your historical average. Keep it up to boost your savings rate!
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Detailed Breakdown */}
+                    <div className="lg:col-span-2 rounded-2xl border border-hairline bg-background p-7 shadow-sm">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="display text-lg font-bold text-ink tracking-tight">Category Breakdown</h3>
+                        <PieChart className="size-5 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-5">
+                        {Object.entries(categoryBreakdown)
+                          .sort(([, a], [, b]) => b - a)
+                          .map(([cat, amount]) => {
+                            const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
+                            const cfg = getCatConfig(cat);
+                            const Icon = cfg.icon;
+                            return (
+                              <div key={cat} className="group">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`size-8 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0`}>
+                                      <Icon className={`size-4 ${cfg.color}`} />
+                                    </div>
+                                    <span className="text-[14px] font-bold text-ink">{cat}</span>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-bold text-[14px] text-ink">${amount.toFixed(2)}</div>
+                                    <div className="text-[11px] font-semibold text-muted-foreground">{pct}% of total</div>
+                                  </div>
+                                </div>
+                                <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${pct}%` }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                    className={`h-full rounded-full bg-gradient-to-r ${cfg.gradient} to-transparent`}
+                                  />
+                                </div>
+                              </div>
+                            );
+                          })}
+                          
+                        {Object.keys(categoryBreakdown).length === 0 && (
+                          <div className="py-10 text-center text-[13px] font-semibold text-muted-foreground">
+                            No expense data available for analysis.
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
