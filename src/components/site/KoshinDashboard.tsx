@@ -251,10 +251,6 @@ export function KoshinDashboard() {
             <h2 className="display text-2xl font-bold text-ink tracking-tight">
               {navItems.find(n => n.id === activeTab)?.label}
             </h2>
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
-              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              256-Bit Bank Sync Active
-            </div>
           </div>
 
           {/* Quick Action Pill Bar */}
