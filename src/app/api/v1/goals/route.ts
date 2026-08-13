@@ -62,3 +62,32 @@ export async function POST(req: Request) {
     return errorResponse("Internal server error", 500);
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return errorResponse("Unauthorized", 401);
+    }
+
+    const userId = (session.user as any).id;
+    const { searchParams } = new URL(req.url);
+    const goalId = searchParams.get("id");
+
+    if (!goalId) {
+      return errorResponse("Goal ID is required", 400);
+    }
+
+    await prisma.goal.deleteMany({
+      where: {
+        id: goalId,
+        userId
+      }
+    });
+
+    return successResponse(null, "Goal deleted successfully");
+  } catch (error: any) {
+    console.error("DELETE goal error:", error);
+    return errorResponse("Internal server error", 500);
+  }
+}
