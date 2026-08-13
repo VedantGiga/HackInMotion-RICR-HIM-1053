@@ -4,15 +4,7 @@ import { useState, useEffect } from "react";
 import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles, Trash2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
 
-const AVATAR_PRESETS = [
-  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
-  "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=120&auto=format&fit=crop&q=80",
-];
-
 export function SettingsView() {
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[0]);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [rules, setRules] = useState([
     { id: "1", keyword: "Gas Station", category: "Travel & Rides" },
@@ -95,53 +87,28 @@ export function SettingsView() {
 
         <div className="p-6 space-y-8">
           
-          {/* Avatar Selector Stage */}
-          <div className="space-y-3">
-            <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest block">
-              Profile Avatar & Badging
-            </label>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-5 rounded-2xl bg-offwhite/60 border border-hairline/80">
-              <div className="relative shrink-0">
-                <img
-                  src={selectedAvatar}
-                  alt="Selected Profile Avatar"
-                  className="size-20 rounded-full object-cover border-4 border-white shadow-md"
-                />
-                <span className="absolute bottom-1 right-1 size-4 rounded-full bg-emerald-500 border-2 border-white" />
+          {/* User Profile Avatar Stage */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-5 rounded-2xl bg-offwhite/60 border border-hairline/80">
+            <div className="relative shrink-0">
+              <div className="size-20 rounded-full bg-gradient-to-tr from-purple to-cyan text-white font-bold text-2xl flex items-center justify-center border-4 border-white shadow-md">
+                {firstName ? firstName.charAt(0).toUpperCase() : <User className="size-8 text-white" />}
               </div>
+              <span className="absolute bottom-1 right-1 size-4 rounded-full bg-emerald-500 border-2 border-white" />
+            </div>
 
-              <div className="space-y-3 flex-1">
-                <div>
-                  <p className="text-sm font-bold text-ink flex items-center gap-2">
-                    <span>{userName}</span>
-                    <span className="text-xs text-purple font-bold bg-purple/10 px-2 py-0.5 rounded-full border border-purple/20">
-                      Pro Member
-                    </span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Select a high-resolution avatar preset or upload a custom image.
-                  </p>
-                </div>
-
-                {/* Preset Avatars */}
-                <div className="flex items-center gap-3 pt-1">
-                  {AVATAR_PRESETS.map((url, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => setSelectedAvatar(url)}
-                      className={`relative rounded-full transition-transform hover:scale-110 cursor-pointer ${
-                        selectedAvatar === url ? "ring-2 ring-purple ring-offset-2" : "opacity-75 hover:opacity-100"
-                      }`}
-                    >
-                      <img src={url} alt={`Preset ${idx + 1}`} className="size-10 rounded-full object-cover shadow-xs" />
-                    </button>
-                  ))}
-                  <button className="size-10 rounded-full border border-dashed border-hairline bg-white flex items-center justify-center text-muted-foreground hover:text-ink hover:border-purple transition-all shadow-xs cursor-pointer" title="Upload Custom Photo">
-                    <Camera className="size-4" />
-                  </button>
-                </div>
+            <div className="space-y-1.5 flex-1">
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-bold text-ink">{userName}</p>
+                <span className="text-xs text-purple font-bold bg-purple/10 px-2.5 py-0.5 rounded-full border border-purple/20">
+                  Pro Member
+                </span>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Account Email: <strong className="text-ink font-medium">{userEmail}</strong>
+              </p>
+              <p className="text-[11px] text-muted-foreground">
+                Member Tier: Verified Tier 1 • 256-bit SSL Vault Protection
+              </p>
             </div>
           </div>
 
