@@ -46,6 +46,8 @@ import { TransactionTable } from "@/components/dashboard/TransactionTable";
 import { SettingsView } from "@/components/dashboard/SettingsView";
 import { BudgetView } from "@/components/dashboard/BudgetView";
 import { GoalsView } from "@/components/dashboard/GoalsView";
+import { SubscriptionsView } from "@/components/dashboard/SubscriptionsView";
+import { SimulatorView } from "@/components/dashboard/SimulatorView";
 
 export type Transaction = {
   id: string;
@@ -786,264 +788,23 @@ export function KoshinDashboard() {
                   TAB 3: SUBSCRIPTIONS
               ────────────────────────────────────────── */}
               {activeTab === "subscriptions" && (
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-
-                  <div className="xl:col-span-8 space-y-6">
-                    {/* Header summary */}
-                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-6">
-                      <div className="size-16 rounded-2xl bg-purple/10 border border-purple/20 flex items-center justify-center shrink-0">
-                        <Bell className="size-7 text-purple" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="display text-3xl font-bold text-ink">
-                          ${recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0).toFixed(2)}
-                          <span className="text-[15px] text-muted-foreground font-medium ml-2">/ month</span>
-                        </div>
-                        <div className="text-[13px] font-medium text-muted-foreground mt-1">{recurringBills.length} active commitments auto-detected</div>
-                      </div>
-                      <div className="sm:text-right p-4 bg-offwhite rounded-xl border border-hairline">
-                        <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Annual Cost</div>
-                        <div className="text-xl font-bold text-pinkish">${(recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0) * 12).toFixed(0)}</div>
-                      </div>
-                    </div>
-
-                    {/* Subscriptions list */}
-                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7">
-                      <div className="mb-6 border-b border-hairline pb-4">
-                        <h3 className="display text-lg font-bold text-ink">
-                          Active Commitments
-                        </h3>
-                        <p className="text-[13px] text-muted-foreground mt-1">Silent recurring bills auto-detected from statement logs</p>
-                      </div>
-                      <div className="space-y-4">
-                        {recurringBills.map(item => {
-                          const cfg = getCatConfig(item.category);
-                          const Icon = cfg.icon;
-                          return (
-                            <motion.div
-                              key={item.id}
-                              whileHover={{ x: 4 }}
-                              className="p-4 rounded-xl bg-offwhite/50 border border-hairline hover:border-purple/30 transition-all duration-200 flex items-center justify-between gap-4 shadow-sm"
-                            >
-                              <div className="flex items-center gap-4">
-                                <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white`}>
-                                  <Icon className={`size-5 ${cfg.color}`} />
-                                </div>
-                                <div>
-                                  <div className="font-bold text-ink text-[15px]">{item.merchant}</div>
-                                  <div className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
-                                    <span className={`${cfg.color}`}>{item.category}</span>
-                                    <span className="text-hairline">•</span>
-                                    <span>Monthly billing</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-[16px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[12px]">/mo</span></div>
-                                <div className="text-[10px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
-                              </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Sidebar */}
-                  <div className="xl:col-span-4 space-y-6">
-                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-5">
-                      <div className="flex items-center gap-2.5 mb-2 border-b border-hairline pb-4">
-                        <RefreshCw className="size-5 text-purple" />
-                        <h4 className="display text-[15px] font-bold text-ink">
-                          Renewal Calendar
-                        </h4>
-                      </div>
-                      <p className="text-[13px] text-muted-foreground font-medium">Next predicted billing statements:</p>
-
-                      <div className="p-5 rounded-xl bg-purple/5 border border-purple/20 space-y-2 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-ink text-[14px]">ConEd Electric</span>
-                          <span className="text-cyan-700 font-bold text-[11px] bg-cyan/10 border border-cyan/20 px-2.5 py-1 rounded-md">Aug 18</span>
-                        </div>
-                        <div className="text-2xl font-bold text-ink">${94.20.toFixed(2)}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground">Bills & Utilities</div>
-                      </div>
-
-                      <div className="p-5 rounded-xl bg-pinkish/5 border border-pinkish/20 space-y-2 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-ink text-[14px]">Netflix Premium</span>
-                          <span className="text-pinkish font-bold text-[11px] bg-pinkish/10 border border-pinkish/20 px-2.5 py-1 rounded-md">Aug 24</span>
-                        </div>
-                        <div className="text-2xl font-bold text-ink">${19.99.toFixed(2)}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
-                      </div>
-
-                      <div className="p-5 rounded-xl bg-skyblue/5 border border-skyblue/20 space-y-2 shadow-sm">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-ink text-[14px]">Spotify Family</span>
-                          <span className="text-skyblue-700 font-bold text-[11px] bg-skyblue/10 border border-skyblue/20 px-2.5 py-1 rounded-md">Aug 28</span>
-                        </div>
-                        <div className="text-2xl font-bold text-ink">${16.99.toFixed(2)}</div>
-                        <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <SubscriptionsView recurringBills={recurringBills} />
               )}
 
               {/* ──────────────────────────────────────────
                   TAB 4: WHAT-IF SIMULATOR
               ────────────────────────────────────────── */}
               {activeTab === "simulator" && (
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-
-                  {/* Sliders */}
-                  <div className="xl:col-span-7 rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-8">
-                    <div className="border-b border-hairline pb-5">
-                      <h3 className="display text-xl font-bold text-ink">
-                        Interactive What-If Tool
-                      </h3>
-                      <p className="text-[14px] font-medium text-muted-foreground mt-2">Adjust sliders to simulate reductions in non-essential expenses</p>
-                    </div>
-
-                    {/* Slider: Food */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center shadow-sm">
-                            <Coffee className="size-4 text-orange-500" />
-                          </div>
-                          <span className="text-[14px] font-bold text-ink">Food & Dining</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[16px] font-bold text-orange-500">{foodCut}%</span>
-                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simFoodSavings.toFixed(2)}/mo)</span>
-                        </div>
-                      </div>
-                      <div className="relative">
-                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
-                          <div className="h-full bg-orange-400 rounded-full transition-all" style={{ width: `${foodCut}%` }} />
-                        </div>
-                        <input
-                          type="range" min="0" max="100" value={foodCut}
-                          onChange={e => setFoodCut(Number(e.target.value))}
-                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Slider: Subs */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-xl bg-purple/10 border border-purple/20 flex items-center justify-center shadow-sm">
-                            <Tv className="size-4 text-purple" />
-                          </div>
-                          <span className="text-[14px] font-bold text-ink">Subscriptions</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[16px] font-bold text-purple">{subCut}%</span>
-                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simSubSavings.toFixed(2)}/mo)</span>
-                        </div>
-                      </div>
-                      <div className="relative">
-                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
-                          <div className="h-full bg-purple rounded-full transition-all" style={{ width: `${subCut}%` }} />
-                        </div>
-                        <input
-                          type="range" min="0" max="100" value={subCut}
-                          onChange={e => setSubCut(Number(e.target.value))}
-                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Slider: Shopping */}
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="size-8 rounded-xl bg-pinkish/10 border border-pinkish/20 flex items-center justify-center shadow-sm">
-                            <ShoppingBag className="size-4 text-pinkish" />
-                          </div>
-                          <span className="text-[14px] font-bold text-ink">Shopping</span>
-                        </div>
-                        <div className="text-right">
-                          <span className="text-[16px] font-bold text-pinkish">{shoppingCut}%</span>
-                          <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simShopSavings.toFixed(2)}/mo)</span>
-                        </div>
-                      </div>
-                      <div className="relative">
-                        <div className="h-3 w-full bg-offwhite border border-hairline rounded-full overflow-hidden shadow-inner">
-                          <div className="h-full bg-pinkish rounded-full transition-all" style={{ width: `${shoppingCut}%` }} />
-                        </div>
-                        <input
-                          type="range" min="0" max="100" value={shoppingCut}
-                          onChange={e => setShoppingCut(Number(e.target.value))}
-                          className="absolute inset-0 w-full opacity-0 cursor-pointer h-3"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Breakdown mini-table */}
-                    <div className="pt-6 border-t border-hairline space-y-3">
-                      <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Projected Savings Summary</div>
-                      {[
-                        { label: "Food & Dining", saving: simFoodSavings, color: "text-orange-500" },
-                        { label: "Subscriptions", saving: simSubSavings, color: "text-purple" },
-                        { label: "Shopping", saving: simShopSavings, color: "text-pinkish" },
-                      ].map(r => (
-                        <div key={r.label} className="flex items-center justify-between text-[13px] font-bold border-b border-hairline pb-2 last:border-0 last:pb-0">
-                          <span className="text-ink">{r.label}</span>
-                          <span className={`${r.color}`}>-${r.saving.toFixed(2)}/mo</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Impact panel */}
-                  <div className="xl:col-span-5 flex flex-col gap-6">
-                    <div className="rounded-2xl border border-purple bg-purple/5 shadow-md p-8 flex-1 flex flex-col justify-between">
-                      <div>
-                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple/10 border border-purple/20 text-[11px] font-bold text-purple uppercase tracking-widest mb-6">
-                          <Activity className="size-3.5" /> Projection Analysis
-                        </div>
-                        
-                        <h4 className="display text-2xl font-bold text-ink mb-3">
-                          Projected Annual Savings
-                        </h4>
-
-                        <div className="display text-[56px] font-extrabold text-purple tracking-tight leading-none mb-2">
-                          +${totalAnnualSimSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                        </div>
-                        <div className="text-[15px] font-bold text-muted-foreground">per year · ${totalMonthlySimSavings.toFixed(2)}/mo</div>
-
-                        <p className="text-[14px] text-ink leading-relaxed mt-6 font-medium">
-                          This combined reduction frees up <strong className="text-purple">${totalMonthlySimSavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
-                        </p>
-                      </div>
-
-                      <div className="mt-8 pt-6 border-t border-purple/20">
-                        <div className="text-[11px] font-bold text-purple uppercase tracking-widest mb-4">Suggested Allocations</div>
-                        <div className="grid grid-cols-2 gap-3">
-                          {[
-                            { label: "Emergency Reserve", icon: ShieldCheck, color: "text-cyan-700", bg: "bg-cyan-50", border: "border-cyan-200 hover:border-cyan-400" },
-                            { label: "Growth Portfolio", icon: TrendingUp, color: "text-purple", bg: "bg-purple/10", border: "border-purple/20 hover:border-purple/40" },
-                            { label: "Vacation Fund", icon: Target, color: "text-pinkish", bg: "bg-pinkish/10", border: "border-pinkish/20 hover:border-pinkish/40" },
-                            { label: "Retirement IRA", icon: Activity, color: "text-orange-600", bg: "bg-orange-50", border: "border-orange-200 hover:border-orange-400" },
-                          ].map(a => {
-                            const Icon = a.icon;
-                            return (
-                              <div key={a.label} className={`p-4 rounded-xl ${a.bg} border ${a.border} text-center transition-all cursor-pointer group shadow-sm`}>
-                                <Icon className={`size-5 ${a.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
-                                <div className="text-[11px] font-bold text-ink">{a.label}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <SimulatorView
+                  foodCut={foodCut} setFoodCut={setFoodCut}
+                  subCut={subCut} setSubCut={setSubCut}
+                  shoppingCut={shoppingCut} setShoppingCut={setShoppingCut}
+                  simFoodSavings={simFoodSavings}
+                  simSubSavings={simSubSavings}
+                  simShopSavings={simShopSavings}
+                  totalMonthlySimSavings={totalMonthlySimSavings}
+                  totalAnnualSimSavings={totalAnnualSimSavings}
+                />
               )}
 
               {/* ──────────────────────────────────────────
