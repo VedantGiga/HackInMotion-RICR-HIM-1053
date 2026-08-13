@@ -48,6 +48,7 @@ import { BudgetView } from "@/components/dashboard/BudgetView";
 import { GoalsView } from "@/components/dashboard/GoalsView";
 import { SubscriptionsView } from "@/components/dashboard/SubscriptionsView";
 import { SimulatorView } from "@/components/dashboard/SimulatorView";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 export type Transaction = {
   id: string;
@@ -103,21 +104,21 @@ export function getCatConfig(cat: string) {
 }
 
 export function KoshinDashboard() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "transactions" | "spending-analysis" | "budget" | "goals" | "subscriptions" | "simulator" | "ai" | "settings">("dashboard");
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const [newMerchant, setNewMerchant] = useState("");
-  const [newAmount, setNewAmount] = useState("");
-  const [newDate, setNewDate] = useState(new Date().toISOString().split("T")[0]);
-  const [newType, setNewType] = useState<"expense" | "income">("expense");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-
-  const [foodCut, setFoodCut] = useState(35);
-  const [subCut, setSubCut] = useState(25);
-  const [shoppingCut, setShoppingCut] = useState(20);
+  const {
+    activeTab, setActiveTab,
+    sidebarOpen, setSidebarOpen,
+    transactions, setTransactions,
+    selectedCategory, setSelectedCategory,
+    searchTerm, setSearchTerm,
+    uploadSuccess, setUploadSuccess,
+    newMerchant, setNewMerchant,
+    newAmount, setNewAmount,
+    newDate, setNewDate,
+    newType, setNewType,
+    foodCut, setFoodCut,
+    subCut, setSubCut,
+    shoppingCut, setShoppingCut
+  } = useDashboardStore();
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
