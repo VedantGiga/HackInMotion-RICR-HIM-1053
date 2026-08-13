@@ -43,19 +43,24 @@ export async function GET(req: Request) {
     let score = 100;
     const insights = [];
 
-    // Savings Rate Insight
-    const savings = income - expense;
-    if (income > 0) {
-      const savingsRate = savings / income;
-      if (savingsRate < 0.1) {
-        score -= 20;
-        insights.push("You are saving less than 10% of your income this month. Try to cut back on non-essential categories.");
-      } else if (savingsRate >= 0.2) {
-        insights.push("Great job! You are saving at least 20% of your income.");
-      }
+    if (transactions.length === 0) {
+      score = 0;
+      insights.push("You have no recorded transactions this month. Upload a statement to get started!");
     } else {
-      score -= 30; // No income recorded
-      insights.push("You have no recorded income this month, making it hard to build savings.");
+      // Savings Rate Insight
+      const savings = income - expense;
+      if (income > 0) {
+        const savingsRate = savings / income;
+        if (savingsRate < 0.1) {
+          score -= 20;
+          insights.push("You are saving less than 10% of your income this month. Try to cut back on non-essential categories.");
+        } else if (savingsRate >= 0.2) {
+          insights.push("Great job! You are saving at least 20% of your income.");
+        }
+      } else {
+        score -= 30; // No income recorded
+        insights.push("You have no recorded income this month, making it hard to build savings.");
+      }
     }
 
     // High expense category insight
