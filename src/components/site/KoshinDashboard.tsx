@@ -376,16 +376,13 @@ export function KoshinDashboard() {
         
         {/* Top Floating SaaS Header Bar */}
         <div className="flex items-center justify-between px-6 lg:px-10 py-5 border-b border-hairline bg-white/80 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 sm:gap-6">
             <h2 className="display text-2xl font-bold text-ink tracking-tight">
               {navItems.find(n => n.id === activeTab)?.label}
             </h2>
-          </div>
 
-          {/* Quick Action Pill Bar */}
-          <div className="flex items-center gap-3">
             {activeTab === "transactions" && (
-              <div className="flex items-center gap-2 bg-white border border-hairline shadow-xs rounded-full px-4 py-2 max-w-[240px] w-full">
+              <div className="flex items-center gap-2 bg-white border border-hairline shadow-xs rounded-full px-4 py-2 max-w-[260px] sm:w-[280px]">
                 <Search className="size-4 text-muted-foreground shrink-0" />
                 <input
                   type="text"
@@ -396,7 +393,10 @@ export function KoshinDashboard() {
                 />
               </div>
             )}
+          </div>
 
+          {/* Quick Action Pill Bar */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setIsUploadModalOpen(true)}
               className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple/25 cursor-pointer"
