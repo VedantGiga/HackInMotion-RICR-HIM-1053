@@ -348,7 +348,7 @@ export function KoshinDashboard() {
       <div className="lg:hidden flex items-center justify-between px-5 py-3.5 bg-background border-b border-hairline z-20 relative">
         <div className="flex items-center gap-2.5">
           <a href="/">
-            <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-6 w-auto object-contain scale-[2.5] origin-left ml-2" />
+            <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-8 w-auto object-contain scale-[3] origin-left ml-2" />
           </a>
         </div>
         <button
