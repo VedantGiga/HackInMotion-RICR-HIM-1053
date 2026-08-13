@@ -551,7 +551,7 @@ export function KoshinDashboard() {
                       </div>
 
                       {/* Chat Messages Stage */}
-                      <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2">
+                      <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                         {chatMessages.map((msg, idx) => (
                           <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`p-4 rounded-2xl max-w-lg text-xs leading-relaxed ${
