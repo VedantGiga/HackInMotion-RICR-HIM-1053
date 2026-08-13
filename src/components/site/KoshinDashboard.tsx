@@ -113,11 +113,35 @@ export function KoshinDashboard() {
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Initial loading simulator
+  // Live API Integration with /api/v1/transactions
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600);
-    return () => clearTimeout(timer);
-  }, []);
+    async function loadApiData() {
+      try {
+        const res = await fetch("/api/v1/transactions");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
+            const mapped = json.data.map((t: any) => ({
+              id: t.id,
+              date: t.date ? new Date(t.date).toISOString().split('T')[0] : "2026-08-12",
+              merchant: t.merchant || t.description,
+              amount: t.amount,
+              category: t.category?.name || "General Expense",
+              confidence: t.confidence || 0.95,
+              isRecurring: !!t.isRecurring,
+              type: t.amount > 0 ? "expense" : "income"
+            }));
+            setTransactions(mapped);
+          }
+        }
+      } catch (err) {
+        console.log("Using initialized demo transactions", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadApiData();
+  }, [setTransactions]);
 
   const totalIncome = useMemo(() => {
     return transactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);

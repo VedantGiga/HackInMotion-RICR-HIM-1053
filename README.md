@@ -2,55 +2,75 @@
 
 > *"Because you can't fix what you can't see — and most people can't see where their money actually goes."*
 
+**Repository**: `HackInMotion-RICR-HIM-1053`  
+**Team Code**: `RICR-HIM-1053`  
+**Theme**: FinTech & Personal Finance  
+**Framework**: Next.js 15 (App Router) + React 19 + Prisma + NextAuth + GSAP  
+
 ---
 
 ## 📌 Executive Summary & Problem Statement
 
-Most people don't really know where their money goes each month. They earn, spend, and end the month surprised at how little remains — without understanding why. Bank statements are long, cryptic, and confusing (`DD *DOORDASH SAN FRANCISCO` instead of `Food & Dining`). Traditional budgeting apps fail because manual transaction tagging is tedious and time-consuming.
+Most people don't really know where their money goes each month. They earn, spend, and end the month surprised at how little remains — without understanding why. Bank statements are long, cryptic, and confusing (`TST* SBUX 4921` instead of `Food & Dining`). Traditional budgeting apps fail because manual transaction tagging is tedious and time-consuming.
 
 **Koshin** is a smart, automated web application that turns raw transaction data into real financial understanding, honest plain-language guidance, and a dynamic 0–100 Financial Health Score. It acts like a **financial advisor in your pocket**.
 
 ---
 
-## ⚡ Key Capabilities & Must-Haves
+## ⚡ Key Capabilities & Delivered Requirements
 
-1. **User Accounts & Data Privacy**: Secure sign-up/login architecture with encrypted in-memory and local storage.
-2. **Transaction Input & Bulk CSV Import**:
-   - Manually add custom transactions with merchant, date, amount, and type.
-   - Bulk import bank statement CSV files with automatic handling of inconsistent descriptions.
-3. **Automatic Categorization Engine**:
-   - Classifies raw merchant strings into 8 core categories: `Food & Dining`, `Housing & Rent`, `Subscriptions`, `Travel & Transport`, `Bills & Utilities`, `Shopping`, `Salary & Income`, and `Entertainment`.
-   - Assigns a 0–100% confidence rating to every tagged transaction.
+1. **User Accounts & Authentication**:
+   - NextAuth.js session-based authentication with Prisma user models.
+   - Secure account registration (`/api/v1/auth/register`), sign-in, and protected dashboard routing.
+
+2. **Transaction Input & Bulk CSV/PDF Import**:
+   - Manually add custom transactions with merchant, date, amount, and category tags.
+   - Bulk import bank statement CSV files with automatic deduplication, multi-format date parsing (`DD/MM/YYYY`, `YYYY-MM-DD`), and auto-categorization enrichment (`/api/v1/transactions/import`).
+
+3. **Hybrid NLP Vector & Levenshtein Categorization Engine**:
+   - Classifies raw merchant strings into core category buckets: `Food & Dining`, `Housing & Rent`, `Subscriptions`, `Travel & Rides`, `Groceries`, `Utilities`, `Shopping`, `Income`, `Health & Medical`, and `Entertainment`.
+   - Calculates character N-Gram token vector similarity and Levenshtein edit distance for typo-tolerant merchant normalization.
+   - Assigns a 0.00 – 1.00 confidence rating and flags recurring subscription charges.
+
 4. **Spending Pattern Analysis & Visual Dashboard**:
-   - Real-time pie charts, expense distribution bars, and MoM trend comparisons.
+   - Real-time expense breakdown charts, category allocation bars, and MoM trend metrics.
+
 5. **Dynamic Financial Health Score (0–100)**:
-   - Evaluates savings rate, net liquidity reserve, and subscription-to-income ratio.
-   - Provides honest, actionable plain-language recommendations (*"You spent 40% more on food delivery this month compared to last month — consider setting a limit."*).
-6. **Advanced Modules**:
-   - **Subscription & Trial Detector**: Identifies recurring monthly charges and flags unused free trials.
-   - **Upcoming Bill Predictor**: Predicts recurring bill due dates and notifies users before deadlines.
-   - **"What-If" Savings Simulator**: Drag interactive sliders to simulate cutting food delivery or subscriptions and visualize projected annual wealth impact.
-   - **AI Natural-Language Assistant**: Ask questions in plain English (*"How much did I spend on food last month?"*) and receive instant data-backed answers.
+   - Evaluates savings velocity, net liquidity reserve, and subscription-to-income ratio.
+   - Provides honest, actionable plain-language recommendations (*"You spent 40% more on food delivery this month — consider setting a limit to save $340/mo."*).
+
+6. **Advanced SaaS Modules**:
+   - **Subscription & Silent Bill Detector**: Identifies recurring monthly charges and flags unused free trials.
+   - **"What-If" Savings Simulator**: Interactive slider controls projecting 1-year and 3-year compound savings.
+   - **AI Natural-Language Assistant**: Ask questions in plain English (*"Where did I spend the most this month?"*) and receive instant data-backed answers.
 
 ---
 
-## ⚙️ Categorization Engine Methodology & Architecture
+## ⚙️ Categorization Engine Methodology
 
-### Approach Chosen: Hybrid Rule-Based Keyword Pattern + NLP Model
-For the automatic categorization core, Koshin utilizes a high-throughput **hybrid classification engine**:
-- **Deterministic Pattern Matching**: Matches known merchant prefixes (`DoorDash`, `Netflix`, `Uber`, `Whole Foods`, `ConEd`, `iCloud`) to primary categories with 95%+ confidence.
-- **Natural Language Parsing**: Tokenizes unformatted bank descriptors, strips transaction codes/dates, and maps vector distances to category clusters.
-- **Confidence Scoring**: Each output carries a `confidence` rating (0.00 – 1.00). Low confidence triggers a flag for user review.
+### Hybrid Rule-Based + Vector Cosine & Levenshtein Distance Algorithm
+For automatic categorization, Koshin utilizes a high-throughput **hybrid classification engine** (`src/modules/categorization/index.ts`):
+
+1. **Deterministic Pattern Matching** (Confidence: `0.95` – `0.99`):
+   - Matches known merchant patterns (`Starbucks`, `Netflix`, `Uber`, `DoorDash`, `Amazon`, `Walmart`).
+2. **N-Gram Character Vector Similarity** (Confidence: `0.80` – `0.94`):
+   - Tokenizes unformatted bank descriptors into character tri-grams and computes vector similarity scores against category taxonomy clusters.
+3. **Levenshtein Edit Distance** (Confidence: `0.70` – `0.85`):
+   - Calculates string edit distances for typo-tolerant merchant normalization (`TST* SBUX 4921` → `Starbucks`).
+4. **Normalized Merchant Cleanup**:
+   - Strips transaction prefixes (`TST*`, `SQ*`, `PY*`), transaction IDs, and dates for clean UI display.
 
 ---
 
 ## 🛠️ Technology Stack
 
-- **Frontend Framework**: React 19, TanStack Start (SSR & Vite build engine), TanStack Router
-- **Styling**: Tailwind CSS v4, Custom OKLCH Color Palette, High-Contrast Editorial Typography
-- **Animations & Interactivity**: GSAP 3, ScrollTrigger, Framer Motion, Lenis Smooth Scroll
-- **Icons & Visuals**: Lucide React
-- **Package Manager**: npm
+- **Frontend Framework**: Next.js 15 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS v4, Custom Fonts (Plus Jakarta Sans & Outfit), High-Contrast Typography
+- **Animations & Interactivity**: GSAP 3, ScrollTrigger, Motion (Framer), Lenis Smooth Scroll
+- **Backend API**: Next.js App Router API Routes (`/api/v1/transactions`, `/api/v1/budgets`, `/api/v1/goals`, `/api/v1/analysis/health`, `/api/v1/analysis/spending`)
+- **Authentication**: NextAuth.js, JWT Sessions, Bcrypt Encryption
+- **Database & ORM**: Prisma ORM (v7.9), SQLite / LibSQL Engine
+- **Icons & CSV Parsing**: Lucide React, PapaParse
 
 ---
 
@@ -61,20 +81,31 @@ For the automatic categorization core, Koshin utilizes a high-throughput **hybri
 npm install
 ```
 
-### 2. Start Development Server
+### 2. Run Database Migrations & Prisma Setup
+```sh
+npx prisma generate
+npx prisma db push
+```
+
+### 3. Start Development Server
 ```sh
 npm run dev
 ```
 
-### 3. Build for Production
+### 4. Build & Lint for Production
 ```sh
 npm run build
+npm run lint
 ```
 
 ---
 
-## 📄 Repository Deliverables
+## 📄 Repository Deliverables & Assets
 
-- `src/components/site/KoshinDashboard.tsx` — Full interactive Koshin Dashboard & AI Assistant sandbox
-- `src/components/site/` — High-impact landing page components (Hero, Auto-Categorization Spotlight, Financial Health Score breakdown, Innovation Modules)
-- `README.md` — Complete hackathon specification compliance document
+- `architecture-diagram.png` & `architecture-diagram.svg` — System Architecture Diagram
+- `presentation.pptx` — Executive 7-slide Presentation Deck
+- `api-documentation.md` — Complete REST API Documentation (/api/v1)
+- `src/app/api/v1/` — Next.js 15 REST API endpoints
+- `src/modules/categorization/index.ts` — Hybrid NLP Vector Categorization Module
+- `src/components/site/KoshinDashboard.tsx` — Full SaaS Interactive Dashboard
+- `README.md` — HackInMotion Audit Specification Compliance Document

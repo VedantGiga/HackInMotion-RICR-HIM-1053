@@ -49,3 +49,10 @@ Thumbs.db
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Databases & local state
+*.db
+*.db-journal
+dev.db
+prisma/dev.db
+prisma/*.db
