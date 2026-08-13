@@ -52,10 +52,10 @@ export function PerformanceSection() {
     <section
       id="problem"
       ref={root}
-      className="bg-white py-24 md:py-32 lg:py-40 relative overflow-hidden"
+      className="border-t border-hairline bg-offwhite py-24 md:py-32 lg:py-40 relative overflow-hidden"
     >
       <div className="shell max-w-7xl mx-auto space-y-16">
-        
+
         {/* Section Header */}
         <div className="max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-purple/20 bg-purple/10 px-3.5 py-1 text-xs font-semibold text-purple">
@@ -72,7 +72,7 @@ export function PerformanceSection() {
 
         {/* ULTRA-PREMIUM BENTO GRID LAYOUT */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-          
+
           {/* BENTO CARD 1: Large 2-Col Hero Auto-Categorization Card */}
           <div
             data-bento-card
@@ -102,7 +102,7 @@ export function PerformanceSection() {
               <p className="text-sm sm:text-base text-white/70 font-normal leading-[1.6]">
                 Koshin parses cryptic transaction strings (like &quot;TST* SBUX 4921&quot;) into clean, accurate categories — Food, Rent, Subscriptions, and Travel.
               </p>
-              
+
               {/* Category Pill Visuals */}
               <div className="flex flex-wrap gap-2 pt-2">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white/10 text-xs font-semibold text-white backdrop-blur-sm">

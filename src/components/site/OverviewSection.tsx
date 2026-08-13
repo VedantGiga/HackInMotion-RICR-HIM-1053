@@ -2,11 +2,11 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { 
-  UploadCloud, 
-  Cpu, 
-  TrendingUp, 
-  CheckCircle2, 
+import {
+  UploadCloud,
+  Cpu,
+  TrendingUp,
+  CheckCircle2,
   Sparkles,
   Lock,
   Zap,
@@ -117,7 +117,7 @@ export function OverviewSection() {
       />
 
       <div className="shell relative z-10 max-w-7xl mx-auto space-y-16">
-        
+
         {/* Header Block */}
         <div data-stack-header className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 rounded-full border border-purple/20 bg-purple/10 px-4 py-1.5 text-xs font-semibold text-purple">
@@ -181,7 +181,7 @@ export function OverviewSection() {
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-light block">
                     {s.subtitle}
                   </span>
-                  
+
                   <h3 className="display text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-[1.2]">
                     {s.title}
                   </h3>
