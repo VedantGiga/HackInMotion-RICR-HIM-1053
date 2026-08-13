@@ -3,15 +3,35 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
+import { signIn } from "@/lib/firebase/auth";
+
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [authError, setAuthError] = useState("");
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+  });
 
   useEffect(() => {
     if (success) {
@@ -22,23 +42,33 @@ export default function LoginPage() {
     }
   }, [success, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: LoginFormValues) => {
+    setAuthError("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      await signIn(data.email, data.password);
       setSuccess(true);
-    }, 1000);
+    } catch (err: any) {
+      let errorMessage = "Failed to sign in.";
+      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+        errorMessage = "Invalid email or password.";
+      } else if (err.code === "auth/too-many-requests") {
+        errorMessage = "Too many attempts. Please try again later.";
+      } else if (err.message) {
+        errorMessage = err.message.replace("Firebase: ", "");
+      }
+      setAuthError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDemoLogin = () => {
-    setEmail("alex.demo@koshin.ai");
-    setPassword("••••••••••••");
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSuccess(true);
-    }, 800);
+    setValue("email", "alex.demo@koshin.ai");
+    setValue("password", "demopassword123");
+    // Optionally trigger submit immediately, but we can just let them click it or trigger it
+    onSubmit({ email: "alex.demo@koshin.ai", password: "demopassword123" });
   };
 
   return (
@@ -137,20 +167,27 @@ export default function LoginPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+                {authError && (
+                  <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
+                    <AlertCircle className="size-4 shrink-0" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+                
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-ink/80">Email Address</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                     <input
                       type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      {...register("email")}
                       placeholder="name@company.com"
                       className="w-full rounded-full border border-hairline bg-offwhite py-3 pr-4 pl-11 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      suppressHydrationWarning
                     />
                   </div>
+                  {errors.email && <p className="text-xs text-red-500 pl-2 mt-1">{errors.email.message}</p>}
                 </div>
 
                 <div className="space-y-1.5">
@@ -164,26 +201,28 @@ export default function LoginPage() {
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                     <input
                       type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      {...register("password")}
                       placeholder="••••••••••••"
                       className="w-full rounded-full border border-hairline bg-offwhite py-3 pr-11 pl-11 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      suppressHydrationWarning
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink focus:outline-none"
+                      suppressHydrationWarning
                     >
                       {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                     </button>
                   </div>
+                  {errors.password && <p className="text-xs text-red-500 pl-2 mt-1">{errors.password.message}</p>}
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
                   className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-2"
+                  suppressHydrationWarning
                 >
                   {loading ? "Authenticating..." : "Sign In to Koshin"}
                 </button>
@@ -197,6 +236,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={handleDemoLogin}
                   className="w-full rounded-full border border-hairline bg-offwhite py-3 text-xs font-semibold text-ink transition-all hover:bg-hairline/50"
+                  suppressHydrationWarning
                 >
                   1-Click Demo Login (Alex Demo)
                 </button>
