@@ -21,7 +21,6 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const {
@@ -33,22 +32,13 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  useEffect(() => {
-    if (success) {
-      const timer = setTimeout(() => {
-        router.push("/dashboard");
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [success, router]);
-
   const onSubmit = async (data: LoginFormValues) => {
     setAuthError("");
     setLoading(true);
     
     try {
       await signIn(data.email, data.password);
-      setSuccess(true);
+      router.push("/dashboard");
     } catch (err: any) {
       let errorMessage = "Failed to sign in.";
       if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
@@ -147,22 +137,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {success ? (
-              <div className="rounded-2xl border border-purple/30 bg-purple/10 p-6 text-center space-y-3">
-                <CheckCircle2 className="size-10 text-purple mx-auto" />
-                <h3 className="text-lg font-bold text-ink">Authentication Successful!</h3>
-                <p className="text-xs text-muted-foreground">
-                  Redirecting to your personalized Koshin Intelligence Dashboard...
-                </p>
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-white transition-all hover:bg-purple/90 shadow-lg"
-                >
-                  Go to Live Dashboard
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
                 {authError && (
                   <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
                     <AlertCircle className="size-4 shrink-0" />
@@ -223,7 +198,6 @@ export default function LoginPage() {
                 </button>
 
               </form>
-            )}
 
             <div className="text-center text-xs text-muted-foreground">
               Don&apos;t have an account yet?{" "}
