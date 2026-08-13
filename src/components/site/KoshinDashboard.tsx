@@ -48,6 +48,8 @@ import { BudgetView } from "@/components/dashboard/BudgetView";
 import { GoalsView } from "@/components/dashboard/GoalsView";
 import { SubscriptionsView } from "@/components/dashboard/SubscriptionsView";
 import { SimulatorView } from "@/components/dashboard/SimulatorView";
+import { Sidebar } from "@/components/dashboard/Sidebar";
+import { MetricCard } from "@/components/dashboard/MetricCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 
 export type Transaction = {

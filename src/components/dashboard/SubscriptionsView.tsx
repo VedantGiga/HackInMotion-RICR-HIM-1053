@@ -2,7 +2,7 @@
 
 import { motion } from "motion/react";
 import { Bell, RefreshCw } from "lucide-react";
-import { Transaction, getCatConfig } from "./KoshinDashboard";
+import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 
 interface SubscriptionsViewProps {
   recurringBills: Transaction[];
