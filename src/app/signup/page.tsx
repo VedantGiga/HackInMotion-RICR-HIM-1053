@@ -276,13 +276,13 @@ export default function SignUpPage() {
                   <label htmlFor="terms" className="text-xs text-ink/70 leading-relaxed flex flex-col">
                     <span>
                       I agree to Koshin&apos;s{" "}
-                      <a href="#" className="text-purple hover:underline">
+                      <Link href="/terms" className="text-purple hover:underline" target="_blank">
                         Terms of Service
-                      </a>{" "}
+                      </Link>{" "}
                       and{" "}
-                      <a href="#" className="text-purple hover:underline">
+                      <Link href="/privacy" className="text-purple hover:underline" target="_blank">
                         Privacy Policy
-                      </a>
+                      </Link>
                     </span>
                     {errors.agreed && <span className="text-red-500 mt-1">{errors.agreed.message}</span>}
                   </label>
