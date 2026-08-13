@@ -66,22 +66,10 @@ export function SettingsView() {
         <div className="p-6 space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <div className="text-[14px] font-bold text-ink">Dark Mode</div>
-              <div className="text-[13px] text-muted-foreground mt-0.5">Adjust the appearance of the dashboard.</div>
+              <div className="text-[14px] font-bold text-ink">Currency Format</div>
+              <div className="text-[13px] text-muted-foreground mt-0.5">Primary currency for expense analytics.</div>
             </div>
-            <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${
-                isDark ? "bg-purple" : "bg-offwhite border border-hairline"
-              }`}
-              aria-label="Toggle Dark Mode"
-            >
-              <div
-                className={`absolute top-1 size-4 rounded-full transition-all ${
-                  isDark ? "right-1 bg-white" : "left-1 bg-muted-foreground"
-                }`}
-              />
-            </button>
+            <span className="text-[13px] font-bold text-purple px-3 py-1 bg-purple/10 rounded-full border border-purple/20">USD ($)</span>
           </div>
           
           <div className="flex items-center justify-between pt-6 border-t border-hairline">
