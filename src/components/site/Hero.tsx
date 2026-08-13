@@ -17,19 +17,19 @@ export function Hero() {
     const ctx = gsap.context(() => {
       if (reduced) {
         gsap.set("[data-hero-anim]", { opacity: 1, y: 0 });
-        gsap.set("[data-hero-line]", { yPercent: 0 });
+        gsap.set("[data-hero-title]", { opacity: 1, y: 0 });
         gsap.set("[data-hero-object]", { opacity: 1, scale: 1 });
         return;
       }
       const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
       tl.from("[data-hero-dot]", { opacity: 0, scale: 0, duration: 0.6, stagger: 0.012 }, 0.1)
         .fromTo(
-          "[data-hero-line]",
-          { yPercent: 110 },
-          { yPercent: 0, duration: 1.2, stagger: 0.1, ease: "expo.out" },
+          "[data-hero-title]",
+          { opacity: 0, y: 32 },
+          { opacity: 1, y: 0, duration: 1.1, ease: "power3.out" },
           0.2,
         )
-        .from("[data-hero-copy]", { opacity: 0, y: 26, duration: 0.9 }, 0.7)
+        .from("[data-hero-copy]", { opacity: 0, y: 26, duration: 0.9 }, 0.6)
         .from("[data-hero-cta]", { opacity: 0, y: 18, scale: 0.96, duration: 0.8 }, 0.85)
         .fromTo(
           "[data-hero-object]",
@@ -72,14 +72,9 @@ export function Hero() {
             ))}
           </div>
 
-          <h1 className="display text-[clamp(2.6rem,7.5vw,5.2rem)] font-bold tracking-tight">
-            {["Smart Financial", "Intelligence."].map((l) => (
-              <span key={l} className="line-mask">
-                <span data-hero-line className="block will-change-transform">
-                  {l}
-                </span>
-              </span>
-            ))}
+          <h1 data-hero-title className="display text-[clamp(2.6rem,7.5vw,5.2rem)] font-extrabold tracking-tight text-ink leading-[1.15]">
+            Smart Financial <br />
+            <span className="text-purple">Intelligence.</span>
           </h1>
 
           <p
