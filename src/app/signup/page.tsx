@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone, AlertCircle } from "lucide-react";
-import { signUp } from "@/lib/firebase/auth";
-import { createUserProfile } from "@/lib/firebase/db";
+import { signIn } from "next-auth/react";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -50,31 +49,33 @@ export default function SignUpPage() {
     setLoading(true);
     
     try {
-      // 1. Create user in Firebase Auth
-      const userCredential = await signUp(data.email, data.password);
+      // 1. Create user in Prisma Database via REST API
+      const res = await fetch("/api/v1/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.name,
+          email: data.email,
+          password: data.password,
+        }),
+      });
 
-      // 2. Create user profile in Firestore (non-blocking)
-      createUserProfile(userCredential.user.uid, {
-        name: data.name,
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to create an account.");
+      }
+
+      // 2. Sign in via NextAuth Credentials
+      await signIn("credentials", {
         email: data.email,
-        phone: data.phone, // Optional
-        createdAt: new Date(),
-      }).catch(err => console.error("Firestore error:", err));
-      
+        password: data.password,
+        redirect: false,
+      });
+
       setRedirecting(true);
       router.push("/onboarding");
     } catch (err: any) {
-      let errorMessage = "Failed to create an account.";
-      if (err.code === "auth/email-already-in-use") {
-        errorMessage = "This email is already registered. Please sign in.";
-      } else if (err.code === "auth/weak-password") {
-        errorMessage = "Password should be at least 6 characters.";
-      } else if (err.code === "auth/invalid-email") {
-        errorMessage = "Please enter a valid email address.";
-      } else if (err.message) {
-        errorMessage = err.message.replace("Firebase: ", "");
-      }
-      setAuthError(errorMessage);
+      setAuthError(err.message || "Failed to create an account. Please try again.");
     } finally {
       setLoading(false);
     }
