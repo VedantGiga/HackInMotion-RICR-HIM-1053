@@ -1,16 +1,73 @@
 "use client";
 
-import { motion } from "motion/react";
-import { Bell, RefreshCw } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Bell, RefreshCw, Bot, Terminal, ShieldAlert, Sparkles, CheckCircle, X } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 interface SubscriptionsViewProps {
   recurringBills: Transaction[];
 }
 
 export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
+  const { setTransactions } = useDashboardStore();
+  const [cancellingSub, setCancellingSub] = useState<Transaction | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [isDone, setIsDone] = useState(false);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  const getCancellationSteps = (merchant: string, amount: number) => [
+    `[System] Initializing Koshin AI Sub-Agent v2.1...`,
+    `[Agent] Locating cancel pathway for ${merchant} API hooks...`,
+    `[Agent] Generating secure billing payload & legal notice...`,
+    `[Agent] Bypassing retention chatbot & routing directly to server...`,
+    `[Agent] Automating form-fill with virtual CC token confirmation...`,
+    `[System] Handshake verified. Cancellation code: KSH-${Math.floor(Math.random() * 900000 + 100000)}`,
+    `[Success] ${merchant} billing cycle successfully terminated!`,
+    `[Summary] Saved $${amount.toFixed(2)}/mo ($${(amount * 12).toFixed(2)}/yr).`
+  ];
+
+  useEffect(() => {
+    if (!cancellingSub) return;
+
+    setLogs([]);
+    setStepIndex(0);
+    setIsDone(false);
+
+    const steps = getCancellationSteps(cancellingSub.merchant, cancellingSub.amount);
+
+    const interval = setInterval(() => {
+      setStepIndex((prev) => {
+        if (prev < steps.length) {
+          setLogs((prevLogs) => [...prevLogs, steps[prev]]);
+          return prev + 1;
+        } else {
+          clearInterval(interval);
+          setIsDone(true);
+          return prev;
+        }
+      });
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [cancellingSub]);
+
+  // Auto-scroll logs to bottom
+  useEffect(() => {
+    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs]);
+
+  const confirmCancellation = () => {
+    if (!cancellingSub) return;
+    // Remove transaction from store
+    setTransactions((prev) => prev.filter((t) => t.id !== cancellingSub.id));
+    setCancellingSub(null);
+  };
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 relative">
       <div className="xl:col-span-8 space-y-6">
         {/* Header summary */}
         <div className="rounded-2xl border border-hairline bg-background shadow-sm p-6 flex flex-col sm:flex-row sm:items-center gap-6">
@@ -61,9 +118,18 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                       </div>
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-[16px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[12px]">/mo</span></div>
-                    <div className="text-[10px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <div className="text-right hidden sm:block">
+                      <div className="text-[15px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
+                      <div className="text-[9px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                    </div>
+                    <button
+                      onClick={() => setCancellingSub(item)}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-pinkish/20 bg-pinkish/5 hover:bg-pinkish/10 text-pinkish text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      <Bot className="size-3.5" />
+                      <span>Cancel with AI</span>
+                    </button>
                   </div>
                 </motion.div>
               );
@@ -123,6 +189,107 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
           )}
         </div>
       </div>
+
+      {/* CANCELLATION AGENT MODAL */}
+      <AnimatePresence>
+        {cancellingSub && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-[#0B0D10]/80 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="bg-navy border border-white/10 w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl text-white space-y-6"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 bg-purple/20 text-purple border border-purple/30 rounded-xl flex items-center justify-center">
+                    <Bot className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="display text-lg font-bold tracking-tight">Koshin AI Agent Console</h3>
+                    <p className="text-xs text-white/50">Active Termination Pipeline</p>
+                  </div>
+                </div>
+                {!isDone && (
+                  <button
+                    onClick={() => setCancellingSub(null)}
+                    className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                  >
+                    <X className="size-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status details */}
+              <div className="p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs text-white/50">Subscription Target</div>
+                  <div className="text-base font-bold mt-0.5">{cancellingSub.merchant}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-white/50">Monthly Savings</div>
+                  <div className="text-base font-bold text-pinkish mt-0.5">${cancellingSub.amount.toFixed(2)}</div>
+                </div>
+              </div>
+
+              {/* Terminal View */}
+              <div className="bg-black/40 border border-white/5 rounded-2xl p-4.5 font-mono text-[11px] h-48 overflow-y-auto space-y-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                <div className="flex items-center gap-2 text-purple/80 pb-2 border-b border-white/5 mb-2 font-sans font-bold">
+                  <Terminal className="size-4" /> LIVE TERMINAL LOGS
+                </div>
+                {logs.map((log, idx) => {
+                  let color = "text-white/80";
+                  if (log.includes("[System]")) color = "text-purple-300";
+                  if (log.includes("[Success]")) color = "text-emerald-400 font-bold";
+                  if (log.includes("[Summary]")) color = "text-cyan font-bold";
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className={`${color} leading-relaxed`}
+                    >
+                      {log}
+                    </motion.div>
+                  );
+                })}
+                {/* Agent typing cursor simulator */}
+                {!isDone && (
+                  <div className="flex items-center gap-1.5 text-purple-300 animate-pulse">
+                    <span className="w-1.5 h-3 bg-purple-300" />
+                    <span>Executing cancellation instructions...</span>
+                  </div>
+                )}
+                <div ref={logsEndRef} />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2">
+                {isDone ? (
+                  <button
+                    onClick={confirmCancellation}
+                    className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-xs font-bold tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/20 cursor-pointer transition-colors"
+                  >
+                    <CheckCircle className="size-4" />
+                    <span>APPLY SAVINGS TO PROFILE</span>
+                  </button>
+                ) : (
+                  <div className="w-full p-4 bg-purple/10 border border-purple/20 rounded-2xl flex items-center gap-3 text-purple text-xs font-semibold justify-center animate-pulse">
+                    <RefreshCw className="size-4 animate-spin" />
+                    <span>AI Agent negotiating cancel protocol...</span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
