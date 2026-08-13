@@ -1,95 +1,91 @@
 "use client";
 
-import { Sparkles, PieChart, LineChart, Wallet, MessageSquareText } from "lucide-react";
+import { PieChart, LineChart, Wallet, MessageSquareText } from "lucide-react";
+import cubes from "@/assets/overview-cubes.png";
+import { Reveal, usePointerParallax } from "@/lib/motion-primitives";
 
-const cards = [
+const ITEMS = [
   {
-    id: 1,
+    icon: PieChart,
     title: "NLP Auto-Categorization Engine",
-    description: "Koshin automatically cleans messy raw bank data (like 'TST* SBUX 4921') into clean categories — Groceries, Dining, Travel, Subscriptions, Utilities — with 99.4% accuracy.",
-    icon: <PieChart className="size-6 text-white" />,
-    color: "bg-navy",
-    textColor: "text-white",
-    metrics: "99.4% Category Precision",
+    body: "Koshin automatically cleans raw bank data into clean categories — Groceries, Dining, Travel, Subscriptions — with 99.4% accuracy.",
   },
   {
-    id: 2,
+    icon: LineChart,
     title: "Dynamic Financial Health Score",
-    description: "A real-time 0–100 financial health index calculated from your emergency savings buffer, debt ratio, monthly spending velocity, and subscription load.",
-    icon: <LineChart className="size-6 text-ink" />,
-    color: "bg-white border border-hairline",
-    textColor: "text-ink",
-    metrics: "Dynamic 0-100 Health Index",
+    body: "A real-time 0–100 index calculated from your emergency savings buffer, debt ratio, spending velocity, and subscription load.",
   },
   {
-    id: 3,
+    icon: Wallet,
     title: "Silent Subscription & Bill Detector",
-    description: "Instantly detect sneaky recurring charges, unexpected price hikes, and forgotten streaming trials before they drain your account balance.",
-    icon: <Wallet className="size-6 text-white" />,
-    color: "bg-purple",
-    textColor: "text-white",
-    metrics: "$340 Avg. Annual Savings",
+    body: "Instantly detect sneaky recurring charges, unexpected price hikes, and forgotten streaming trials before they drain your account.",
   },
   {
-    id: 4,
-    title: "Conversational AI Financial Advisor",
-    description: "Ask natural questions like 'How much did I spend on dining out this month?' or 'Can I afford a $500 weekend trip?' and get instant, plain-English answers backed by your live data.",
-    icon: <MessageSquareText className="size-6 text-white" />,
-    color: "bg-ink",
-    textColor: "text-white",
-    metrics: "Instant Conversational AI",
-  }
+    icon: MessageSquareText,
+    title: "Conversational AI Advisor",
+    body: "Ask natural questions like 'How much did I spend on dining out?' and get plain-English answers backed by your live data.",
+  },
 ];
 
 export function CardStackingSection() {
+  const pointer = usePointerParallax(18);
+
+  const cubesSrc = typeof cubes === "string" ? cubes : cubes.src;
+
   return (
-    <section className="relative bg-white py-24 sm:py-32 px-6">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-24 relative items-start">
+    <section id="features" className="bg-white py-24 md:py-32 lg:py-40 border-t border-hairline relative overflow-hidden">
+      <div className="shell grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
         
-        {/* Left side sticky header */}
-        <div className="lg:w-1/3 lg:sticky lg:top-32 space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple/20 bg-purple/10 px-3.5 py-1.5 text-xs font-semibold text-purple">
-            <Sparkles className="size-3.5" /> Koshin Core Capabilities
+        {/* Left Side: 3D Graphic Visual with Pointer Parallax & Accents */}
+        <div ref={pointer} className="relative order-2 mx-auto w-full max-w-[520px] lg:order-1">
+          <img
+            src={cubesSrc}
+            alt="Koshin intelligence graphics block"
+            width={1200}
+            height={1200}
+            loading="lazy"
+            className="w-full object-contain filter drop-shadow-2xl"
+          />
+          <span className="absolute top-[32%] left-[4%] size-6 bg-purple" aria-hidden />
+          <span className="absolute bottom-[22%] right-[12%] size-10 bg-cyan" aria-hidden />
+          <div className="absolute top-[22%] right-[14%] grid grid-cols-3 gap-3.5" aria-hidden>
+            {Array.from({ length: 9 }).map((_, i) => (
+              <span key={i} className="size-[5px] bg-ink" />
+            ))}
           </div>
-          <h2 className="display text-4xl sm:text-5xl font-bold tracking-tight text-ink">
-            Intelligence at every level.
-          </h2>
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed">
-            Because you can&apos;t fix what you can&apos;t see — experience financial tools designed for precision, automation, and total clarity.
-          </p>
         </div>
 
-        {/* Right side stacking cards */}
-        <div className="lg:w-2/3 space-y-6 pb-24 lg:pb-32">
-          {cards.map((card, index) => (
-            <div
-              key={card.id}
-              className={`sticky rounded-[2rem] p-8 sm:p-12 shadow-xl flex flex-col justify-between ${card.color} ${card.textColor}`}
-              style={{
-                top: `calc(100px + ${index * 20}px)`,
-                minHeight: "380px"
-              }}
-            >
-              <div className="flex justify-between items-start mb-8">
-                <div className={`p-4 rounded-2xl ${card.color === 'bg-white border border-hairline' ? 'bg-offwhite' : 'bg-white/10 backdrop-blur-md'}`}>
-                  {card.icon}
+        {/* Right Side: Header + Clean 2-Column Capability Grid */}
+        <div className="order-1 flex flex-col gap-12 lg:order-2">
+          
+          <div className="space-y-4">
+            <h2 className="display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-ink leading-[1.15]">
+              Intelligence at every level.
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl">
+              Because you can&apos;t fix what you can&apos;t see — experience financial tools designed for precision, automation, and total clarity.
+            </p>
+          </div>
+
+          <div className="grid gap-x-10 gap-y-10 sm:grid-cols-2">
+            {ITEMS.map((f, i) => (
+              <Reveal key={f.title} delay={i * 0.06} className="group">
+                <div className="size-12 rounded-2xl bg-offwhite border border-hairline flex items-center justify-center mb-6 transition-transform duration-500 group-hover:-translate-y-1 group-hover:border-purple/30 group-hover:bg-purple/5">
+                  <f.icon
+                    className="size-6 text-ink transition-colors duration-300 group-hover:text-purple"
+                    strokeWidth={1.5}
+                  />
                 </div>
-                <div className={`px-4 py-2 rounded-full text-xs font-bold ${card.color === 'bg-white border border-hairline' ? 'bg-ink/5 text-ink' : 'bg-white/20 text-white backdrop-blur-sm'}`}>
-                  {card.metrics}
-                </div>
-              </div>
-              
-              <div className="mt-auto space-y-4">
-                <h3 className="display text-2xl sm:text-3xl font-bold tracking-tight">
-                  {card.title}
-                </h3>
-                <p className={`text-base sm:text-lg leading-relaxed ${card.color === 'bg-white border border-hairline' ? 'text-muted-foreground' : 'text-white/70'}`}>
-                  {card.description}
+                <h3 className="display text-lg font-semibold tracking-[-0.02em] text-ink">{f.title}</h3>
+                <p className="mt-2.5 text-[15px] leading-[1.7] text-muted-foreground">
+                  {f.body}
                 </p>
-              </div>
-            </div>
-          ))}
+              </Reveal>
+            ))}
+          </div>
+
         </div>
+
       </div>
     </section>
   );

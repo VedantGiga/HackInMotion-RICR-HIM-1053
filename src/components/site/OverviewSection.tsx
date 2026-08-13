@@ -116,21 +116,21 @@ export function OverviewSection() {
         aria-hidden
       />
 
-      <div className="shell relative z-10 max-w-7xl mx-auto space-y-16">
+      <div className="shell relative z-10 max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
 
-        {/* Header Block */}
-        <div data-stack-header className="text-center max-w-3xl mx-auto space-y-4">
+        {/* Left Sticky Header Column */}
+        <div data-stack-header className="lg:w-1/3 lg:sticky lg:top-32 space-y-5">
           <h2 className="display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-ink">
             How Koshin Works.
           </h2>
 
-          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl mx-auto font-normal">
+          <p className="text-base sm:text-lg text-muted-foreground leading-relaxed font-normal">
             From raw bank statements to complete financial clarity in under 3 seconds. No manual spreadsheet entry required.
           </p>
         </div>
 
-        {/* ULTRA-PREMIUM STICKY STACKING CARDS CONTAINER */}
-        <div className="space-y-8 relative max-w-5xl mx-auto pb-16">
+        {/* Right Sticky Stacking Cards Container */}
+        <div className="lg:w-2/3 space-y-6 relative pb-20 w-full">
           {STEPS.map((s, idx) => {
             const IconComp = s.icon;
             const imgSrc = typeof s.img === "string" ? s.img : s.img.src;
@@ -138,17 +138,17 @@ export function OverviewSection() {
             return (
               <div
                 key={s.step}
-                className={`sticky rounded-[2.5rem] bg-gradient-to-br ${s.accentColor} text-white p-8 sm:p-14 shadow-2xl border border-white/15 relative overflow-hidden flex flex-col justify-between min-h-[440px] group transition-all duration-500`}
+                className={`sticky rounded-[2.5rem] bg-gradient-to-br ${s.accentColor} text-white p-7 sm:p-10 shadow-2xl border border-white/15 relative overflow-hidden flex flex-col justify-between min-h-[400px] group transition-all duration-500`}
                 style={{
-                  top: `calc(90px + ${idx * 24}px)`,
+                  top: `calc(110px + ${idx * 24}px)`,
                 }}
               >
                 {/* Background Ambient Glows & 3D Visual Graphic */}
-                <div className={`absolute top-0 right-0 size-96 ${s.glowColor} rounded-full blur-3xl pointer-events-none`} />
+                <div className={`absolute top-0 right-0 size-80 ${s.glowColor} rounded-full blur-3xl pointer-events-none`} />
                 <img
                   src={imgSrc}
                   alt={s.title}
-                  className="absolute -right-16 -bottom-16 w-80 sm:w-[420px] h-auto object-contain opacity-25 group-hover:scale-105 transition-transform duration-700 pointer-events-none"
+                  className="absolute -right-16 -bottom-16 w-72 sm:w-[360px] h-auto object-contain opacity-25 group-hover:scale-105 transition-transform duration-700 pointer-events-none"
                 />
 
                 {/* Top Card Row */}
@@ -166,30 +166,30 @@ export function OverviewSection() {
                     <span className="hidden sm:inline-flex text-xs font-semibold text-white/70 bg-white/10 px-3.5 py-1 rounded-full backdrop-blur-md border border-white/10">
                       {s.tag}
                     </span>
-                    <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-lime">
-                      <IconComp className="size-6" />
+                    <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-lime">
+                      <IconComp className="size-5" />
                     </div>
                   </div>
                 </div>
 
                 {/* Middle Content */}
-                <div className="relative z-10 my-8 space-y-4 max-w-2xl">
+                <div className="relative z-10 my-6 space-y-3 max-w-xl">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-purple-light block">
                     {s.subtitle}
                   </span>
 
-                  <h3 className="display text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-[1.2]">
+                  <h3 className="display text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-[1.2]">
                     {s.title}
                   </h3>
 
-                  <p className="text-sm sm:text-base text-white/80 leading-[1.65] font-normal">
+                  <p className="text-xs sm:text-sm text-white/80 leading-[1.6] font-normal">
                     {s.desc}
                   </p>
 
                   {/* Bullet Highlights Grid */}
-                  <div className="grid sm:grid-cols-3 gap-3 pt-4 border-t border-white/10">
+                  <div className="grid sm:grid-cols-3 gap-2.5 pt-4 border-t border-white/10">
                     {s.details.map((detail, dIdx) => (
-                      <div key={dIdx} className="flex items-center gap-2 text-xs text-white/90 font-medium">
+                      <div key={dIdx} className="flex items-center gap-2 text-[11px] text-white/90 font-medium">
                         <CheckCircle2 className="size-3.5 text-lime shrink-0" />
                         <span className="truncate">{detail}</span>
                       </div>
@@ -199,14 +199,14 @@ export function OverviewSection() {
 
                 {/* Bottom Card Action Bar */}
                 <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/70">
-                  <div className="flex items-center gap-2 font-mono">
-                    <ShieldCheck className="size-4 text-lime" />
+                  <div className="flex items-center gap-2 font-mono text-[11px]">
+                    <ShieldCheck className="size-3.5 text-lime" />
                     <span>Instant Execution Engine</span>
                   </div>
 
                   <a
                     href="/signup"
-                    className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-bold text-ink transition-transform hover:scale-105 shadow-md"
+                    className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-2 text-xs font-bold text-ink transition-transform hover:scale-105 shadow-md cursor-pointer"
                   >
                     <span>Get Started</span>
                     <ArrowRight className="size-3.5" />
