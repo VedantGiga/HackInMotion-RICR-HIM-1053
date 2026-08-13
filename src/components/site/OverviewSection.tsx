@@ -120,10 +120,6 @@ export function OverviewSection() {
 
         {/* Header Block */}
         <div data-stack-header className="text-center max-w-3xl mx-auto space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple/20 bg-purple/10 px-4 py-1.5 text-xs font-semibold text-purple">
-            <Sparkles className="size-3.5" /> Simple 3-Step Process
-          </div>
-
           <h2 className="display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-ink">
             How Koshin Works.
           </h2>

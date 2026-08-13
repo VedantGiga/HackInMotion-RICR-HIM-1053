@@ -11,7 +11,6 @@ const LINKS = [
   { label: "Auto Categorization", href: "/#categorization" },
   { label: "Health Score", href: "/#health" },
   { label: "Features", href: "/#features" },
-  { label: "Live Dashboard", href: "/dashboard" },
 ];
 
 export function Navbar() {

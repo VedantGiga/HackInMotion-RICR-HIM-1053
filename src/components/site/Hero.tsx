@@ -2,9 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import gsap from "gsap";
-import { ShieldCheck } from "lucide-react";
 import torus from "@/assets/hero-torus.png";
-import personB from "@/assets/person-b.jpg";
 import { usePointerParallax } from "@/lib/motion-primitives";
 
 export function Hero() {
@@ -29,17 +27,11 @@ export function Hero() {
           0.2,
         )
         .from("[data-hero-copy]", { opacity: 0, y: 26, duration: 0.9 }, 0.6)
-        .from("[data-hero-cta]", { opacity: 0, y: 18, scale: 0.96, duration: 0.8 }, 0.85)
         .fromTo(
           "[data-hero-object]",
           { opacity: 0, scale: 0.86, rotate: -8 },
           { opacity: 1, scale: 1, rotate: 0, duration: 1.6, ease: "expo.out" },
           0.25,
-        )
-        .from(
-          "[data-hero-float]",
-          { opacity: 0, y: 24, scale: 0.9, duration: 0.8, stagger: 0.12 },
-          1.1,
         );
 
       gsap.to("[data-hero-object]", {
@@ -97,41 +89,6 @@ export function Hero() {
             width={1200}
             height={1200}
             className="w-full object-contain will-change-transform"
-          />
-
-          <div
-            data-hero-float
-            className="absolute top-[10%] right-[2%] w-32 overflow-hidden rounded-xl border border-hairline bg-background shadow-xl sm:w-44 p-3"
-          >
-            <div className="flex items-center gap-2 text-xs font-semibold text-ink">
-              <ShieldCheck className="size-4 text-purple" /> Koshin Health Score
-            </div>
-            <div className="text-2xl font-extrabold text-ink my-1">78 / 100</div>
-            <div className="text-[10px] font-semibold text-purple bg-purple/10 px-2 py-0.5 rounded-full inline-block">
-              Good & Healthy
-            </div>
-          </div>
-
-          <div data-hero-float className="absolute bottom-[18%] left-[0%] flex items-end shadow-2xl">
-            <img
-              src={typeof personB === "string" ? personB : personB.src}
-              alt="Koshin user"
-              width={512}
-              height={512}
-              loading="lazy"
-              className="size-14 object-cover sm:size-16"
-            />
-            <div className="-ml-2 bg-cyan px-4 py-2.5 text-ink border border-ink/10">
-              <p className="text-[11px] font-semibold uppercase tracking-wide">Auto-Categorized</p>
-              <p className="text-[14px] font-bold">DoorDash Food Delivery</p>
-              <p className="text-[11px] font-mono text-ink/80">$48.50 • Food & Dining</p>
-            </div>
-          </div>
-
-          <span
-            data-hero-float
-            className="absolute top-[46%] right-[6%] size-4 bg-purple"
-            aria-hidden
           />
         </div>
       </div>

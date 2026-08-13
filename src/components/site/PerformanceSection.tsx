@@ -58,9 +58,6 @@ export function PerformanceSection() {
 
         {/* Section Header */}
         <div className="max-w-2xl space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-purple/20 bg-purple/10 px-3.5 py-1 text-xs font-semibold text-purple">
-            <Sparkles className="size-3.5" /> Problem & Solution
-          </div>
           <h2 className="display text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-ink leading-[1.15]">
             Cryptic Statements. <br />
             <span className="text-purple">Honest Clarity.</span>
