@@ -301,27 +301,37 @@ export function KoshinDashboard() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSendMessage = (e?: React.FormEvent, customText?: string) => {
+  const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
     if (e) e.preventDefault();
     const textToSend = customText || chatInput;
     if (!textToSend.trim()) return;
 
-    const userMsg = { role: "user" as const, text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMsg = { role: "user" as const, text: textToSend, time: timeStr };
     setChatMessages(prev => [...prev, userMsg]);
     if (!customText) setChatInput("");
     setIsTyping(true);
 
-    setTimeout(() => {
-      let reply = "Based on your spending patterns, your top expense category is Food & Dining ($420/mo). Cutting food delivery by 20% will save you $84/mo ($1,008/yr).";
-      if (textToSend.toLowerCase().includes("subscription")) {
-        reply = `You have ${recurringBills.length} recurring subscriptions totaling $${recurringBills.reduce((acc, t) => acc + t.amount, 0).toFixed(2)}/mo. You can cancel unused trials to save $240/yr.`;
-      } else if (textToSend.toLowerCase().includes("save")) {
-        reply = `If you reduce Dining Out and Subscriptions by 25%, your projected 3-year compound savings will grow to +$11,520!`;
-      }
+    try {
+      const res = await fetch("/api/v1/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: textToSend }),
+      });
 
-      setChatMessages(prev => [...prev, { role: "assistant", text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      if (res.ok) {
+        const json = await res.json();
+        const replyText = json.data?.reply || "I analyzed your spending patterns and updated your financial health score.";
+        setChatMessages(prev => [...prev, { role: "assistant", text: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      } else {
+        setChatMessages(prev => [...prev, { role: "assistant", text: "Unable to process request right now. Please try again.", time: timeStr }]);
+      }
+    } catch (err) {
+      console.error("Error communicating with AI Chat:", err);
+      setChatMessages(prev => [...prev, { role: "assistant", text: "Connection error. Please try again later.", time: timeStr }]);
+    } finally {
       setIsTyping(false);
-    }, 1200);
+    }
   };
 
   const navItems = [

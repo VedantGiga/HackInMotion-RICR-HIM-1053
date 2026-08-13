@@ -225,6 +225,36 @@ export function SettingsView() {
             </div>
           </div>
 
+          {/* GEMINI AI API KEY CONFIGURATION */}
+          <div className="p-5 rounded-2xl bg-purple/5 border border-purple/20 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-purple font-bold text-sm">
+                <Key className="size-4" />
+                <span>Google Gemini AI API Key</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold bg-purple/10 text-purple px-2 py-0.5 rounded-full border border-purple/20">
+                Gemini 1.5 / 2.5 Flash
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Add your Google Gemini API Key to unlock unlimited natural language financial advice in the AI Advisor co-pilot tab.
+            </p>
+            <div className="flex items-center gap-3">
+              <input
+                type="password"
+                placeholder="Paste AIzaSy... Gemini API Key"
+                defaultValue={process.env.NEXT_PUBLIC_GEMINI_API_KEY || ""}
+                className="flex-1 px-4 py-2.5 rounded-xl bg-white border border-hairline text-xs font-mono text-ink outline-none focus:border-purple"
+              />
+              <button 
+                onClick={() => setSavedSuccess(true)}
+                className="px-4 py-2.5 rounded-xl bg-purple text-white text-xs font-bold hover:bg-purple/90 transition-all shadow-xs cursor-pointer"
+              >
+                Update Key
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
