@@ -64,15 +64,9 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen bg-offwhite text-ink flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel: Premium Visual */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-navy p-12 flex-col justify-between overflow-hidden">
-        {/* Full background image */}
-        <img
-          src="/bgimage2.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
-        />
-        {/* Gradient overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-navy via-navy/80 to-navy/50 pointer-events-none" />
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[url('/bgimage.png')] bg-cover bg-center p-12 flex-col justify-between overflow-hidden">
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 bg-navy/85 backdrop-blur-[2px] pointer-events-none" />
 
         {/* Glow effects */}
         <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-purple/15 rounded-full blur-[150px] pointer-events-none" />
@@ -84,7 +78,7 @@ export default function LoginPage() {
 
         {/* Logo and Brand */}
         <Link href="/" className="relative z-10 flex items-center gap-3">
-          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-20 w-auto object-contain brightness-0 invert" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-32 w-auto object-contain brightness-0 invert scale-110 origin-left" />
         </Link>
 
         {/* Visual Content */}
@@ -126,7 +120,7 @@ export default function LoginPage() {
           </Link>
 
           <Link href="/" className="flex items-center gap-3 lg:hidden">
-            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-16 w-auto object-contain" />
+            <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-24 w-auto object-contain" />
           </Link>
         </header>
 
