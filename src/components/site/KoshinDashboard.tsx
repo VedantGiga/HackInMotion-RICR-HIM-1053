@@ -190,7 +190,7 @@ export function KoshinDashboard() {
     let score = 100;
     
     // Fallback if no data
-    if (transactions.length === 0) return 75;
+    if (transactions.length === 0) return 0;
 
     const savings = totalIncome - totalExpenses;
     if (totalIncome > 0) {
