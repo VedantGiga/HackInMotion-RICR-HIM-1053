@@ -35,9 +35,9 @@ export default function AddAccountPage() {
     setLoading(true);
     
     // Simulate connection or upload delay
+    // Go to targets screen
     setTimeout(() => {
-      // Go to CSV Processing / Loading screen
-      router.push("/onboarding/processing"); 
+      router.push("/onboarding/targets"); 
     }, 1500);
   };
 
@@ -157,7 +157,7 @@ export default function AddAccountPage() {
                 )}
               </button>
               
-              <Link href="/onboarding/processing" className="mt-6 text-xs font-bold text-ink/40 hover:text-ink transition-colors">
+              <Link href="/onboarding/targets" className="mt-6 text-xs font-bold text-ink/40 hover:text-ink transition-colors">
                 Skip this step for now
               </Link>
             </div>

@@ -127,7 +127,7 @@ export default function SignUpPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
                 <div className="flex gap-4">
                   <div className="space-y-1.5 flex-1">
                     <label className="text-sm font-medium text-ink/80">Full Name</label>
