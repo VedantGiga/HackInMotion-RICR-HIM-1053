@@ -110,6 +110,7 @@ export function KoshinDashboard() {
   const [apiSpending, setApiSpending] = useState<any>(null);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
     { role: "assistant", text: "Hello! I am Koshin AI, your personal financial advisor. Ask me anything about your spending, subscriptions, or savings goals!", time: "12:00 PM" }
   ]);
@@ -222,35 +223,82 @@ export function KoshinDashboard() {
     return transactions.filter(t => t.isRecurring);
   }, [transactions]);
 
-  const handleSimulatedFileUpload = () => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setIsParsing(true);
     setParsingStep(1);
-    setTimeout(() => {
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
       setParsingStep(2);
-      setTimeout(() => {
+      const res = await fetch("/api/v1/transactions/import", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
         setParsingStep(3);
+        // Refresh transactions to show newly imported ones
+        const txRes = await fetch("/api/v1/transactions");
+        if (txRes.ok) {
+          const json = await txRes.json();
+          if (json.data && Array.isArray(json.data)) {
+            const mapped = json.data.map((t: any) => ({
+              id: t.id,
+              date: t.date ? new Date(t.date).toISOString().split('T')[0] : "2026-08-12",
+              merchant: t.merchant || t.description,
+              amount: t.amount,
+              category: t.category?.name || "General Expense",
+              confidence: t.confidence || 0.95,
+              isRecurring: !!t.isRecurring,
+              type: t.amount > 0 ? "expense" : "income"
+            }));
+            setTransactions(mapped);
+          }
+        }
+        
+        // Refresh health and spending data
+        const [healthRes, spendingRes] = await Promise.all([
+          fetch("/api/v1/analysis/health").catch(() => null),
+          fetch("/api/v1/analysis/spending").catch(() => null),
+        ]);
+        
+        if (healthRes && healthRes.ok) {
+          const json = await healthRes.json();
+          if (json.data && typeof json.data.score === 'number') {
+            setApiHealthScore(json.data.score);
+            setApiInsights(json.data.insights || []);
+          }
+        }
+
+        if (spendingRes && spendingRes.ok) {
+          const json = await spendingRes.json();
+          if (json.data) {
+            setApiSpending(json.data);
+          }
+        }
+
         setTimeout(() => {
           setIsParsing(false);
           setIsUploadModalOpen(false);
           setUploadSuccess(true);
-
-          // Simulate AI OCR extracting a new transaction from a receipt
-          const scannedTx: Transaction = {
-            id: Math.random().toString(36).substr(2, 9),
-            date: new Date().toISOString().split("T")[0],
-            merchant: "Whole Foods (AI Scanned)",
-            amount: 42.15,
-            category: "Food & Dining",
-            confidence: 96,
-            isRecurring: false,
-            type: "expense"
-          };
-          setTransactions(prev => [scannedTx, ...prev]);
-
           setTimeout(() => setUploadSuccess(false), 4000);
         }, 800);
-      }, 900);
-    }, 900);
+      } else {
+        alert("Failed to import CSV");
+        setIsParsing(false);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Error importing CSV");
+      setIsParsing(false);
+    }
+    
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleSendMessage = (e?: React.FormEvent, customText?: string) => {
@@ -712,13 +760,19 @@ export function KoshinDashboard() {
 
               {!isParsing ? (
                 <div
-                  onClick={handleSimulatedFileUpload}
+                  onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-purple/30 rounded-2xl p-10 text-center bg-purple/5 hover:border-purple cursor-pointer transition-all space-y-3"
                 >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    onChange={handleFileUpload}
+                  />
                   <UploadCloud className="size-12 text-purple mx-auto animate-bounce" />
                   <div>
-                    <p className="text-sm font-bold text-ink">Drag & Drop Receipt Image, PDF, or CSV</p>
-                    <p className="text-xs text-muted-foreground mt-1">AI automatically extracts Merchant, Total, and Category</p>
+                    <p className="text-sm font-bold text-ink">Upload CSV Statement</p>
+                    <p className="text-xs text-muted-foreground mt-1">Import your transactions from a CSV file</p>
                   </div>
                   <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
                     Select File
