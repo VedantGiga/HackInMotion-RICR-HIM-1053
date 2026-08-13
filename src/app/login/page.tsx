@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
-import { signIn } from "@/lib/firebase/auth";
+import { signIn } from "next-auth/react";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -38,19 +38,20 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      await signIn(data.email, data.password);
+      const res = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+
+      if (res?.error) {
+        throw new Error(res.error);
+      }
+
       setRedirecting(true);
       router.push("/dashboard");
     } catch (err: any) {
-      let errorMessage = "Failed to sign in.";
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
-        errorMessage = "Invalid email or password.";
-      } else if (err.code === "auth/too-many-requests") {
-        errorMessage = "Too many attempts. Please try again later.";
-      } else if (err.message) {
-        errorMessage = err.message.replace("Firebase: ", "");
-      }
-      setAuthError(errorMessage);
+      setAuthError(err.message || "Invalid email or password.");
     } finally {
       setLoading(false);
     }

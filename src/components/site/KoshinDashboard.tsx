@@ -163,16 +163,32 @@ export function KoshinDashboard() {
   }, [transactions]);
 
   const healthScore = useMemo(() => {
-    let score = 75;
-    if (savingsRate > 20) score += 10;
-    else if (savingsRate > 10) score += 5;
-    else if (savingsRate < 0) score -= 15;
-    const subAmount = transactions.filter(t => t.category === "Subscriptions").reduce((acc, t) => acc + t.amount, 0);
-    const subRatio = totalIncome > 0 ? subAmount / totalIncome : 0;
-    if (subRatio > 0.08) score -= 8;
-    else score += 3;
+    let score = 100;
+    
+    // Fallback if no data
+    if (transactions.length === 0) return 75;
+
+    const savings = totalIncome - totalExpenses;
+    if (totalIncome > 0) {
+      const rate = savings / totalIncome;
+      if (rate < 0.1) score -= 20;
+    } else {
+      score -= 30; // No income
+    }
+    
+    // Find top expense category
+    let topCat = "";
+    let maxAmt = 0;
+    Object.entries(categoryBreakdown).forEach(([cat, amt]) => {
+      if (amt > maxAmt) { maxAmt = amt; topCat = cat; }
+    });
+    
+    if (topCat && maxAmt > (totalIncome * 0.4) && totalIncome > 0) {
+      score -= 15;
+    }
+    
     return Math.min(100, Math.max(0, score));
-  }, [totalIncome, netSavings, transactions]);
+  }, [totalIncome, totalExpenses, categoryBreakdown, transactions]);
 
   const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
   const healthRingColor = healthScore >= 80 ? "text-lime" : healthScore >= 65 ? "text-purple" : "text-orange-500";
