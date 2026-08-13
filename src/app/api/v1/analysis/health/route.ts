@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     let expense = 0;
     const expenseByCategory: Record<string, number> = {};
 
-    transactions.forEach(tx => {
+    transactions.forEach((tx: any) => {
       const amt = Math.abs(tx.amount);
       if (tx.category?.type === "income") {
         income += amt;
