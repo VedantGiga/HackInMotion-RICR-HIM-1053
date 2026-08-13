@@ -52,7 +52,7 @@ export function Sidebar({
       {/* Logo */}
       <div className="hidden lg:flex items-center gap-3 px-6 pt-7 pb-6">
         <a href="/">
-          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 w-auto object-contain scale-[2.5] origin-left ml-3" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-9 w-auto object-contain scale-[3] origin-left ml-3" />
         </a>
       </div>
 
