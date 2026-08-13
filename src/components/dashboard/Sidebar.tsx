@@ -33,12 +33,15 @@ export function Sidebar({
   healthRingColor,
   isDashboardPage,
 }: SidebarProps) {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const isDark = mounted ? (resolvedTheme === "dark" || theme === "dark") : false;
+
 
   return (
     <aside className={`
@@ -121,11 +124,11 @@ export function Sidebar({
             <div className="text-[10px] text-purple font-semibold tracking-wide">Premium User</div>
           </div>
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all"
+            onClick={() => setTheme(isDark ? "light" : "dark")}
+            className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer"
             title="Toggle theme"
           >
-            {mounted ? (theme === "dark" ? <Sun className="size-4" /> : <Moon className="size-4" />) : <Sun className="size-4" />}
+            {isDark ? <Sun className="size-4 text-amber-400" /> : <Moon className="size-4 text-slate-600" />}
           </button>
           {isDashboardPage && (
             <a href="/" title="Sign out" className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">

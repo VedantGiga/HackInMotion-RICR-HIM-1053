@@ -1,8 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { User } from "lucide-react";
+import { useTheme } from "next-themes";
 
 export function SettingsView() {
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isDark = mounted ? (resolvedTheme === "dark" || theme === "dark") : false;
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-10">
       {/* Header */}
@@ -58,9 +69,19 @@ export function SettingsView() {
               <div className="text-[14px] font-bold text-ink">Dark Mode</div>
               <div className="text-[13px] text-muted-foreground mt-0.5">Adjust the appearance of the dashboard.</div>
             </div>
-            <div className="w-12 h-6 bg-offwhite border border-hairline rounded-full relative cursor-pointer shadow-inner">
-              <div className="absolute left-1 top-1 size-4 bg-muted-foreground rounded-full transition-all"></div>
-            </div>
+            <button
+              onClick={() => setTheme(isDark ? "light" : "dark")}
+              className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${
+                isDark ? "bg-purple" : "bg-offwhite border border-hairline"
+              }`}
+              aria-label="Toggle Dark Mode"
+            >
+              <div
+                className={`absolute top-1 size-4 rounded-full transition-all ${
+                  isDark ? "right-1 bg-white" : "left-1 bg-muted-foreground"
+                }`}
+              />
+            </button>
           </div>
           
           <div className="flex items-center justify-between pt-6 border-t border-hairline">

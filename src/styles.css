@@ -5,10 +5,10 @@
   --font-display: "Plus Jakarta Sans", "Outfit", system-ui, sans-serif;
   --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
 
-  --color-ink: #141414;
-  --color-offwhite: #ffffff;
-  --color-hairline: #e5e5e5;
-  --color-grayed: #8e8e93;
+  --color-ink: var(--ink);
+  --color-offwhite: var(--offwhite);
+  --color-hairline: var(--hairline);
+  --color-grayed: var(--grayed);
   --color-purple: #8b5cf6;
   --color-cyan: #00e5ff;
   --color-brandblue: #2563eb;
@@ -17,11 +17,12 @@
   --color-violet: #a855f7;
   --color-skyblue: #70a6ff;
 
-  --color-background: #ffffff;
-  --color-foreground: #141414;
-  --color-muted: #f8f8f8;
-  --color-muted-foreground: #666666;
-  --color-border: #e5e5e5;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-card: var(--card);
 }
 
 @layer base {
@@ -43,18 +44,22 @@
     --muted: #f8f8f8;
     --muted-foreground: #666666;
     --border: #e5e5e5;
+    --card: #ffffff;
   }
 
-  :root.dark {
-    --ink: #ffffff;
-    --offwhite: #1a1a1a;
-    --hairline: #2e2e2e;
-    
-    --background: #0b0d10;
-    --foreground: #ffffff;
-    --muted: #1c1c1e;
-    --muted-foreground: #a1a1aa;
-    --border: #2e2e2e;
+  :root.dark, html.dark, body.dark, .dark {
+    color-scheme: dark;
+    --ink: #f8fafc;
+    --offwhite: #111827;
+    --hairline: #1f2937;
+    --grayed: #94a3b8;
+
+    --background: #090d16;
+    --foreground: #f8fafc;
+    --muted: #1e293b;
+    --muted-foreground: #94a3b8;
+    --border: #1f2937;
+    --card: #0f172a;
   }
 
   * {
@@ -76,6 +81,62 @@
     color: var(--ink);
   }
 }
+
+.dark .bg-white {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+.dark .bg-white\/80 {
+  background-color: rgba(15, 23, 42, 0.85) !important;
+}
+
+.dark .bg-white\/50 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+.dark .bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .bg-offwhite\/50 {
+  background-color: rgba(15, 23, 42, 0.5) !important;
+}
+
+.dark .bg-offwhite\/30 {
+  background-color: rgba(15, 23, 42, 0.3) !important;
+}
+
+.dark .bg-offwhite {
+  background-color: #111827 !important;
+}
+
+.dark .text-ink {
+  color: #f8fafc !important;
+}
+
+.dark .border-hairline {
+  border-color: #1e293b !important;
+}
+
+.dark .text-muted-foreground {
+  color: #94a3b8 !important;
+}
+
+.dark .hover\:bg-black\/5:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark .bg-black\/5 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.dark input, .dark select, .dark textarea {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #1e293b !important;
+}
+
 
 .shell {
   width: 100%;
