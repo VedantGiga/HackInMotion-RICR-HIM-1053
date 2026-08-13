@@ -1,12 +1,15 @@
 "use client";
 
-import { PlusCircle, Coffee, Tv, ShoppingBag } from "lucide-react";
+import { PlusCircle, Coffee, Tv, ShoppingBag, PieChart } from "lucide-react";
+import { getCatConfig } from "@/components/site/KoshinDashboard";
 
 interface BudgetViewProps {
   categoryBreakdown: Record<string, number>;
 }
 
 export function BudgetView({ categoryBreakdown }: BudgetViewProps) {
+  const categories = Object.entries(categoryBreakdown).filter(([_, amt]) => amt > 0);
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -20,104 +23,60 @@ export function BudgetView({ categoryBreakdown }: BudgetViewProps) {
         </button>
       </div>
 
-      {/* Budget Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Example Budget: Food & Dining */}
-        <div className="rounded-2xl border border-hairline bg-background p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-xl bg-orange-50 border border-orange-200 flex items-center justify-center shrink-0">
-                <Coffee className="size-4 text-orange-500" />
-              </div>
-              <span className="text-[14px] font-bold text-ink">Food & Dining</span>
-            </div>
-            <span className="text-[12px] font-bold px-2 py-1 bg-offwhite rounded-md text-muted-foreground">Monthly</span>
+      {categories.length === 0 ? (
+        <div className="rounded-2xl border border-hairline bg-background p-12 text-center shadow-sm space-y-3">
+          <div className="size-12 rounded-2xl bg-purple/10 border border-purple/20 flex items-center justify-center mx-auto text-purple">
+            <PieChart className="size-6" />
           </div>
-          <div className="mb-2 flex items-end justify-between">
-            <div className="text-2xl font-bold text-ink tracking-tight">
-              ${(categoryBreakdown["Food & Dining"] || 0).toFixed(2)}
-            </div>
-            <div className="text-[13px] text-muted-foreground font-medium mb-1">
-              / $600.00
-            </div>
-          </div>
-          <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 ${((categoryBreakdown["Food & Dining"] || 0) / 600) > 0.9 ? 'bg-pinkish' : 'bg-orange-400'}`}
-              style={{ width: `${Math.min(((categoryBreakdown["Food & Dining"] || 0) / 600) * 100, 100)}%` }}
-            />
-          </div>
-          <div className="mt-3 text-[12px] font-semibold text-muted-foreground">
-            {600 - (categoryBreakdown["Food & Dining"] || 0) > 0 
-              ? `$${(600 - (categoryBreakdown["Food & Dining"] || 0)).toFixed(2)} remaining` 
-              : "Over budget"}
-          </div>
+          <h4 className="display text-lg font-bold text-ink">No Category Spending Detected</h4>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            Upload a bank statement or scan a receipt to automatically parse your transactions into category budgets.
+          </p>
         </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {categories.map(([cat, amount]) => {
+            const cfg = getCatConfig(cat);
+            const Icon = cfg.icon;
+            // Estimated budget threshold (1.5x current spend or min $200)
+            const targetBudget = Math.max(Math.ceil(amount * 1.3 / 50) * 50, 200);
+            const pct = Math.min((amount / targetBudget) * 100, 100);
 
-        {/* Example Budget: Subscriptions */}
-        <div className="rounded-2xl border border-hairline bg-background p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-xl bg-purple/10 border border-purple/20 flex items-center justify-center shrink-0">
-                <Tv className="size-4 text-purple" />
+            return (
+              <div key={cat} className="rounded-2xl border border-hairline bg-background p-6 shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className={`size-8 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0`}>
+                      <Icon className={`size-4 ${cfg.color}`} />
+                    </div>
+                    <span className="text-[14px] font-bold text-ink">{cat}</span>
+                  </div>
+                  <span className="text-[12px] font-bold px-2 py-1 bg-offwhite rounded-md text-muted-foreground">Monthly</span>
+                </div>
+                <div className="mb-2 flex items-end justify-between">
+                  <div className="text-2xl font-bold text-ink tracking-tight">
+                    ${amount.toFixed(2)}
+                  </div>
+                  <div className="text-[13px] text-muted-foreground font-medium mb-1">
+                    / ${targetBudget.toFixed(2)}
+                  </div>
+                </div>
+                <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full transition-all duration-1000 ${pct > 90 ? 'bg-pinkish' : 'bg-purple'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+                <div className="mt-3 text-[12px] font-semibold text-muted-foreground">
+                  {targetBudget - amount > 0 
+                    ? `$${(targetBudget - amount).toFixed(2)} remaining` 
+                    : "Over budget limit"}
+                </div>
               </div>
-              <span className="text-[14px] font-bold text-ink">Subscriptions</span>
-            </div>
-            <span className="text-[12px] font-bold px-2 py-1 bg-offwhite rounded-md text-muted-foreground">Monthly</span>
-          </div>
-          <div className="mb-2 flex items-end justify-between">
-            <div className="text-2xl font-bold text-ink tracking-tight">
-              ${(categoryBreakdown["Subscriptions"] || 0).toFixed(2)}
-            </div>
-            <div className="text-[13px] text-muted-foreground font-medium mb-1">
-              / $150.00
-            </div>
-          </div>
-          <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 bg-purple`}
-              style={{ width: `${Math.min(((categoryBreakdown["Subscriptions"] || 0) / 150) * 100, 100)}%` }}
-            />
-          </div>
-          <div className="mt-3 text-[12px] font-semibold text-muted-foreground">
-            {150 - (categoryBreakdown["Subscriptions"] || 0) > 0 
-              ? `$${(150 - (categoryBreakdown["Subscriptions"] || 0)).toFixed(2)} remaining` 
-              : "Over budget"}
-          </div>
+            );
+          })}
         </div>
-        
-        {/* Example Budget: Shopping */}
-        <div className="rounded-2xl border border-hairline bg-background p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="size-8 rounded-xl bg-pinkish/10 border border-pinkish/20 flex items-center justify-center shrink-0">
-                <ShoppingBag className="size-4 text-pinkish" />
-              </div>
-              <span className="text-[14px] font-bold text-ink">Shopping</span>
-            </div>
-            <span className="text-[12px] font-bold px-2 py-1 bg-offwhite rounded-md text-muted-foreground">Monthly</span>
-          </div>
-          <div className="mb-2 flex items-end justify-between">
-            <div className="text-2xl font-bold text-ink tracking-tight">
-              ${(categoryBreakdown["Shopping"] || 0).toFixed(2)}
-            </div>
-            <div className="text-[13px] text-muted-foreground font-medium mb-1">
-              / $300.00
-            </div>
-          </div>
-          <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full transition-all duration-1000 bg-pinkish`}
-              style={{ width: `${Math.min(((categoryBreakdown["Shopping"] || 0) / 300) * 100, 100)}%` }}
-            />
-          </div>
-          <div className="mt-3 text-[12px] font-semibold text-muted-foreground">
-            {300 - (categoryBreakdown["Shopping"] || 0) > 0 
-              ? `$${(300 - (categoryBreakdown["Shopping"] || 0)).toFixed(2)} remaining` 
-              : "Over budget"}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

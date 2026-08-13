@@ -607,26 +607,32 @@ export function KoshinDashboard() {
                           </div>
 
                           <div className="space-y-4">
-                            {Object.entries(categoryBreakdown)
-                              .sort(([, a], [, b]) => b - a)
-                              .map(([cat, amount]) => {
-                                const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
-                                const cfg = getCatConfig(cat);
-                                const Icon = cfg.icon;
-                                return (
-                                  <div key={cat} className="space-y-1.5">
-                                    <div className="flex items-center justify-between text-xs font-semibold">
-                                      <span className="flex items-center gap-2 text-ink">
-                                        <Icon className={`size-4 ${cfg.color}`} /> {cat}
-                                      </span>
-                                      <span className="text-ink font-bold">${amount.toFixed(2)} ({pct}%)</span>
+                            {Object.keys(categoryBreakdown).length === 0 ? (
+                              <div className="p-8 text-center bg-offwhite/50 border border-hairline rounded-xl text-xs text-muted-foreground">
+                                No spending categories to display yet. Upload a statement to calculate allocation.
+                              </div>
+                            ) : (
+                              Object.entries(categoryBreakdown)
+                                .sort(([, a], [, b]) => b - a)
+                                .map(([cat, amount]) => {
+                                  const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
+                                  const cfg = getCatConfig(cat);
+                                  const Icon = cfg.icon;
+                                  return (
+                                    <div key={cat} className="space-y-1.5">
+                                      <div className="flex items-center justify-between text-xs font-semibold">
+                                        <span className="flex items-center gap-2 text-ink">
+                                          <Icon className={`size-4 ${cfg.color}`} /> {cat}
+                                        </span>
+                                        <span className="text-ink font-bold">${amount.toFixed(2)} ({pct}%)</span>
+                                      </div>
+                                      <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
+                                        <div className={`h-full bg-gradient-to-r ${cfg.gradient} to-purple rounded-full`} style={{ width: `${pct}%` }} />
+                                      </div>
                                     </div>
-                                    <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
-                                      <div className={`h-full bg-gradient-to-r ${cfg.gradient} to-purple rounded-full`} style={{ width: `${pct}%` }} />
-                                    </div>
-                                  </div>
-                                );
-                              })}
+                                  );
+                                })
+                            )}
                           </div>
                         </div>
 
@@ -634,17 +640,23 @@ export function KoshinDashboard() {
                         <div className="xl:col-span-4 rounded-2xl border border-hairline bg-white p-7 shadow-sm space-y-4">
                           <h3 className="display text-lg font-bold text-ink">Recent Activity</h3>
                           <div className="space-y-3">
-                            {transactions.slice(0, 5).map(tx => (
-                              <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-offwhite/50 border border-hairline text-xs">
-                                <div>
-                                  <div className="font-bold text-ink truncate max-w-[140px]">{tx.merchant}</div>
-                                  <div className="text-[10px] text-muted-foreground">{tx.date} • {tx.category}</div>
-                                </div>
-                                <span className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-ink'}`}>
-                                  {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
-                                </span>
+                            {transactions.length === 0 ? (
+                              <div className="p-8 text-center bg-offwhite/50 border border-hairline rounded-xl text-xs text-muted-foreground">
+                                No recent activity. Scan a receipt or import a statement to get started.
                               </div>
-                            ))}
+                            ) : (
+                              transactions.slice(0, 5).map(tx => (
+                                <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-offwhite/50 border border-hairline text-xs">
+                                  <div>
+                                    <div className="font-bold text-ink truncate max-w-[140px]">{tx.merchant}</div>
+                                    <div className="text-[10px] text-muted-foreground">{tx.date} • {tx.category}</div>
+                                  </div>
+                                  <span className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-ink'}`}>
+                                    {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
                       </div>

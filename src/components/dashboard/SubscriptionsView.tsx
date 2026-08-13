@@ -96,44 +96,54 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
             <p className="text-[13px] text-muted-foreground mt-1">Silent recurring bills auto-detected from statement logs</p>
           </div>
           <div className="space-y-4">
-            {recurringBills.map(item => {
-              const cfg = getCatConfig(item.category);
-              const Icon = cfg.icon;
-              return (
-                <motion.div
-                  key={item.id}
-                  whileHover={{ x: 4 }}
-                  className="p-4 rounded-xl bg-offwhite/50 border border-hairline hover:border-purple/30 transition-all duration-200 flex items-center justify-between gap-4 shadow-sm"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white`}>
-                      <Icon className={`size-5 ${cfg.color}`} />
-                    </div>
-                    <div>
-                      <div className="font-bold text-ink text-[15px]">{item.merchant}</div>
-                      <div className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
-                        <span className={`${cfg.color}`}>{item.category}</span>
-                        <span className="text-hairline">•</span>
-                        <span>Monthly billing</span>
+            {recurringBills.length === 0 ? (
+              <div className="p-8 text-center bg-offwhite/40 border border-hairline rounded-2xl space-y-2">
+                <Bell className="size-8 text-purple/40 mx-auto" />
+                <div className="text-sm font-bold text-ink">No Recurring Commitments Detected</div>
+                <div className="text-xs text-muted-foreground max-w-xs mx-auto">
+                  Upload a bank statement to automatically audit your recurring subscriptions and silent bills.
+                </div>
+              </div>
+            ) : (
+              recurringBills.map(item => {
+                const cfg = getCatConfig(item.category);
+                const Icon = cfg.icon;
+                return (
+                  <motion.div
+                    key={item.id}
+                    whileHover={{ x: 4 }}
+                    className="p-4 rounded-xl bg-offwhite/50 border border-hairline hover:border-purple/30 transition-all duration-200 flex items-center justify-between gap-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white`}>
+                        <Icon className={`size-5 ${cfg.color}`} />
+                      </div>
+                      <div>
+                        <div className="font-bold text-ink text-[15px]">{item.merchant}</div>
+                        <div className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
+                          <span className={`${cfg.color}`}>{item.category}</span>
+                          <span className="text-hairline">•</span>
+                          <span>Monthly billing</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4 shrink-0">
-                    <div className="text-right hidden sm:block">
-                      <div className="text-[15px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
-                      <div className="text-[9px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                    <div className="flex items-center gap-4 shrink-0">
+                      <div className="text-right hidden sm:block">
+                        <div className="text-[15px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
+                        <div className="text-[9px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                      </div>
+                      <button
+                        onClick={() => setCancellingSub(item)}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-pinkish/20 bg-pinkish/5 hover:bg-pinkish/10 text-pinkish text-xs font-bold transition-all shadow-xs cursor-pointer"
+                      >
+                        <Bot className="size-3.5" />
+                        <span>Cancel with AI</span>
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setCancellingSub(item)}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-pinkish/20 bg-pinkish/5 hover:bg-pinkish/10 text-pinkish text-xs font-bold transition-all shadow-xs cursor-pointer"
-                    >
-                      <Bot className="size-3.5" />
-                      <span>Cancel with AI</span>
-                    </button>
-                  </div>
-                </motion.div>
-              );
-            })}
+                  </motion.div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
