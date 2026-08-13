@@ -83,32 +83,44 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
           </div>
           <p className="text-[13px] text-muted-foreground font-medium">Next predicted billing statements:</p>
 
-          <div className="p-5 rounded-xl bg-purple/5 border border-purple/20 space-y-2 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-ink text-[14px]">ConEd Electric</span>
-              <span className="text-cyan-700 font-bold text-[11px] bg-cyan/10 border border-cyan/20 px-2.5 py-1 rounded-md">Aug 18</span>
+          {recurringBills.length === 0 ? (
+            <div className="text-center p-4 bg-offwhite rounded-xl text-sm text-muted-foreground border border-hairline">
+              No upcoming renewals detected.
             </div>
-            <div className="text-2xl font-bold text-ink">${94.20.toFixed(2)}</div>
-            <div className="text-[12px] font-medium text-muted-foreground">Bills & Utilities</div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-pinkish/5 border border-pinkish/20 space-y-2 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-ink text-[14px]">Netflix Premium</span>
-              <span className="text-pinkish font-bold text-[11px] bg-pinkish/10 border border-pinkish/20 px-2.5 py-1 rounded-md">Aug 24</span>
-            </div>
-            <div className="text-2xl font-bold text-ink">${19.99.toFixed(2)}</div>
-            <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-skyblue/5 border border-skyblue/20 space-y-2 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-ink text-[14px]">Spotify Family</span>
-              <span className="text-skyblue-700 font-bold text-[11px] bg-skyblue/10 border border-skyblue/20 px-2.5 py-1 rounded-md">Aug 28</span>
-            </div>
-            <div className="text-2xl font-bold text-ink">${16.99.toFixed(2)}</div>
-            <div className="text-[12px] font-medium text-muted-foreground">Subscriptions</div>
-          </div>
+          ) : (
+            [...recurringBills].map(bill => {
+              const date = new Date(bill.date);
+              const now = new Date();
+              const predicted = new Date(now.getFullYear(), now.getMonth(), date.getDate());
+              if (predicted < now) predicted.setMonth(predicted.getMonth() + 1);
+              return { ...bill, nextDate: predicted };
+            })
+            .sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime())
+            .slice(0, 5)
+            .map((bill, i) => {
+              const themes = [
+                { container: 'bg-purple/5 border-purple/20', badge: 'text-purple font-bold text-[11px] bg-purple/10 border border-purple/20' },
+                { container: 'bg-pinkish/5 border-pinkish/20', badge: 'text-pinkish font-bold text-[11px] bg-pinkish/10 border border-pinkish/20' },
+                { container: 'bg-skyblue/5 border-skyblue/20', badge: 'text-skyblue-700 font-bold text-[11px] bg-skyblue/10 border border-skyblue/20' },
+                { container: 'bg-cyan/5 border-cyan/20', badge: 'text-cyan-700 font-bold text-[11px] bg-cyan/10 border border-cyan/20' },
+                { container: 'bg-amber-100 border-amber-200', badge: 'text-amber-700 font-bold text-[11px] bg-amber-200/50 border border-amber-300' },
+              ];
+              const theme = themes[i % themes.length];
+              
+              return (
+                <div key={bill.id} className={`p-5 rounded-xl border space-y-2 shadow-sm ${theme.container}`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-ink text-[14px] truncate mr-2">{bill.merchant}</span>
+                    <span className={`px-2.5 py-1 rounded-md shrink-0 ${theme.badge}`}>
+                      {bill.nextDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="text-2xl font-bold text-ink">${bill.amount.toFixed(2)}</div>
+                  <div className="text-[12px] font-medium text-muted-foreground truncate">{bill.category}</div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

@@ -456,7 +456,7 @@ export function KoshinDashboard() {
                           <div className="flex flex-wrap gap-3 pt-2">
                             <button
                               onClick={() => setIsUploadModalOpen(true)}
-                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-extrabold text-slate-950 hover:scale-105 transition-transform shadow-md cursor-pointer"
+                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-extrabold text-white hover:scale-105 transition-transform shadow-md cursor-pointer"
                             >
                               <UploadCloud className="size-4" />
                               <span>Import New Statement</span>
