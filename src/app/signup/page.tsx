@@ -73,8 +73,19 @@ export default function SignUpPage() {
         redirect: false,
       });
 
+      // 3. Send Verification Email
+      const verifyRes = await fetch("/api/v1/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: data.email }),
+      });
+
+      if (!verifyRes.ok) {
+        console.error("Failed to send verification email");
+      }
+
       setRedirecting(true);
-      router.push("/onboarding");
+      router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
       setAuthError(err.message || "Failed to create an account. Please try again.");
     } finally {

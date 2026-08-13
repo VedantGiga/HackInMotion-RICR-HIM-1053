@@ -71,17 +71,34 @@ export default function VerifyPage() {
     }
   };
 
+  const [email, setEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get email from URL params
+    const searchParams = new URLSearchParams(window.location.search);
+    const emailParam = searchParams.get("email");
+    if (emailParam) setEmail(emailParam);
+  }, []);
+
   const onSubmit = async (data: VerifyFormValues) => {
     setAuthError("");
     setLoading(true);
     
     try {
-      // Simulate API call for verification
-      await new Promise(resolve => setTimeout(resolve, 1200));
-      
-      // If we had a real endpoint:
-      // const res = await fetch("/api/v1/auth/verify", { ... });
-      // if (!res.ok) throw new Error("Invalid verification code");
+      if (!email) {
+        throw new Error("Missing email address. Please restart signup.");
+      }
+
+      const res = await fetch("/api/v1/auth/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, code: data.code }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Invalid verification code");
+      }
       
       setRedirecting(true);
       router.push("/onboarding");
@@ -89,6 +106,25 @@ export default function VerifyPage() {
       setAuthError(err.message || "Invalid verification code. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!email) return;
+    try {
+      const res = await fetch("/api/v1/auth/send-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      if (res.ok) {
+        alert("Verification code resent to your email.");
+      } else {
+        const json = await res.json();
+        alert(json.error || "Failed to resend code.");
+      }
+    } catch (err) {
+      alert("Failed to resend code.");
     }
   };
 
@@ -225,7 +261,7 @@ export default function VerifyPage() {
             className="text-center text-sm font-semibold text-muted-foreground"
           >
             Didn&apos;t receive the code?{" "}
-            <button className="text-cyan-700 hover:text-cyan font-bold transition-colors">
+            <button type="button" onClick={handleResend} className="text-cyan-700 hover:text-cyan font-bold transition-colors">
               Click to resend
             </button>
           </motion.div>
