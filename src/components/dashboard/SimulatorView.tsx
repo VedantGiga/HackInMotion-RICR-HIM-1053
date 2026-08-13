@@ -32,15 +32,29 @@ export function SimulatorView({
 
   const computedMonthlySavings = totalMonthlySimSavings ?? (computedFoodSavings + computedSubSavings + computedShopSavings);
   const computedAnnualSavings = totalAnnualSimSavings ?? (computedMonthlySavings * 12);
+
+  const calcCompound = (monthly: number, months: number, annualRate = 0.08) => {
+    const monthlyRate = annualRate / 12;
+    let total = 0;
+    for (let i = 0; i < months; i++) {
+      total = (total + monthly) * (1 + monthlyRate);
+    }
+    return total;
+  };
+
+  const growth1Yr = calcCompound(computedMonthlySavings, 12);
+  const growth5Yr = calcCompound(computedMonthlySavings, 60);
+  const growth10Yr = calcCompound(computedMonthlySavings, 120);
+
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
       {/* Sliders */}
       <div className="xl:col-span-7 rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-8">
         <div className="border-b border-hairline pb-5">
           <h3 className="display text-xl font-bold text-ink">
-            Interactive What-If Tool
+            Interactive &quot;What-If&quot; Wealth Simulator
           </h3>
-          <p className="text-[14px] font-medium text-muted-foreground mt-2">Adjust sliders to simulate reductions in non-essential expenses</p>
+          <p className="text-[14px] font-medium text-muted-foreground mt-2">Drag sliders to adjust monthly habits and project long-term compound wealth</p>
         </div>
 
         {/* Slider: Food */}
@@ -142,26 +156,42 @@ export function SimulatorView({
         <div className="rounded-2xl border border-purple bg-purple/5 shadow-md p-8 flex-1 flex flex-col justify-between">
           <div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple/10 border border-purple/20 text-[11px] font-bold text-purple uppercase tracking-widest mb-6">
-              <Activity className="size-3.5" /> Projection Analysis
+              <Activity className="size-3.5" /> Compound Growth Model
             </div>
             
             <h4 className="display text-2xl font-bold text-ink mb-3">
-              Projected Annual Savings
+              Projected Wealth Accumulation
             </h4>
 
-            <div className="display text-[56px] font-extrabold text-purple tracking-tight leading-none mb-2">
+            <div className="display text-[50px] font-extrabold text-purple tracking-tight leading-none mb-2">
               +${computedAnnualSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[15px] font-bold text-muted-foreground">per year · ${computedMonthlySavings.toFixed(2)}/mo</div>
+            <div className="text-[14px] font-bold text-muted-foreground">per year · frees up ${computedMonthlySavings.toFixed(2)}/mo</div>
 
-            <p className="text-[14px] text-ink leading-relaxed mt-6 font-medium">
-              This combined reduction frees up <strong className="text-purple">${computedMonthlySavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
+            {/* Compound Growth Timeline Breakdown */}
+            <div className="grid grid-cols-3 gap-2.5 mt-6 pt-5 border-t border-purple/20">
+              <div className="p-3 rounded-xl bg-white border border-purple/20 text-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">1-Year</span>
+                <span className="text-[13px] font-extrabold text-purple block mt-1">+${Math.round(growth1Yr).toLocaleString()}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-white border border-purple/20 text-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">5-Year</span>
+                <span className="text-[13px] font-extrabold text-purple block mt-1">+${Math.round(growth5Yr).toLocaleString()}</span>
+              </div>
+              <div className="p-3 rounded-xl bg-purple text-white border border-purple text-center shadow-sm">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-lime block">10-Year</span>
+                <span className="text-[13px] font-extrabold text-lime block mt-1">+${Math.round(growth10Yr).toLocaleString()}</span>
+              </div>
+            </div>
+
+            <p className="text-[13px] text-ink leading-relaxed mt-4 font-medium">
+              Re-investing <strong className="text-purple">${computedMonthlySavings.toFixed(2)}/mo</strong> at 8% annual return yields <strong className="text-purple">+${Math.round(growth10Yr).toLocaleString()}</strong> in 10 years.
             </p>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-purple/20">
-            <div className="text-[11px] font-bold text-purple uppercase tracking-widest mb-4">Suggested Allocations</div>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="mt-6 pt-5 border-t border-purple/20">
+            <div className="text-[11px] font-bold text-purple uppercase tracking-widest mb-3">Suggested Allocations</div>
+            <div className="grid grid-cols-2 gap-2.5">
               {[
                 { label: "Emergency Reserve", icon: ShieldCheck, color: "text-cyan-700", bg: "bg-cyan-50", border: "border-cyan-200 hover:border-cyan-400" },
                 { label: "Growth Portfolio", icon: TrendingUp, color: "text-purple", bg: "bg-purple/10", border: "border-purple/20 hover:border-purple/40" },
@@ -170,8 +200,8 @@ export function SimulatorView({
               ].map(a => {
                 const Icon = a.icon;
                 return (
-                  <div key={a.label} className={`p-4 rounded-xl ${a.bg} border ${a.border} text-center transition-all cursor-pointer group shadow-sm`}>
-                    <Icon className={`size-5 ${a.color} mx-auto mb-2 group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
+                  <div key={a.label} className={`p-3 rounded-xl ${a.bg} border ${a.border} text-center transition-all cursor-pointer group shadow-xs`}>
+                    <Icon className={`size-4 ${a.color} mx-auto mb-1 group-hover:scale-110 transition-transform`} strokeWidth={2.5} />
                     <div className="text-[11px] font-bold text-ink">{a.label}</div>
                   </div>
                 );

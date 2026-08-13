@@ -565,6 +565,37 @@ export function KoshinDashboard() {
                         />
                       </div>
 
+                      {/* EMERGENCY FINANCIAL RUNWAY CLOCK WIDGET */}
+                      <div className="rounded-3xl border border-hairline bg-white p-7 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+                        <div className="flex items-start gap-4">
+                          <div className="size-12 rounded-2xl bg-purple/10 border border-purple/20 flex items-center justify-center text-purple shrink-0">
+                            <ShieldCheck className="size-6 text-purple" />
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold uppercase tracking-widest text-purple">Emergency Buffer</span>
+                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Protected</span>
+                            </div>
+                            <h4 className="display text-2xl font-extrabold text-ink flex items-center gap-2">
+                              🛡️ Financial Runway: <span className="text-purple">14.2 Months</span>
+                            </h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                              &quot;If all income stopped today, your emergency fund would cover your living expenses until <strong className="text-ink font-semibold">October 2027</strong>.&quot;
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-hairline">
+                          <button
+                            onClick={() => setActiveTab("simulator")}
+                            className="w-full md:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-2.5 text-xs font-bold text-white transition-transform hover:scale-[1.02] shadow-sm cursor-pointer"
+                          >
+                            <SlidersHorizontal className="size-3.5 text-lime" />
+                            <span>Test &quot;What-If&quot; Simulator</span>
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Spending Breakdown & Recent Feed */}
                       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
                         <div className="xl:col-span-8 rounded-2xl border border-hairline bg-white p-7 shadow-sm">
