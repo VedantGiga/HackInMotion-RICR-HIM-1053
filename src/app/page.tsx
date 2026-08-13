@@ -7,6 +7,7 @@ import { CaseStudies } from "@/components/site/CaseStudies";
 import { CardStackingSection } from "@/components/site/CardStackingSection";
 import { StatsSection } from "@/components/site/StatsSection";
 import { OrbitSection } from "@/components/site/OrbitSection";
+import { PricingSection } from "@/components/site/PricingSection";
 import { FinalCTA } from "@/components/site/FinalCTA";
 import { Footer } from "@/components/site/Footer";
 
@@ -22,6 +23,7 @@ export default function Home() {
       <CardStackingSection />
       <StatsSection />
       <OrbitSection />
+      <PricingSection />
       <FinalCTA />
       <Footer />
     </main>
