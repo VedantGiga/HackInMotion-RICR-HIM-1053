@@ -65,10 +65,7 @@ export default function LoginPage() {
   };
 
   const handleDemoLogin = () => {
-    setValue("email", "alex.demo@koshin.ai");
-    setValue("password", "demopassword123");
-    // Optionally trigger submit immediately, but we can just let them click it or trigger it
-    onSubmit({ email: "alex.demo@koshin.ai", password: "demopassword123" });
+    // Demo login removed as requested
   };
 
   return (
@@ -225,19 +222,6 @@ export default function LoginPage() {
                   {loading ? "Authenticating..." : "Sign In to Koshin"}
                 </button>
 
-                <div className="relative my-4 text-center text-xs text-ink/40">
-                  <span className="bg-white px-3 relative z-10">or explore demo</span>
-                  <div className="absolute inset-x-0 top-1/2 h-px bg-hairline" />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  className="w-full rounded-full border border-hairline bg-offwhite py-3 text-xs font-semibold text-ink transition-all hover:bg-hairline/50"
-                  suppressHydrationWarning
-                >
-                  1-Click Demo Login (Alex Demo)
-                </button>
               </form>
             )}
 
