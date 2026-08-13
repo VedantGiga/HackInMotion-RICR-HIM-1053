@@ -24,7 +24,7 @@ export function CapabilitiesSection() {
   const pointer = usePointerParallax(16);
 
   return (
-    <section id="health" className="border-t border-hairline bg-offwhite py-24 md:py-32 lg:py-40">
+    <section id="health" className="bg-white py-24 md:py-32 lg:py-40">
       <div className="shell grid items-center gap-16 lg:grid-cols-2 lg:gap-24">
         <div ref={pointer} className="relative order-2 mx-auto w-full max-w-[520px] lg:order-1">
           <img

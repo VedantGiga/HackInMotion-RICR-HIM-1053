@@ -11,7 +11,7 @@ const STATS = [
 
 export function StatsSection() {
   return (
-    <section id="about" className="border-t border-hairline py-24 md:py-32 lg:py-40">
+    <section id="about" className="py-24 md:py-32 lg:py-40">
       <div className="shell">
         <div className="text-xs font-semibold text-ink uppercase tracking-widest mb-6">
           Platform Metrics & Impact

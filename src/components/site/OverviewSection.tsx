@@ -36,7 +36,7 @@ export function OverviewSection() {
   const drift = useScrollParallax(60);
 
   return (
-    <section id="categorization" className="border-t border-hairline py-24 md:py-32 lg:py-40">
+    <section id="categorization" className="py-24 md:py-32 lg:py-40">
       <div className="shell grid items-center gap-16 lg:grid-cols-2">
         <div>
           <Reveal className="text-xs font-semibold text-ink uppercase tracking-widest">Technical Core</Reveal>

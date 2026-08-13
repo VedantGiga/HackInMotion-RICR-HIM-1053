@@ -5,7 +5,7 @@ import { LineReveal, Reveal } from "@/lib/motion-primitives";
 
 export function FinalCTA() {
   return (
-    <section className="relative overflow-hidden border-t border-hairline bg-ink py-24 text-white md:py-32 lg:py-40">
+    <section className="relative overflow-hidden bg-ink py-24 text-white md:py-32 lg:py-40">
       <div className="shell">
         <LineReveal
           className="display text-[clamp(2.2rem,6vw,4.6rem)]"

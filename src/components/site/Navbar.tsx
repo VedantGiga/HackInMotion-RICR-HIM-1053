@@ -77,26 +77,27 @@ export function Navbar() {
 
   return (
     <>
-      <header
-        className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 transform ${
-          !visible
-            ? "-translate-y-full opacity-0 pointer-events-none"
-            : "translate-y-0 opacity-100 " +
-              (scrolled
-                ? isDashboard
-                  ? "border-b border-white/10 bg-navy/95 backdrop-blur-md shadow-lg"
-                  : "border-b border-hairline bg-background/90 backdrop-blur-md shadow-sm"
-                : "bg-transparent")
-        }`}
-      >
-        <div className="shell flex items-center justify-between gap-6 py-2.5 sm:py-3">
-          <a href={isDashboard ? "/" : "#top"} data-nav-logo className="relative inline-flex items-center group">
-            <img 
-              src="/logofinal-bgremoved.png" 
-              alt="Koshin logo" 
-              className={`h-9 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105 ${isDashboard ? "brightness-0 invert" : ""}`} 
-            />
-          </a>
+      <div className="fixed inset-x-0 top-3 sm:top-4 z-50 px-4 sm:px-6 pointer-events-none">
+        <header
+          className={`pointer-events-auto max-w-6xl mx-auto rounded-2xl border transition-all duration-500 transform ${
+            !visible
+              ? "-translate-y-28 opacity-0"
+              : "translate-y-0 opacity-100 " +
+                (isDashboard
+                  ? "border-white/10 bg-navy/90 backdrop-blur-xl shadow-2xl text-white"
+                  : scrolled
+                  ? "border-hairline bg-white/90 backdrop-blur-xl shadow-xl shadow-black/5"
+                  : "border-hairline/60 bg-white/80 backdrop-blur-lg shadow-md shadow-black/5")
+          }`}
+        >
+          <div className="flex items-center justify-between gap-6 py-2.5 px-5 sm:px-7">
+            <a href={isDashboard ? "/" : "#top"} data-nav-logo className="relative inline-flex items-center group">
+              <img 
+                src="/logofinal-bgremoved.png" 
+                alt="Koshin logo" 
+                className={`h-13 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 ${isDashboard ? "brightness-0 invert" : ""}`} 
+              />
+            </a>
 
           {!isDashboard && (
             <nav className="hidden items-center gap-8 lg:flex">
@@ -131,10 +132,10 @@ export function Navbar() {
                   Sign In
                 </a>
                 <a
-                  href="/dashboard"
+                  href="/signup"
                   className="inline-flex items-center justify-center rounded-full bg-ink px-5 py-2 text-xs font-semibold text-background transition-transform hover:scale-[1.02] shadow-sm"
                 >
-                  Open Live Dashboard
+                  Get Started
                 </a>
               </>
             )}
@@ -158,6 +159,7 @@ export function Navbar() {
           )}
         </div>
       </header>
+    </div>
 
       <AnimatePresence>
         {open && !isDashboard && (
