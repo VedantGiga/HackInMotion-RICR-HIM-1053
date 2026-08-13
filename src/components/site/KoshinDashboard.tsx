@@ -208,6 +208,20 @@ export function KoshinDashboard() {
           setIsParsing(false);
           setIsUploadModalOpen(false);
           setUploadSuccess(true);
+
+          // Simulate AI OCR extracting a new transaction from a receipt
+          const scannedTx: Transaction = {
+            id: Math.random().toString(36).substr(2, 9),
+            date: new Date().toISOString().split("T")[0],
+            merchant: "Whole Foods (AI Scanned)",
+            amount: 42.15,
+            category: "Food & Dining",
+            confidence: 96,
+            isRecurring: false,
+            type: "expense"
+          };
+          setTransactions(prev => [scannedTx, ...prev]);
+
           setTimeout(() => setUploadSuccess(false), 4000);
         }, 800);
       }, 900);
@@ -315,7 +329,7 @@ export function KoshinDashboard() {
               className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple/25 cursor-pointer"
             >
               <UploadCloud className="size-4 text-lime-300" />
-              <span>+ Upload Statement</span>
+              <span>+ Scan Receipt</span>
             </button>
 
             <button
@@ -654,7 +668,7 @@ export function KoshinDashboard() {
               <div className="flex items-center justify-between pb-3 border-b border-hairline">
                 <div className="flex items-center gap-2 text-ink font-bold">
                   <UploadCloud className="size-5 text-purple" />
-                  <span>Upload Bank Statement</span>
+                  <span>AI Receipt & Statement Scanner</span>
                 </div>
                 <button
                   onClick={() => setIsUploadModalOpen(false)}
@@ -671,8 +685,8 @@ export function KoshinDashboard() {
                 >
                   <UploadCloud className="size-12 text-purple mx-auto animate-bounce" />
                   <div>
-                    <p className="text-sm font-bold text-ink">Drag & Drop Statement PDF / CSV</p>
-                    <p className="text-xs text-muted-foreground mt-1">Supports HDFC, ICICI, SBI, Axis, Zerodha, or custom CSV</p>
+                    <p className="text-sm font-bold text-ink">Drag & Drop Receipt Image, PDF, or CSV</p>
+                    <p className="text-xs text-muted-foreground mt-1">AI automatically extracts Merchant, Total, and Category</p>
                   </div>
                   <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
                     Select File
@@ -682,11 +696,11 @@ export function KoshinDashboard() {
                 <div className="space-y-5 text-center py-6">
                   <Sparkles className="size-10 text-purple mx-auto animate-spin" />
                   <div className="space-y-2">
-                    <h4 className="display text-lg font-bold text-ink">Processing Statement</h4>
+                    <h4 className="display text-lg font-bold text-ink">Scanning with AI OCR</h4>
                     <p className="text-xs font-mono text-purple font-semibold">
-                      {parsingStep === 1 && "Step 1/3: Decrypting Statement AES-256..."}
-                      {parsingStep === 2 && "Step 2/3: Running Hybrid NLP Vector Categorizer..."}
-                      {parsingStep === 3 && "Step 3/3: Financial Health Index Calculated!"}
+                      {parsingStep === 1 && "Step 1/3: Extracting text from image..."}
+                      {parsingStep === 2 && "Step 2/3: Categorizing Merchant & parsing amounts..."}
+                      {parsingStep === 3 && "Step 3/3: Transaction Synced!"}
                     </p>
                   </div>
                   <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
