@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
+import { useSession, signOut } from "next-auth/react";
 import gsap from "gsap";
 
 const LINKS = [
@@ -15,6 +16,8 @@ const LINKS = [
 
 export function Navbar() {
   const pathname = usePathname();
+  const { status } = useSession();
+  const isAuthenticated = status === "authenticated";
   const isDashboard = pathname === "/dashboard";
   const [visible, setVisible] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -117,11 +120,18 @@ export function Navbar() {
 
           <div className="hidden sm:flex items-center gap-3">
             {isDashboard ? (
-              <a
-                href="/"
-                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-transparent px-5 py-2 text-xs font-semibold text-white transition-all hover:bg-white/10"
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="inline-flex items-center justify-center rounded-full border border-white/20 bg-transparent px-5 py-2 text-xs font-semibold text-white transition-all hover:bg-white/10 cursor-pointer"
               >
                 Sign Out
+              </button>
+            ) : isAuthenticated ? (
+              <a
+                href="/dashboard"
+                className="inline-flex items-center justify-center rounded-full bg-purple px-5 py-2 text-xs font-semibold text-white transition-transform hover:scale-[1.02] shadow-sm"
+              >
+                Go to Dashboard
               </a>
             ) : (
               <>

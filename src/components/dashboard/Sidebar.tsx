@@ -51,7 +51,9 @@ export function Sidebar({
     `}>
       {/* Logo */}
       <div className="hidden lg:flex items-center gap-3 px-6 pt-7 pb-6">
-        <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 w-auto object-contain scale-[2.5] origin-left ml-3" />
+        <a href="/">
+          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-7 w-auto object-contain scale-[2.5] origin-left ml-3" />
+        </a>
       </div>
 
       {/* Nav section label */}
@@ -134,7 +136,7 @@ export function Sidebar({
             </div>
           </div>
           {isDashboardPage && (
-            <button onClick={() => signOut({ callbackUrl: "/login" })} title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer">
+            <button onClick={() => signOut({ callbackUrl: "/" })} title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer">
               <LogOut className="size-4" />
             </button>
           )}
