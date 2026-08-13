@@ -21,6 +21,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const {
@@ -38,6 +39,7 @@ export default function LoginPage() {
     
     try {
       await signIn(data.email, data.password);
+      setRedirecting(true);
       router.push("/dashboard");
     } catch (err: any) {
       let errorMessage = "Failed to sign in.";
@@ -190,11 +192,11 @@ export default function LoginPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || redirecting}
                   className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-2"
                   suppressHydrationWarning
                 >
-                  {loading ? "Authenticating..." : "Sign In to Koshin"}
+                  {redirecting ? "Redirecting to Dashboard..." : loading ? "Authenticating..." : "Sign In to Koshin"}
                 </button>
 
               </form>

@@ -31,6 +31,7 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
 
   const {
@@ -52,14 +53,15 @@ export default function SignUpPage() {
       // 1. Create user in Firebase Auth
       const userCredential = await signUp(data.email, data.password);
 
-      // 2. Create user profile in Firestore
-      await createUserProfile(userCredential.user.uid, {
+      // 2. Create user profile in Firestore (non-blocking)
+      createUserProfile(userCredential.user.uid, {
         name: data.name,
         email: data.email,
         phone: data.phone, // Optional
         createdAt: new Date(),
-      });
+      }).catch(err => console.error("Firestore error:", err));
       
+      setRedirecting(true);
       router.push("/onboarding");
     } catch (err: any) {
       let errorMessage = "Failed to create an account.";
@@ -265,11 +267,11 @@ export default function SignUpPage() {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || redirecting}
                   className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
                   suppressHydrationWarning
                 >
-                  {loading ? "Creating..." : "Create Account"}
+                  {redirecting ? "Redirecting to Setup..." : loading ? "Creating..." : "Create Account"}
                 </button>
               </form>
 
