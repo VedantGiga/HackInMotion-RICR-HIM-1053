@@ -68,10 +68,10 @@ export default function ProcessingPage() {
   const isComplete = currentStep >= steps.length;
 
   return (
-    <div ref={containerRef} className="relative min-h-screen bg-offwhite text-ink flex flex-col font-sans">
+    <div ref={containerRef} className="relative h-screen w-full bg-offwhite text-ink overflow-hidden flex flex-col justify-between p-4 sm:p-6 font-sans">
       {/* Minimal Top Nav (no back button during processing) */}
-      <header className="w-full p-6 lg:px-12 flex flex-col gap-4">
-        <div className="flex items-center justify-center w-full max-w-5xl mx-auto">
+      <header className="w-full max-w-4xl mx-auto flex flex-col gap-2 shrink-0">
+        <div className="flex items-center justify-center w-full">
           <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-ink/40">
             Step 3 of 3 • Finalizing
           </div>
@@ -82,33 +82,33 @@ export default function ProcessingPage() {
       </header>
 
       {/* Main Content - Minimalist Center */}
-      <main className="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-md mx-auto text-center">
-        <div className="center-container flex flex-col items-center justify-center w-full aspect-square max-w-[320px] mx-auto relative">
+      <main className="flex-1 flex flex-col items-center justify-center p-4 w-full max-w-md mx-auto text-center">
+        <div className="center-container flex flex-col items-center justify-center w-full aspect-square max-w-[300px] mx-auto relative">
           
           {/* Subtle background pulse */}
           <div className="absolute inset-0 bg-gradient-to-tr from-purple/5 to-cyan/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
 
           {/* Icon state */}
-          <div className="relative z-10 mb-8 flex items-center justify-center">
+          <div className="relative z-10 mb-6 flex items-center justify-center">
             {isComplete ? (
-              <div className="size-16 rounded-full bg-ink flex items-center justify-center text-white shadow-xl shadow-ink/20">
-                <CheckCircle2 className="size-8" />
+              <div className="size-14 rounded-full bg-ink flex items-center justify-center text-white shadow-xl shadow-ink/20">
+                <CheckCircle2 className="size-7" />
               </div>
             ) : (
-              <div className="relative flex items-center justify-center size-16">
-                <Loader2 className="size-8 text-ink animate-spin" />
+              <div className="relative flex items-center justify-center size-14">
+                <Loader2 className="size-7 text-ink animate-spin" />
                 <div className="absolute inset-0 border-2 border-dashed border-ink/20 rounded-full animate-[spin_3s_linear_reverse]" />
               </div>
             )}
           </div>
 
           {/* Dynamic text */}
-          <h2 className="text-xl md:text-2xl font-semibold tracking-tight text-ink mb-2">
+          <h2 className="text-lg sm:text-xl font-semibold tracking-tight text-ink mb-2">
             {isComplete ? "Setup Complete" : "Analyzing Data"}
           </h2>
           
           <div className="h-6 relative w-full flex justify-center">
-            <p className="step-text text-sm text-ink/50 absolute">
+            <p className="step-text text-xs sm:text-sm text-ink/50 absolute">
               {isComplete ? "Redirecting to your dashboard..." : steps[Math.min(currentStep, steps.length - 1)]}
             </p>
           </div>
