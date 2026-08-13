@@ -75,7 +75,7 @@ export function Footer() {
                 {LEGAL.map((n) => (
                   <a
                     key={n}
-                    href="#demo"
+                    href={n === "Terms of Service" ? "/terms" : "#demo"}
                     className="text-xs sm:text-sm text-muted-foreground transition-colors hover:text-ink font-medium"
                   >
                     {n}
