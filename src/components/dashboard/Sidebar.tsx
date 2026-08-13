@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -33,6 +34,9 @@ export function Sidebar({
   isDashboardPage,
 }: SidebarProps) {
   const [mounted, setMounted] = useState(false);
+
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "User";
 
   useEffect(() => {
     setMounted(true);
@@ -115,14 +119,14 @@ export function Sidebar({
           <div className="relative shrink-0">
             <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-              alt="Alex Morgan Avatar"
+              alt={`${userName} Avatar`}
               className="size-10 rounded-full object-cover border-2 border-white shadow-xs"
             />
             <span className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="text-[13px] font-bold text-ink truncate flex items-center gap-1">
-              <span>Alex Morgan</span>
+              <span>{userName}</span>
               <span className="text-[10px] text-emerald-600 bg-emerald-100 px-1.5 py-0.2 rounded-full font-bold">✓</span>
             </div>
             <div className="text-[10px] text-purple font-bold tracking-wide flex items-center gap-1">
@@ -130,9 +134,9 @@ export function Sidebar({
             </div>
           </div>
           {isDashboardPage && (
-            <a href="/" title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
+            <button onClick={() => signOut({ callbackUrl: "/login" })} title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer">
               <LogOut className="size-4" />
-            </a>
+            </button>
           )}
         </div>
       </div>

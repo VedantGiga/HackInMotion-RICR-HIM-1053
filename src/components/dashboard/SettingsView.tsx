@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 const AVATAR_PRESETS = [
   "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
@@ -13,6 +14,12 @@ const AVATAR_PRESETS = [
 export function SettingsView() {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[0]);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  const { data: session } = useSession();
+  const userName = session?.user?.name || "User";
+  const userEmail = session?.user?.email || "";
+  const firstName = userName.split(" ")[0] || "";
+  const lastName = userName.split(" ").slice(1).join(" ") || "";
 
   const handleSave = () => {
     setSavedSuccess(true);
@@ -71,7 +78,7 @@ export function SettingsView() {
               <div className="space-y-3 flex-1">
                 <div>
                   <p className="text-sm font-bold text-ink flex items-center gap-2">
-                    <span>Alex Morgan</span>
+                    <span>{userName}</span>
                     <span className="text-xs text-purple font-bold bg-purple/10 px-2 py-0.5 rounded-full border border-purple/20">
                       Pro Member
                     </span>
@@ -106,17 +113,17 @@ export function SettingsView() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">First Name</label>
-              <input type="text" defaultValue="Alex" className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+              <input type="text" defaultValue={firstName} className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
             </div>
 
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Last Name</label>
-              <input type="text" defaultValue="Morgan" className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+              <input type="text" defaultValue={lastName} className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
             </div>
 
             <div className="space-y-2 sm:col-span-2">
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Email Address</label>
-              <input type="email" defaultValue="alex.morgan@example.com" className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+              <input type="email" defaultValue={userEmail} className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
             </div>
 
             <div className="space-y-2">
