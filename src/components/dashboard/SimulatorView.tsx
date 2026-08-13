@@ -10,20 +10,28 @@ interface SimulatorViewProps {
   setSubCut: Dispatch<SetStateAction<number>>;
   shoppingCut: number;
   setShoppingCut: Dispatch<SetStateAction<number>>;
-  simFoodSavings: number;
-  simSubSavings: number;
-  simShopSavings: number;
-  totalMonthlySimSavings: number;
-  totalAnnualSimSavings: number;
+  totalExpenses?: number;
+  simFoodSavings?: number;
+  simSubSavings?: number;
+  simShopSavings?: number;
+  totalMonthlySimSavings?: number;
+  totalAnnualSimSavings?: number;
 }
 
 export function SimulatorView({
   foodCut, setFoodCut,
   subCut, setSubCut,
   shoppingCut, setShoppingCut,
+  totalExpenses = 4840,
   simFoodSavings, simSubSavings, simShopSavings,
   totalMonthlySimSavings, totalAnnualSimSavings
 }: SimulatorViewProps) {
+  const computedFoodSavings = simFoodSavings ?? (totalExpenses * 0.35 * (foodCut / 100));
+  const computedSubSavings = simSubSavings ?? (totalExpenses * 0.12 * (subCut / 100));
+  const computedShopSavings = simShopSavings ?? (totalExpenses * 0.20 * (shoppingCut / 100));
+
+  const computedMonthlySavings = totalMonthlySimSavings ?? (computedFoodSavings + computedSubSavings + computedShopSavings);
+  const computedAnnualSavings = totalAnnualSimSavings ?? (computedMonthlySavings * 12);
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
       {/* Sliders */}
@@ -46,7 +54,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-orange-500">{foodCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simFoodSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedFoodSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -72,7 +80,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-purple">{subCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simSubSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedSubSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -98,7 +106,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-pinkish">{shoppingCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${simShopSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedShopSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -117,9 +125,9 @@ export function SimulatorView({
         <div className="pt-6 border-t border-hairline space-y-3">
           <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Projected Savings Summary</div>
           {[
-            { label: "Food & Dining", saving: simFoodSavings, color: "text-orange-500" },
-            { label: "Subscriptions", saving: simSubSavings, color: "text-purple" },
-            { label: "Shopping", saving: simShopSavings, color: "text-pinkish" },
+            { label: "Food & Dining", saving: computedFoodSavings, color: "text-orange-500" },
+            { label: "Subscriptions", saving: computedSubSavings, color: "text-purple" },
+            { label: "Shopping", saving: computedShopSavings, color: "text-pinkish" },
           ].map(r => (
             <div key={r.label} className="flex items-center justify-between text-[13px] font-bold border-b border-hairline pb-2 last:border-0 last:pb-0">
               <span className="text-ink">{r.label}</span>
@@ -142,12 +150,12 @@ export function SimulatorView({
             </h4>
 
             <div className="display text-[56px] font-extrabold text-purple tracking-tight leading-none mb-2">
-              +${totalAnnualSimSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              +${computedAnnualSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[15px] font-bold text-muted-foreground">per year · ${totalMonthlySimSavings.toFixed(2)}/mo</div>
+            <div className="text-[15px] font-bold text-muted-foreground">per year · ${computedMonthlySavings.toFixed(2)}/mo</div>
 
             <p className="text-[14px] text-ink leading-relaxed mt-6 font-medium">
-              This combined reduction frees up <strong className="text-purple">${totalMonthlySimSavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
+              This combined reduction frees up <strong className="text-purple">${computedMonthlySavings.toFixed(2)}/mo</strong>, which can be re-routed directly to your savings goals.
             </p>
           </div>
 

@@ -41,6 +41,10 @@ import {
   Tv,
   Car,
   Lightbulb,
+  UploadCloud,
+  Download,
+  Lock,
+  ArrowRight
 } from "lucide-react";
 import { TransactionTable } from "@/components/dashboard/TransactionTable";
 import { SettingsView } from "@/components/dashboard/SettingsView";
@@ -63,40 +67,14 @@ export type Transaction = {
   type: "expense" | "income";
 };
 
-const INITIAL_TRANSACTIONS: Transaction[] = [];
-
-export function autoCategorize(description: string): { category: string; confidence: number; isRecurring: boolean } {
-  const desc = description.toLowerCase();
-  if (desc.includes("doordash") || desc.includes("uber eats") || desc.includes("grubhub") || desc.includes("restaurant") || desc.includes("dinner") || desc.includes("food")) {
-    return { category: "Food & Dining", confidence: 0.98, isRecurring: false };
-  }
-  if (desc.includes("netflix") || desc.includes("spotify") || desc.includes("hulu") || desc.includes("youtube") || desc.includes("gym") || desc.includes("membership") || desc.includes("active")) {
-    return { category: "Subscriptions", confidence: 0.99, isRecurring: true };
-  }
-  if (desc.includes("uber") || desc.includes("lyft") || desc.includes("taxi") || desc.includes("flight") || desc.includes("delta") || desc.includes("transit")) {
-    return { category: "Travel & Transport", confidence: 0.95, isRecurring: false };
-  }
-  if (desc.includes("rent") || desc.includes("apartment") || desc.includes("property") || desc.includes("housing")) {
-    return { category: "Housing & Rent", confidence: 1.0, isRecurring: true };
-  }
-  if (desc.includes("coned") || desc.includes("electric") || desc.includes("power") || desc.includes("water") || desc.includes("utility") || desc.includes("bill")) {
-    return { category: "Bills & Utilities", confidence: 0.97, isRecurring: true };
-  }
-  if (desc.includes("amazon") || desc.includes("target") || desc.includes("walmart") || desc.includes("clothing") || desc.includes("shopping") || desc.includes("store")) {
-    return { category: "Shopping", confidence: 0.91, isRecurring: false };
-  }
-  return { category: "Bills & Utilities", confidence: 0.72, isRecurring: false };
-}
-
-const CATEGORY_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string; border: string; gradient: string }> = {
-  "Food & Dining":      { icon: Coffee,      color: "text-orange-500",  bg: "bg-orange-50",  border: "border-orange-200",  gradient: "from-orange-400" },
-  "Subscriptions":      { icon: Tv,          color: "text-purple",      bg: "bg-purple/10",  border: "border-purple/20",   gradient: "from-purple" },
-  "Travel & Transport": { icon: Car,         color: "text-skyblue",     bg: "bg-skyblue/10", border: "border-skyblue/20",  gradient: "from-skyblue" },
-  "Housing & Rent":     { icon: Home,        color: "text-cyan",        bg: "bg-cyan/10",    border: "border-cyan/20",     gradient: "from-cyan" },
-  "Bills & Utilities":  { icon: Lightbulb,   color: "text-yellow-600",  bg: "bg-yellow-50",  border: "border-yellow-200",  gradient: "from-yellow-400" },
-  "Shopping":           { icon: ShoppingBag, color: "text-pinkish",     bg: "bg-pinkish/10", border: "border-pinkish/20",  gradient: "from-pinkish" },
-  "Entertainment":      { icon: Star,        color: "text-violet",      bg: "bg-violet/10",  border: "border-violet/20",   gradient: "from-violet" },
-  "Salary & Income":    { icon: Wallet,      color: "text-green-600",   bg: "bg-green-50",   border: "border-green-200",   gradient: "from-green-500" },
+const CATEGORY_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string; gradient: string }> = {
+  "Food & Dining": { icon: Coffee, color: "text-amber-700", bg: "bg-amber-100", border: "border-amber-200", gradient: "from-amber-500" },
+  "Shopping": { icon: ShoppingBag, color: "text-purple-700", bg: "bg-purple-100", border: "border-purple-200", gradient: "from-purple-500" },
+  "Subscriptions": { icon: Tv, color: "text-pink-700", bg: "bg-pink-100", border: "border-pink-200", gradient: "from-pink-500" },
+  "Housing & Rent": { icon: Home, color: "text-blue-700", bg: "bg-blue-100", border: "border-blue-200", gradient: "from-blue-500" },
+  "Travel & Rides": { icon: Car, color: "text-emerald-700", bg: "bg-emerald-100", border: "border-emerald-200", gradient: "from-emerald-500" },
+  "Utilities": { icon: Lightbulb, color: "text-amber-800", bg: "bg-amber-100", border: "border-amber-300", gradient: "from-amber-600" },
+  "Income": { icon: TrendingUp, color: "text-emerald-700", bg: "bg-emerald-100", border: "border-emerald-200", gradient: "from-emerald-500" },
 };
 
 const DEFAULT_CATEGORY = { icon: DollarSign, color: "text-gray-500", bg: "bg-gray-100", border: "border-gray-200", gradient: "from-gray-400" };
@@ -106,6 +84,7 @@ export function getCatConfig(cat: string) {
 }
 
 export function KoshinDashboard() {
+  const pathname = usePathname();
   const {
     activeTab, setActiveTab,
     sidebarOpen, setSidebarOpen,
@@ -122,12 +101,23 @@ export function KoshinDashboard() {
     shoppingCut, setShoppingCut
   } = useDashboardStore();
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [parsingStep, setParsingStep] = useState(0);
+  const [isParsing, setIsParsing] = useState(false);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
     { role: "assistant", text: "Hello! I am Koshin AI, your personal financial advisor. Ask me anything about your spending, subscriptions, or savings goals!", time: "12:00 PM" }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  // Initial loading simulator
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, []);
 
   const totalIncome = useMemo(() => {
     return transactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);
@@ -161,112 +151,63 @@ export function KoshinDashboard() {
   }, [totalIncome, netSavings, transactions]);
 
   const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
-  const healthBadgeColor = healthScore >= 80 ? "bg-cyan/10 text-cyan-700 border-cyan/20" : healthScore >= 65 ? "bg-purple/10 text-purple border-purple/20" : "bg-orange-100 text-orange-600 border-orange-200";
-  const healthRingColor = healthScore >= 80 ? "text-cyan" : healthScore >= 65 ? "text-purple" : "text-orange-500";
+  const healthRingColor = healthScore >= 80 ? "text-lime" : healthScore >= 65 ? "text-purple" : "text-orange-500";
 
   const recurringBills = useMemo(() => {
     return transactions.filter(t => t.isRecurring);
   }, [transactions]);
 
-  const handleAddTransaction = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMerchant || !newAmount) return;
-    const amt = parseFloat(newAmount);
-    if (isNaN(amt)) return;
-    const { category, confidence, isRecurring } = autoCategorize(newMerchant);
-    const newTx: Transaction = {
-      id: `tx-${Date.now()}`,
-      date: newDate,
-      merchant: newMerchant,
-      amount: amt,
-      category: newType === "income" ? "Salary & Income" : category,
-      confidence,
-      isRecurring,
-      type: newType
-    };
-    setTransactions(prev => [newTx, ...prev]);
-    setNewMerchant("");
-    setNewAmount("");
-    setUploadSuccess(true);
-    setTimeout(() => setUploadSuccess(false), 3000);
-  };
-
-  const handleImportMockCSV = () => {
-    const mockTxs: Transaction[] = [
-      { id: `csv-${Date.now()}-1`, date: "2026-08-11", merchant: "Amazon prime membership", amount: 14.99, category: "Subscriptions", confidence: 0.99, isRecurring: true, type: "expense" },
-      { id: `csv-${Date.now()}-2`, date: "2026-08-11", merchant: "Chevron Gas Station", amount: 45.20, category: "Travel & Transport", confidence: 0.94, isRecurring: false, type: "expense" },
-      { id: `csv-${Date.now()}-3`, date: "2026-08-10", merchant: "Starbucks Coffee Shop", amount: 6.80, category: "Food & Dining", confidence: 0.98, isRecurring: false, type: "expense" },
-    ];
-    setTransactions(prev => [...mockTxs, ...prev]);
-    setUploadSuccess(true);
-    setTimeout(() => setUploadSuccess(false), 3000);
-  };
-
-  const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      const matchCat = selectedCategory === "All" || t.category === selectedCategory;
-      const matchSearch = t.merchant.toLowerCase().includes(searchTerm.toLowerCase()) || t.category.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchCat && matchSearch;
-    });
-  }, [transactions, selectedCategory, searchTerm]);
-
-  const originalFood = categoryBreakdown["Food & Dining"] || 0;
-  const originalSubs = categoryBreakdown["Subscriptions"] || 0;
-  const originalShopping = categoryBreakdown["Shopping"] || 0;
-
-  const simFoodSavings = originalFood * (foodCut / 100);
-  const simSubSavings = originalSubs * (subCut / 100);
-  const simShopSavings = originalShopping * (shoppingCut / 100);
-
-  const totalMonthlySimSavings = simFoodSavings + simSubSavings + simShopSavings;
-  const totalAnnualSimSavings = totalMonthlySimSavings * 12;
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [chatMessages, isTyping]);
-
-  const handleSendMessage = (textToSend?: string) => {
-    const messageText = textToSend || chatInput;
-    if (!messageText.trim()) return;
-    const userMsg = { role: "user" as const, text: messageText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-    setChatMessages(prev => [...prev, userMsg]);
-    if (!textToSend) setChatInput("");
-    setIsTyping(true);
+  const handleSimulatedFileUpload = () => {
+    setIsParsing(true);
+    setParsingStep(1);
     setTimeout(() => {
-      let reply = "I analyzed your transactions. What specific details would you like to examine?";
-      const q = messageText.toLowerCase();
-      if (q.includes("food") || q.includes("dining") || q.includes("eat")) {
-        const amt = categoryBreakdown["Food & Dining"] || 0;
-        reply = `You have spent a total of $${amt.toFixed(2)} on Food & Dining. Your largest transaction here is Whole Foods at $142.80.`;
-      } else if (q.includes("sub") || q.includes("recurring") || q.includes("netflix") || q.includes("spotify")) {
-        reply = `You have ${recurringBills.length} active recurring subscriptions, totaling $${recurringBills.reduce((acc, t) => acc + t.amount, 0).toFixed(2)} per month. I recommend reviewing Netflix and Spotify.`;
-      } else if (q.includes("score") || q.includes("health")) {
-        reply = `Your Koshin Financial Health Score is currently ${healthScore}/100, which is rated as '${healthRatingText}'. Your high savings rate of ${savingsRate}% helps keep this strong.`;
-      } else if (q.includes("save") || q.includes("reduce") || q.includes("cut")) {
-        reply = `Based on your logs, cutting Food & Dining and Subscriptions by 20% would save you around $${(simFoodSavings + simSubSavings).toFixed(2)} monthly.`;
+      setParsingStep(2);
+      setTimeout(() => {
+        setParsingStep(3);
+        setTimeout(() => {
+          setIsParsing(false);
+          setIsUploadModalOpen(false);
+          setUploadSuccess(true);
+          setTimeout(() => setUploadSuccess(false), 4000);
+        }, 800);
+      }, 900);
+    }, 900);
+  };
+
+  const handleSendMessage = (e?: React.FormEvent, customText?: string) => {
+    if (e) e.preventDefault();
+    const textToSend = customText || chatInput;
+    if (!textToSend.trim()) return;
+
+    const userMsg = { role: "user" as const, text: textToSend, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
+    setChatMessages(prev => [...prev, userMsg]);
+    if (!customText) setChatInput("");
+    setIsTyping(true);
+
+    setTimeout(() => {
+      let reply = "Based on your spending patterns, your top expense category is Food & Dining ($420/mo). Cutting food delivery by 20% will save you $84/mo ($1,008/yr).";
+      if (textToSend.toLowerCase().includes("subscription")) {
+        reply = `You have ${recurringBills.length} recurring subscriptions totaling $${recurringBills.reduce((acc, t) => acc + t.amount, 0).toFixed(2)}/mo. You can cancel unused trials to save $240/yr.`;
+      } else if (textToSend.toLowerCase().includes("save")) {
+        reply = `If you reduce Dining Out and Subscriptions by 25%, your projected 3-year compound savings will grow to +$11,520!`;
       }
+
+      setChatMessages(prev => [...prev, { role: "assistant", text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       setIsTyping(false);
-      setChatMessages(prev => [...prev, {
-        role: "assistant",
-        text: reply,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      }]);
     }, 1200);
   };
 
   const navItems = [
     { id: "dashboard", label: "Overview", icon: LayoutDashboard, badge: null },
-    { id: "transactions", label: "Transactions", icon: CreditCard, badge: transactions.length.toString() },
-    { id: "spending-analysis", label: "Spending Analysis", icon: PieChart, badge: null },
-    { id: "budget", label: "Budget", icon: Wallet, badge: null },
-    { id: "goals", label: "Goals", icon: Target, badge: null },
-    { id: "subscriptions", label: "Subscriptions", icon: Bell, badge: recurringBills.length.toString() },
-    { id: "simulator", label: "What-If Simulator", icon: SlidersHorizontal, badge: null },
-    { id: "ai", label: "Koshin AI", icon: Bot, badge: "NEW" },
+    { id: "transactions", label: "Transactions", icon: CreditCard, badge: `${transactions.length}` },
+    { id: "budget", label: "Budgets & Limits", icon: PieChart, badge: null },
+    { id: "subscriptions", label: "Silent Bills", icon: Bell, badge: `${recurringBills.length}` },
+    { id: "simulator", label: "Savings Simulator", icon: SlidersHorizontal, badge: "AI" },
+    { id: "goals", label: "Savings Goals", icon: Target, badge: null },
+    { id: "ai-advisor", label: "AI Advisor", icon: Bot, badge: "Live" },
     { id: "settings", label: "Settings", icon: Settings, badge: null },
   ] as const;
 
-  const pathname = usePathname();
   const isDashboardPage = pathname === "/dashboard";
 
   return (
@@ -304,21 +245,22 @@ export function KoshinDashboard() {
       {/* ── Main content ── */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0 relative z-10 bg-offwhite/30 h-full overflow-hidden">
         
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-6 lg:px-10 py-6 border-b border-hairline bg-background">
+        {/* Top Floating SaaS Header Bar */}
+        <div className="flex items-center justify-between px-6 lg:px-10 py-5 border-b border-hairline bg-white/80 backdrop-blur-md">
           <div className="flex items-center gap-4">
             <h2 className="display text-2xl font-bold text-ink tracking-tight">
               {navItems.find(n => n.id === activeTab)?.label}
             </h2>
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple/10 border border-purple/20 text-[10px] font-bold text-purple uppercase tracking-widest">
-              <span className="size-1.5 rounded-full bg-purple animate-pulse" />
-              Live Workspace
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
+              <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              256-Bit Bank Sync Active
             </div>
           </div>
 
+          {/* Quick Action Pill Bar */}
           <div className="flex items-center gap-3">
             {activeTab === "transactions" && (
-              <div className="flex items-center gap-2 bg-background border border-hairline shadow-sm rounded-full px-4 py-2 max-w-[240px] w-full">
+              <div className="flex items-center gap-2 bg-white border border-hairline shadow-xs rounded-full px-4 py-2 max-w-[240px] w-full">
                 <Search className="size-4 text-muted-foreground shrink-0" />
                 <input
                   type="text"
@@ -329,675 +271,406 @@ export function KoshinDashboard() {
                 />
               </div>
             )}
-            <div className="hidden sm:flex items-center gap-1.5 bg-background border border-hairline shadow-sm rounded-full px-4 py-2 text-[12px] text-muted-foreground font-medium">
-              <Activity className="size-3.5 text-ink" />
-              August 2026
-            </div>
+
+            <button
+              onClick={() => setIsUploadModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-ink text-white text-xs font-semibold hover:bg-purple transition-all shadow-sm"
+            >
+              <UploadCloud className="size-4 text-lime" />
+              <span>+ Upload Statement</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("ai-advisor")}
+              className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple/30 bg-purple/10 text-purple text-xs font-semibold hover:bg-purple/20 transition-all"
+            >
+              <Bot className="size-4" />
+              <span>Ask AI Advisor</span>
+            </button>
           </div>
         </div>
 
-        {/* Content area */}
+        {/* Content Area with Skeleton Loader */}
         <div className="flex-1 overflow-y-auto px-6 lg:px-10 py-8" data-lenis-prevent="true">
           
-          {/* Success banner */}
+          {/* INITIAL GLASS SHIMMER LOADER */}
           <AnimatePresence>
-            {uploadSuccess && (
+            {isLoading && (
               <motion.div
-                initial={{ opacity: 0, y: -12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                className="mb-6 p-4 bg-purple/10 border border-purple/20 rounded-2xl flex items-center gap-3 shadow-sm"
+                initial={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="space-y-6"
               >
-                <div className="size-8 rounded-full bg-purple border border-purple flex items-center justify-center shrink-0 shadow-sm">
-                  <CheckCircle2 className="size-4 text-white" />
-                </div>
-                <div>
-                  <div className="text-[13px] font-bold text-ink">Workspace Updated</div>
-                  <div className="text-[12px] text-muted-foreground mt-0.5">Koshin Intelligence Engine processed and categorized your transactions.</div>
+                <div className="p-8 rounded-3xl bg-white border border-hairline shadow-sm space-y-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <Sparkles className="size-6 text-purple animate-spin" />
+                    <div className="h-4 w-64 bg-gray-200 rounded-full" />
+                  </div>
+                  <div className="h-12 w-3/4 bg-gray-200 rounded-2xl" />
+                  <div className="grid grid-cols-3 gap-4 pt-4">
+                    <div className="h-20 bg-gray-100 rounded-xl" />
+                    <div className="h-20 bg-gray-100 rounded-xl" />
+                    <div className="h-20 bg-gray-100 rounded-xl" />
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Tab content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-            >
-
-              {/* ──────────────────────────────────────────
-                  TAB 1: OVERVIEW DASHBOARD
-              ────────────────────────────────────────── */}
-              {activeTab === "dashboard" && (
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-
-                  {/* LEFT: stats + breakdown */}
-                  <div className="xl:col-span-8 space-y-6">
-
-                    {/* Stat cards row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                      
-                      {/* Income */}
-                      <MetricCard
-                        title="Monthly Income"
-                        value={`$${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                        icon={<CheckCircle2 className="size-3.5" />}
-                        trendIcon={<ArrowDownLeft className="size-4" />}
-                        trendLabel="Auto-Verified Deposits"
-                        colorTheme="cyan"
-                      />
-
-                      {/* Expenses */}
-                      <MetricCard
-                        title="Total Expenses"
-                        value={`$${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                        icon={<CreditCard className="size-3.5" />}
-                        trendIcon={<ArrowUpRight className="size-4" />}
-                        trendLabel={`${transactions.filter(t => t.type === 'expense').length} Items Tracked`}
-                        colorTheme="pinkish"
-                      />
-
-                      {/* Net Reserve */}
-                      <MetricCard
-                        title="Net Reserve"
-                        value={`${netSavings >= 0 ? '+' : ''}$${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-                        icon={<Zap className="size-3.5" />}
-                        trendIcon={<Wallet className="size-4" />}
-                        trendLabel={`${savingsRate}% Savings Rate`}
-                        colorTheme="purple"
-                        isNetReserve={true}
-                      />
+          {!isLoading && (
+            <>
+              {/* Success Banner */}
+              <AnimatePresence>
+                {uploadSuccess && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                    className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 shadow-sm text-emerald-900"
+                  >
+                    <div className="size-8 rounded-full bg-emerald-600 flex items-center justify-center shrink-0 shadow-sm text-white">
+                      <CheckCircle2 className="size-4" />
                     </div>
-
-                    {/* Spending Breakdown */}
-                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                        <div>
-                          <h3 className="display text-lg font-bold text-ink tracking-tight">
-                            Spending Breakdown
-                          </h3>
-                          <p className="text-[13px] text-muted-foreground mt-1">Koshin NLP Categorization Engine</p>
-                        </div>
-                        <button
-                          onClick={handleImportMockCSV}
-                          className="inline-flex items-center gap-2 px-4 py-2 bg-offwhite hover:bg-black/5 border border-hairline rounded-full text-[13px] font-semibold text-ink transition-all"
-                        >
-                          <FileSpreadsheet className="size-4 text-purple" />
-                          Import CSV Statement
-                        </button>
-                      </div>
-
-                      <div className="space-y-5">
-                        {Object.entries(categoryBreakdown)
-                          .sort(([, a], [, b]) => b - a)
-                          .map(([cat, amount]) => {
-                            const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
-                            const cfg = getCatConfig(cat);
-                            const Icon = cfg.icon;
-                            return (
-                              <div key={cat} className="group">
-                                <div className="flex items-center gap-3 mb-2">
-                                  <div className={`size-8 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0`}>
-                                    <Icon className={`size-4 ${cfg.color}`} strokeWidth={2.5} />
-                                  </div>
-                                  <div className="flex items-center justify-between flex-1">
-                                    <span className="text-[14px] font-semibold text-ink">{cat}</span>
-                                    <span className="text-ink font-bold text-[14px]">
-                                      ${amount.toFixed(2)} <span className="text-muted-foreground font-medium ml-1">({pct}%)</span>
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden ml-11">
-                                  <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${pct}%` }}
-                                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.1 }}
-                                    className={`h-full rounded-full bg-gradient-to-r ${cfg.gradient} to-transparent`}
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })}
-                      </div>
-                    </div>
-
-                    {/* Recent Transactions mini-list */}
-                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="display text-lg font-bold text-ink tracking-tight">
-                          Recent Activity
-                        </h3>
-                        <button
-                          onClick={() => setActiveTab("transactions")}
-                          className="text-[13px] text-purple hover:text-purple/80 font-bold flex items-center gap-1 transition-colors"
-                        >
-                          View All <ChevronRight className="size-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {transactions.slice(0, 5).map(tx => {
-                          const cfg = getCatConfig(tx.category);
-                          const Icon = cfg.icon;
-                          return (
-                            <div key={tx.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-offwhite border border-transparent hover:border-hairline transition-all -mx-3">
-                              <div className={`size-10 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0 shadow-sm`}>
-                                <Icon className={`size-4.5 ${cfg.color}`} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-[14px] font-bold text-ink truncate">{tx.merchant}</span>
-                                  {tx.isRecurring && (
-                                    <span className="px-1.5 py-0.5 rounded-md bg-cyan/10 border border-cyan/20 text-cyan text-[10px] font-bold shrink-0">REC</span>
-                                  )}
-                                </div>
-                                <div className="text-[12px] text-muted-foreground mt-0.5 font-medium">{tx.date} · {tx.category}</div>
-                              </div>
-                              <div className={`text-[15px] font-bold shrink-0 ${tx.type === 'income' ? 'text-cyan' : 'text-ink'}`}>
-                                {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* RIGHT: Health score + recommendations */}
-                  <div className="xl:col-span-4 space-y-6">
-
-                    {/* Health score card */}
-                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm flex flex-col items-center text-center">
-                      <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-6">Financial Health Score</div>
-
-                      <div className="relative size-48 mb-6">
-                        {/* Background ring */}
-                        <svg className="size-full -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
-                          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="6" className="text-offwhite" fill="transparent" />
-                          <circle
-                            cx="50" cy="50" r="42"
-                            stroke="url(#healthGrad)"
-                            strokeWidth="6"
-                            fill="transparent"
-                            strokeDasharray={263.89}
-                            strokeDashoffset={263.89 - (263.89 * healthScore) / 100}
-                            strokeLinecap="round"
-                            className="transition-all duration-1000"
-                          />
-                          <defs>
-                            <linearGradient id="healthGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                              <stop offset="0%" stopColor="#8b5cf6" />
-                              <stop offset="100%" stopColor="#00e5ff" />
-                            </linearGradient>
-                          </defs>
-                        </svg>
-                        <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="display text-6xl font-extrabold text-ink tracking-tight">
-                            {healthScore}
-                          </span>
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest mt-1">/ 100</span>
-                        </div>
-                      </div>
-
-                      <div className={`px-5 py-2 rounded-full text-[13px] font-bold border ${healthBadgeColor} mb-4 shadow-sm`}>
-                        {healthRatingText}
-                      </div>
-                      <p className="text-[13px] text-muted-foreground leading-relaxed max-w-[220px]">
-                        Calculated from income/expense ratio, savings rate, and subscription commitments.
-                      </p>
-
-                      {/* Mini metric row */}
-                      <div className="mt-6 w-full grid grid-cols-2 gap-4 border-t border-hairline pt-6">
-                        <div className="text-center">
-                          <div className="text-xl font-bold text-purple">{savingsRate}%</div>
-                          <div className="text-[11px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Savings Rate</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-xl font-bold text-cyan">{recurringBills.length}</div>
-                          <div className="text-[11px] text-muted-foreground mt-1 font-semibold uppercase tracking-wider">Recurring Bills</div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Recommendations */}
-                    <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm space-y-5">
-                      <div className="flex items-center gap-2.5 border-b border-hairline pb-4">
-                        <Zap className="size-5 text-purple" />
-                        <span className="display text-[15px] font-bold text-ink">
-                          Smart Recommendations
-                        </span>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-orange-50 border border-orange-200 shadow-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle className="size-4 text-orange-500 shrink-0" />
-                          <span className="text-[13px] font-bold text-orange-700">Optimize Subscriptions</span>
-                        </div>
-                        <p className="text-[13px] text-orange-800/80 leading-relaxed">
-                          You spend ${(categoryBreakdown["Subscriptions"] || 0).toFixed(2)} on memberships monthly. Trimming unused trials could boost your health index.
-                        </p>
-                      </div>
-
-                      <div className="p-4 rounded-xl bg-cyan/10 border border-cyan/20 shadow-sm">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="size-4 text-cyan shrink-0" />
-                          <span className="text-[13px] font-bold text-cyan-800">Savings Opportunity</span>
-                        </div>
-                        <p className="text-[13px] text-cyan-800/80 leading-relaxed">
-                          Reducing dining by 20% could free up ${(originalFood * 0.2).toFixed(2)}/month for your emergency reserve.
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => setActiveTab("simulator")}
-                        className="w-full py-3 mt-2 rounded-full border border-purple bg-purple hover:bg-purple/90 text-white text-[14px] font-bold transition-all flex items-center justify-center gap-2 shadow-md"
-                      >
-                        <SlidersHorizontal className="size-4" />
-                        Run What-If Simulation
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ──────────────────────────────────────────
-                  TAB 2: TRANSACTIONS
-              ────────────────────────────────────────── */}
-              {activeTab === "transactions" && (
-                <div className="space-y-6">
-                  {/* Filter chips */}
-                  <div className="flex flex-wrap gap-2.5">
-                    {["All", "Food & Dining", "Subscriptions", "Travel & Transport", "Housing & Rent", "Shopping", "Bills & Utilities"].map(cat => {
-                      const isActive = selectedCategory === cat;
-                      return (
-                        <button
-                          key={cat}
-                          onClick={() => setSelectedCategory(cat)}
-                          className={`px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 border ${
-                            isActive
-                              ? "bg-ink text-white border-ink shadow-md"
-                              : "bg-background text-muted-foreground hover:text-ink border-hairline hover:bg-offwhite shadow-sm"
-                          }`}
-                        >
-                          {cat}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Transaction table */}
-                  <TransactionTable transactions={filteredTransactions} />
-
-                  {/* Quick Add form */}
-                  <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7">
-                    <div className="flex items-center gap-2.5 mb-2">
-                      <PlusCircle className="size-5 text-purple" />
-                      <h4 className="display text-lg font-bold text-ink">
-                        Quick Add Transaction
-                      </h4>
-                    </div>
-                    <p className="text-[13px] text-muted-foreground mb-6">AI will auto-categorize based on merchant description</p>
-                    <form onSubmit={handleAddTransaction} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                      <input
-                        type="text"
-                        placeholder="Merchant (e.g. Starbucks)"
-                        value={newMerchant}
-                        onChange={e => setNewMerchant(e.target.value)}
-                        className="sm:col-span-2 px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
-                      />
-                      <input
-                        type="number"
-                        placeholder="Amount ($)"
-                        value={newAmount}
-                        onChange={e => setNewAmount(e.target.value)}
-                        className="px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
-                      />
-                      <div className="flex gap-2">
-                        <select
-                          value={newType}
-                          onChange={e => setNewType(e.target.value as any)}
-                          className="flex-1 px-3 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
-                        >
-                          <option value="expense">Expense</option>
-                          <option value="income">Income</option>
-                        </select>
-                        <button
-                          type="submit"
-                          className="px-5 py-3 bg-purple hover:bg-purple/90 text-white font-bold rounded-xl text-[14px] transition-all shadow-md shrink-0 whitespace-nowrap"
-                        >
-                          Add
-                        </button>
-                      </div>
-                    </form>
-                  </div>
-                </div>
-              )}
-              {/* ──────────────────────────────────────────
-                  TAB: SPENDING ANALYSIS
-              ────────────────────────────────────────── */}
-              {activeTab === "spending-analysis" && (
-                <div className="space-y-6">
-                  {/* Header */}
-                  <div className="rounded-2xl border border-hairline bg-background p-7 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                      <h3 className="display text-2xl font-bold text-ink tracking-tight">Spending Analysis</h3>
-                      <p className="text-[13px] text-muted-foreground mt-1">Deep dive into your financial habits and trends.</p>
+                      <div className="text-[13px] font-bold">Statement Ingestion Complete</div>
+                      <div className="text-[12px] opacity-80 mt-0.5">Koshin NLP categorizer structured all transactions and updated your Financial Health Score.</div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="px-4 py-2 bg-offwhite border border-hairline rounded-lg text-[13px] font-semibold text-ink">
-                        This Month
-                      </div>
-                      <button className="px-4 py-2 bg-purple text-white rounded-lg text-[13px] font-bold shadow-md hover:bg-purple/90 transition-colors">
-                        Download Report
-                      </button>
-                    </div>
-                  </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Insights & Summary */}
-                    <div className="lg:col-span-1 space-y-6">
-                      <div className="rounded-2xl border border-hairline bg-background p-6 shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-pinkish/5 rounded-full blur-2xl pointer-events-none" />
-                        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Total Outflow</h4>
-                        <div className="display text-4xl font-bold tracking-tight text-ink mb-2">
-                          ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {/* Tab content */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                >
+
+                  {/* ── TAB 1: OVERVIEW DASHBOARD ── */}
+                  {activeTab === "dashboard" && (
+                    <div className="space-y-8">
+
+                      {/* HIGH-IMPACT HERO FINANCIAL BANNER */}
+                      <div className="rounded-3xl bg-gradient-to-br from-ink via-navy to-black text-white p-8 sm:p-10 shadow-2xl relative border border-white/10 overflow-hidden flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
+                        <div className="absolute top-0 right-0 size-80 bg-purple/20 rounded-full blur-3xl pointer-events-none" />
+
+                        {/* Left Info */}
+                        <div className="space-y-4 max-w-xl relative z-10">
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime/20 border border-lime/30 text-lime text-xs font-bold uppercase tracking-wider">
+                            <Sparkles className="size-3.5" /> Koshin AI Health Audit
+                          </div>
+
+                          <h3 className="display text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                            Financial Health Score: <span className="text-lime">{healthScore}/100</span>
+                          </h3>
+
+                          <p className="text-sm text-white/70 leading-relaxed font-normal">
+                            You have <strong className="text-white">{healthRatingText}</strong> reserves with a {savingsRate}% savings rate. Your projected financial runway is <strong className="text-lime">14.2 months</strong>.
+                          </p>
+
+                          <div className="flex flex-wrap gap-3 pt-2">
+                            <button
+                              onClick={() => setIsUploadModalOpen(true)}
+                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-bold text-ink hover:scale-105 transition-transform shadow-md"
+                            >
+                              <UploadCloud className="size-4" />
+                              <span>Import New Statement</span>
+                            </button>
+
+                            <button
+                              onClick={() => setActiveTab("ai-advisor")}
+                              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all"
+                            >
+                              <Bot className="size-4 text-lime" />
+                              <span>Advisor Recommendations</span>
+                            </button>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded-md">
-                          <ArrowDownRight className="size-3.5" />
-                          <span>12.5% vs last month</span>
+
+                        {/* Right Gauge Widget */}
+                        <div className="relative z-10 flex items-center justify-center bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shrink-0 w-full sm:w-auto">
+                          <div className="text-center space-y-2">
+                            <span className="text-xs font-mono text-white/70 uppercase tracking-widest block">Net Savings Rate</span>
+                            <div className="display text-4xl font-extrabold text-lime">+{savingsRate}%</div>
+                            <span className="text-[11px] font-semibold text-white/80 bg-white/10 px-3 py-1 rounded-full inline-block">
+                              +4.2% vs Last Month
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-hairline bg-gradient-to-br from-purple to-ink p-6 shadow-md text-white relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 size-24 bg-white/10 rounded-full blur-xl"></div>
-                        <div className="flex items-center gap-2 mb-3 text-cyan">
-                          <Zap className="size-5" />
-                          <span className="font-bold text-[13px] uppercase tracking-wide">AI Insight</span>
-                        </div>
-                        <p className="text-[14px] leading-relaxed text-white/90 relative z-10">
-                          Your spending on <strong>Food & Dining</strong> is 20% lower than your historical average. Keep it up to boost your savings rate!
-                        </p>
-                      </div>
-                    </div>
+                      {/* Stat Cards Row */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        <MetricCard
+                          title="Monthly Income"
+                          value={`$${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          icon={<CheckCircle2 className="size-3.5" />}
+                          trendIcon={<ArrowDownLeft className="size-4" />}
+                          trendLabel="Auto-Verified Deposits"
+                          colorTheme="cyan"
+                        />
 
-                    {/* Detailed Breakdown */}
-                    <div className="lg:col-span-2 rounded-2xl border border-hairline bg-background p-7 shadow-sm">
-                      <div className="flex items-center justify-between mb-6">
-                        <h3 className="display text-lg font-bold text-ink tracking-tight">Category Breakdown</h3>
-                        <PieChart className="size-5 text-muted-foreground" />
+                        <MetricCard
+                          title="Total Expenses"
+                          value={`$${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          icon={<CreditCard className="size-3.5" />}
+                          trendIcon={<ArrowUpRight className="size-4" />}
+                          trendLabel={`${transactions.filter(t => t.type === 'expense').length} Items Tracked`}
+                          colorTheme="pinkish"
+                        />
+
+                        <MetricCard
+                          title="Net Reserve"
+                          value={`${netSavings >= 0 ? '+' : ''}$${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          icon={<Zap className="size-3.5" />}
+                          trendIcon={<Wallet className="size-4" />}
+                          trendLabel={`${savingsRate}% Savings Rate`}
+                          colorTheme="purple"
+                          isNetReserve={true}
+                        />
                       </div>
-                      <div className="space-y-5">
-                        {Object.entries(categoryBreakdown)
-                          .sort(([, a], [, b]) => b - a)
-                          .map(([cat, amount]) => {
-                            const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
-                            const cfg = getCatConfig(cat);
-                            const Icon = cfg.icon;
-                            return (
-                              <div key={cat} className="group">
-                                <div className="flex items-center justify-between mb-2">
-                                  <div className="flex items-center gap-3">
-                                    <div className={`size-8 rounded-xl ${cfg.bg} ${cfg.border} border flex items-center justify-center shrink-0`}>
-                                      <Icon className={`size-4 ${cfg.color}`} />
+
+                      {/* Spending Breakdown & Recent Feed */}
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                        <div className="xl:col-span-8 rounded-2xl border border-hairline bg-white p-7 shadow-sm">
+                          <div className="flex items-center justify-between mb-6">
+                            <div>
+                              <h3 className="display text-lg font-bold text-ink">Spending Allocation</h3>
+                              <p className="text-xs text-muted-foreground mt-0.5">Koshin NLP Categorization Engine</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-4">
+                            {Object.entries(categoryBreakdown)
+                              .sort(([, a], [, b]) => b - a)
+                              .map(([cat, amount]) => {
+                                const pct = totalExpenses > 0 ? Math.round((amount / totalExpenses) * 100) : 0;
+                                const cfg = getCatConfig(cat);
+                                const Icon = cfg.icon;
+                                return (
+                                  <div key={cat} className="space-y-1.5">
+                                    <div className="flex items-center justify-between text-xs font-semibold">
+                                      <span className="flex items-center gap-2 text-ink">
+                                        <Icon className={`size-4 ${cfg.color}`} /> {cat}
+                                      </span>
+                                      <span className="text-ink font-bold">${amount.toFixed(2)} ({pct}%)</span>
                                     </div>
-                                    <span className="text-[14px] font-bold text-ink">{cat}</span>
+                                    <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
+                                      <div className={`h-full bg-gradient-to-r ${cfg.gradient} to-purple rounded-full`} style={{ width: `${pct}%` }} />
+                                    </div>
                                   </div>
-                                  <div className="text-right">
-                                    <div className="font-bold text-[14px] text-ink">${amount.toFixed(2)}</div>
-                                    <div className="text-[11px] font-semibold text-muted-foreground">{pct}% of total</div>
-                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+
+                        {/* Recent Activity Mini List */}
+                        <div className="xl:col-span-4 rounded-2xl border border-hairline bg-white p-7 shadow-sm space-y-4">
+                          <h3 className="display text-lg font-bold text-ink">Recent Activity</h3>
+                          <div className="space-y-3">
+                            {transactions.slice(0, 5).map(tx => (
+                              <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-offwhite/50 border border-hairline text-xs">
+                                <div>
+                                  <div className="font-bold text-ink truncate max-w-[140px]">{tx.merchant}</div>
+                                  <div className="text-[10px] text-muted-foreground">{tx.date} • {tx.category}</div>
                                 </div>
-                                <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden">
-                                  <motion.div
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${pct}%` }}
-                                    transition={{ duration: 1, ease: "easeOut" }}
-                                    className={`h-full rounded-full bg-gradient-to-r ${cfg.gradient} to-transparent`}
-                                  />
-                                </div>
+                                <span className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-ink'}`}>
+                                  {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                                </span>
                               </div>
-                            );
-                          })}
-                          
-                        {Object.keys(categoryBreakdown).length === 0 && (
-                          <div className="py-10 text-center text-[13px] font-semibold text-muted-foreground">
-                            No expense data available for analysis.
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+
+                  {/* ── OTHER DASHBOARD TABS ── */}
+                  {activeTab === "transactions" && (
+                    <TransactionTable transactions={transactions.filter(t => t.merchant.toLowerCase().includes(searchTerm.toLowerCase()))} />
+                  )}
+
+                  {activeTab === "budget" && (
+                    <BudgetView categoryBreakdown={categoryBreakdown} />
+                  )}
+
+                  {activeTab === "subscriptions" && (
+                    <SubscriptionsView recurringBills={recurringBills} />
+                  )}
+
+                  {activeTab === "simulator" && (
+                    <SimulatorView
+                      foodCut={foodCut}
+                      setFoodCut={setFoodCut}
+                      subCut={subCut}
+                      setSubCut={setSubCut}
+                      shoppingCut={shoppingCut}
+                      setShoppingCut={setShoppingCut}
+                      totalExpenses={totalExpenses}
+                    />
+                  )}
+
+                  {activeTab === "goals" && (
+                    <GoalsView />
+                  )}
+
+                  {activeTab === "ai-advisor" && (
+                    <div className="rounded-3xl border border-hairline bg-white p-8 shadow-sm space-y-6 max-w-4xl mx-auto">
+                      <div className="flex items-center gap-3 pb-4 border-b border-hairline">
+                        <div className="size-10 rounded-2xl bg-purple/10 text-purple border border-purple/20 flex items-center justify-center">
+                          <Bot className="size-6" />
+                        </div>
+                        <div>
+                          <h3 className="display text-xl font-bold text-ink">Koshin Financial AI Advisor</h3>
+                          <p className="text-xs text-muted-foreground">Conversational Financial Assistant</p>
+                        </div>
+                      </div>
+
+                      {/* Chat Messages Stage */}
+                      <div className="space-y-4 max-h-[380px] overflow-y-auto pr-2">
+                        {chatMessages.map((msg, idx) => (
+                          <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`p-4 rounded-2xl max-w-lg text-xs leading-relaxed ${
+                              msg.role === 'user'
+                                ? 'bg-ink text-white rounded-br-none'
+                                : 'bg-offwhite text-ink border border-hairline rounded-bl-none'
+                            }`}>
+                              <p>{msg.text}</p>
+                              <span className="text-[9px] opacity-60 mt-1.5 block text-right">{msg.time}</span>
+                            </div>
+                          </div>
+                        ))}
+
+                        {isTyping && (
+                          <div className="flex items-center gap-2 text-xs text-purple font-medium p-3 bg-purple/10 rounded-xl w-max animate-pulse">
+                            <Bot className="size-4 animate-spin" /> Koshin AI is thinking...
                           </div>
                         )}
+                        <div ref={chatEndRef} />
                       </div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* ──────────────────────────────────────────
-                  TAB: BUDGET
-              ────────────────────────────────────────── */}
-              {activeTab === "budget" && (
-                <BudgetView categoryBreakdown={categoryBreakdown} />
-              )}
-
-              {/* ──────────────────────────────────────────
-                  TAB: GOALS
-              ────────────────────────────────────────── */}
-              {activeTab === "goals" && (
-                <GoalsView />
-              )}
-
-              {/* ──────────────────────────────────────────
-                  TAB 3: SUBSCRIPTIONS
-              ────────────────────────────────────────── */}
-              {activeTab === "subscriptions" && (
-                <SubscriptionsView recurringBills={recurringBills} />
-              )}
-
-              {/* ──────────────────────────────────────────
-                  TAB 4: WHAT-IF SIMULATOR
-              ────────────────────────────────────────── */}
-              {activeTab === "simulator" && (
-                <SimulatorView
-                  foodCut={foodCut} setFoodCut={setFoodCut}
-                  subCut={subCut} setSubCut={setSubCut}
-                  shoppingCut={shoppingCut} setShoppingCut={setShoppingCut}
-                  simFoodSavings={simFoodSavings}
-                  simSubSavings={simSubSavings}
-                  simShopSavings={simShopSavings}
-                  totalMonthlySimSavings={totalMonthlySimSavings}
-                  totalAnnualSimSavings={totalAnnualSimSavings}
-                />
-              )}
-
-              {/* ──────────────────────────────────────────
-                  TAB 5: KOSHIN AI CHAT
-              ────────────────────────────────────────── */}
-              {activeTab === "ai" && (
-                <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-
-                  {/* Chat panel */}
-                  <div className="xl:col-span-8 rounded-2xl border border-hairline bg-background shadow-sm flex flex-col overflow-hidden" style={{ height: "600px" }}>
-                    {/* Chat header */}
-                    <div className="flex items-center gap-4 px-6 py-5 border-b border-hairline bg-offwhite/50">
-                      <div className="size-11 rounded-xl bg-purple text-white flex items-center justify-center shadow-md">
-                        <Bot className="size-6" />
-                      </div>
-                      <div>
-                        <div className="display text-[16px] font-bold text-ink">Koshin AI</div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="size-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[12px] text-muted-foreground font-bold">Online — Ready to assist</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
-                      {chatMessages.map((msg, i) => {
-                        const isUser = msg.role === "user";
-                        return (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 8 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
-                          >
-                            {!isUser && (
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="size-6 rounded-md bg-purple text-white flex items-center justify-center shadow-sm">
-                                  <Bot className="size-3.5" />
-                                </div>
-                                <span className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest">Koshin AI</span>
-                              </div>
-                            )}
-                            <div className={`max-w-[80%] px-5 py-4 rounded-2xl text-[14px] font-medium leading-relaxed shadow-sm ${
-                              isUser
-                                ? "bg-ink text-white rounded-tr-sm"
-                                : "bg-offwhite text-ink border border-hairline rounded-tl-sm"
-                            }`}>
-                              {msg.text}
-                            </div>
-                            <span className="text-[10px] text-muted-foreground font-semibold mt-2 px-1">{msg.time}</span>
-                          </motion.div>
-                        );
-                      })}
-
-                      {/* Typing indicator */}
-                      <AnimatePresence>
-                        {isTyping && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 6 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-start gap-2"
-                          >
-                            <div className="size-6 rounded-md bg-purple text-white flex items-center justify-center shadow-sm">
-                              <Bot className="size-3.5" />
-                            </div>
-                            <div className="px-5 py-4 rounded-2xl rounded-tl-sm bg-offwhite border border-hairline flex items-center gap-1.5 shadow-sm">
-                              {[0, 0.2, 0.4].map((delay, i) => (
-                                <motion.span
-                                  key={i}
-                                  className="size-2 rounded-full bg-purple"
-                                  animate={{ y: [0, -4, 0] }}
-                                  transition={{ duration: 0.6, repeat: Infinity, delay, ease: "easeInOut" }}
-                                />
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                      <div ref={chatEndRef} />
-                    </div>
-
-                    {/* Quick chip suggestions */}
-                    <div className="px-6 pb-3 flex gap-2 overflow-x-auto scrollbar-none border-t border-hairline pt-4 bg-offwhite/50">
-                      {["How much did I spend on food?", "List active subscriptions", "What is my health score?", "How can I save more?"].map(chip => (
+                      {/* Quick Prompt Pills */}
+                      <div className="flex flex-wrap gap-2 pt-2">
                         <button
-                          key={chip}
-                          onClick={() => handleSendMessage(chip)}
-                          className="px-4 py-2 bg-background hover:bg-white border border-hairline text-ink rounded-full text-[12px] font-bold transition-all shadow-sm whitespace-nowrap"
+                          onClick={() => handleSendMessage(undefined, "Where did I spend the most this month?")}
+                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all"
                         >
-                          {chip}
+                          &quot;Where did I spend the most?&quot;
                         </button>
-                      ))}
-                    </div>
+                        <button
+                          onClick={() => handleSendMessage(undefined, "How can I save $340/mo?")}
+                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all"
+                        >
+                          &quot;How can I save $340/mo?&quot;
+                        </button>
+                      </div>
 
-                    {/* Input */}
-                    <div className="px-6 pb-6 pt-2 bg-offwhite/50">
-                      <form
-                        onSubmit={e => { e.preventDefault(); handleSendMessage(); }}
-                        className="flex items-center gap-3"
-                      >
+                      {/* Input Box */}
+                      <form onSubmit={e => handleSendMessage(e)} className="flex items-center gap-3">
                         <input
                           type="text"
-                          placeholder="Ask Koshin AI about your finances..."
+                          placeholder="Ask Koshin AI about your transactions or savings..."
                           value={chatInput}
                           onChange={e => setChatInput(e.target.value)}
-                          className="flex-1 px-5 py-3.5 rounded-full bg-background border border-hairline text-[14px] text-ink placeholder-muted-foreground focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple shadow-sm transition-all"
+                          className="flex-1 px-5 py-3 rounded-full border border-hairline bg-offwhite text-xs text-ink outline-none focus:border-purple"
                         />
-                        <button
-                          type="submit"
-                          disabled={isTyping}
-                          className="px-6 py-3.5 bg-purple hover:bg-purple/90 text-white font-bold rounded-full text-[14px] transition-all flex items-center gap-2 shadow-md disabled:opacity-50 shrink-0"
-                        >
+                        <button type="submit" className="p-3 rounded-full bg-ink text-white hover:bg-purple transition-colors">
                           <Send className="size-4" />
-                          Send
                         </button>
                       </form>
                     </div>
+                  )}
+
+                  {activeTab === "settings" && (
+                    <SettingsView />
+                  )}
+
+                </motion.div>
+              </AnimatePresence>
+            </>
+          )}
+
+        </div>
+
+      </div>
+
+      {/* STATEMENT UPLOAD MODAL WITH REALISTIC 3-STEP PARSING PROGRESS */}
+      <AnimatePresence>
+        {isUploadModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl p-8 max-w-lg w-full border border-hairline shadow-2xl space-y-6"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-hairline">
+                <div className="flex items-center gap-2 text-ink font-bold">
+                  <UploadCloud className="size-5 text-purple" />
+                  <span>Upload Bank Statement</span>
+                </div>
+                <button
+                  onClick={() => setIsUploadModalOpen(false)}
+                  className="p-1 rounded-full hover:bg-offwhite text-muted-foreground hover:text-ink transition-colors"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              {!isParsing ? (
+                <div
+                  onClick={handleSimulatedFileUpload}
+                  className="border-2 border-dashed border-purple/30 rounded-2xl p-10 text-center bg-purple/5 hover:border-purple cursor-pointer transition-all space-y-3"
+                >
+                  <UploadCloud className="size-12 text-purple mx-auto animate-bounce" />
+                  <div>
+                    <p className="text-sm font-bold text-ink">Drag & Drop Statement PDF / CSV</p>
+                    <p className="text-xs text-muted-foreground mt-1">Supports HDFC, ICICI, SBI, Axis, Zerodha, or custom CSV</p>
                   </div>
-
-                  {/* AI info sidebar */}
-                  <div className="xl:col-span-4 space-y-6">
-                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-5">
-                      <div className="flex items-center gap-2.5 border-b border-hairline pb-4">
-                        <Sparkles className="size-5 text-purple" />
-                        <h4 className="display text-[15px] font-bold text-ink">
-                          AI Core Technicals
-                        </h4>
-                      </div>
-                      <p className="text-[13px] text-muted-foreground font-medium leading-relaxed">
-                        Koshin AI indexes your merchant descriptions, transaction dates, and categories in an in-memory database to execute immediate NLP queries.
-                      </p>
-
-                      <div className="rounded-xl bg-offwhite border border-hairline p-5 space-y-4">
-                        {[
-                          { label: "Accuracy Ratio", value: "98.6%", color: "text-purple" },
-                          { label: "NLP Framework", value: "Hybrid Model", color: "text-ink" },
-                          { label: "Response Time", value: "< 800ms", color: "text-ink" },
-                          { label: "Data Source", value: "In-Memory DB", color: "text-ink" },
-                        ].map(stat => (
-                          <div key={stat.label} className="flex items-center justify-between border-b border-hairline pb-2 last:border-0 last:pb-0">
-                            <span className="text-[12px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</span>
-                            <span className={`text-[13px] font-bold ${stat.color}`}>{stat.value}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Suggested topics */}
-                    <div className="rounded-2xl border border-hairline bg-background shadow-sm p-7 space-y-4">
-                      <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-2">Suggested Topics</h4>
-                      {[
-                        { q: "How much did I spend on food?", icon: Coffee, color: "text-orange-500", bg: "bg-orange-50", border: "border-orange-200" },
-                        { q: "List active subscriptions", icon: Bell, color: "text-purple", bg: "bg-purple/10", border: "border-purple/20" },
-                        { q: "What is my health score?", icon: ShieldCheck, color: "text-cyan-700", bg: "bg-cyan-50", border: "border-cyan-200" },
-                        { q: "How can I save more?", icon: Target, color: "text-pinkish", bg: "bg-pinkish/10", border: "border-pinkish/20" },
-                      ].map(s => {
-                        const Icon = s.icon;
-                        return (
-                          <button
-                            key={s.q}
-                            onClick={() => handleSendMessage(s.q)}
-                            className="w-full flex items-center gap-3.5 p-3.5 rounded-xl bg-background hover:bg-offwhite border border-hairline transition-all text-left group shadow-sm hover:shadow-md"
-                          >
-                            <div className={`size-8 rounded-lg ${s.bg} border ${s.border} flex items-center justify-center shrink-0`}>
-                              <Icon className={`size-4 ${s.color}`} />
-                            </div>
-                            <span className="text-[13px] font-bold text-ink flex-1">{s.q}</span>
-                            <ChevronRight className="size-4 text-muted-foreground group-hover:text-ink transition-colors shrink-0" />
-                          </button>
-                        );
-                      })}
-                    </div>
+                  <button className="px-5 py-2 rounded-full bg-ink text-white text-xs font-bold hover:bg-purple transition-colors inline-block mt-2">
+                    Select File
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-5 text-center py-6">
+                  <Sparkles className="size-10 text-purple mx-auto animate-spin" />
+                  <div className="space-y-2">
+                    <h4 className="display text-lg font-bold text-ink">Processing Statement</h4>
+                    <p className="text-xs font-mono text-purple font-semibold">
+                      {parsingStep === 1 && "Step 1/3: Decrypting Statement AES-256..."}
+                      {parsingStep === 2 && "Step 2/3: Running Hybrid NLP Vector Categorizer..."}
+                      {parsingStep === 3 && "Step 3/3: Financial Health Index Calculated!"}
+                    </p>
+                  </div>
+                  <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
+                    <div
+                      className="h-full bg-purple transition-all duration-700"
+                      style={{ width: parsingStep === 1 ? "33%" : parsingStep === 2 ? "66%" : "100%" }}
+                    />
                   </div>
                 </div>
               )}
 
-              {/* ──────────────────────────────────────────
-                  TAB: SETTINGS
-              ────────────────────────────────────────── */}
-              {activeTab === "settings" && (
-                <SettingsView />
-              )}
-
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-hairline">
+                <span className="flex items-center gap-1">
+                  <Lock className="size-3.5 text-emerald-600" /> Bank-Grade 256-Bit Security
+                </span>
+                <span>Max File Size: 25MB</span>
+              </div>
             </motion.div>
-          </AnimatePresence>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
