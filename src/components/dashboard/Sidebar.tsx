@@ -111,16 +111,26 @@ export function Sidebar({
         </div>
 
         {/* User card */}
-        <div className="flex items-center gap-3 px-2 py-1">
-          <div className="size-9 rounded-full bg-offwhite border border-hairline flex items-center justify-center shrink-0 shadow-sm">
-            <User className="size-4 text-ink" />
+        <div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-offwhite/80 border border-hairline/80 shadow-xs">
+          <div className="relative shrink-0">
+            <img
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
+              alt="Alex Morgan Avatar"
+              className="size-10 rounded-full object-cover border-2 border-white shadow-xs"
+            />
+            <span className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-500 border-2 border-white" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-bold text-ink truncate">Alex Morgan</div>
-            <div className="text-[10px] text-purple font-semibold tracking-wide">Premium User</div>
+            <div className="text-[13px] font-bold text-ink truncate flex items-center gap-1">
+              <span>Alex Morgan</span>
+              <span className="text-[10px] text-emerald-600 bg-emerald-100 px-1.5 py-0.2 rounded-full font-bold">✓</span>
+            </div>
+            <div className="text-[10px] text-purple font-bold tracking-wide flex items-center gap-1">
+              <span>★ Pro Member</span>
+            </div>
           </div>
           {isDashboardPage && (
-            <a href="/" title="Sign out" className="p-2 rounded-lg hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
+            <a href="/" title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all">
               <LogOut className="size-4" />
             </a>
           )}
