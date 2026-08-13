@@ -21,7 +21,7 @@ export default function SignUpPage() {
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        router.push("/dashboard");
+        router.push("/onboarding");
       }, 1500);
       return () => clearTimeout(timer);
     }
@@ -86,14 +86,14 @@ export default function SignUpPage() {
       </div>
 
       {/* Right Panel: Form container */}
-      <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:w-1/2 bg-white relative overflow-y-auto lg:overflow-visible">
+      <div className="flex-1 flex flex-col justify-between p-6 sm:p-8 md:p-12 lg:w-1/2 bg-white relative overflow-y-auto lg:overflow-visible">
         {/* Back Link and Mobile Logo */}
-        <header className="flex items-center justify-between w-full mb-2">
+        <header className="flex items-center justify-between w-full mb-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-all hover:bg-hairline/20"
+            className="inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-4 py-2 text-sm font-semibold text-ink transition-all hover:bg-hairline/20"
           >
-            <ArrowLeft className="size-3.5" /> Back
+            <ArrowLeft className="size-4" /> Back
           </Link>
 
           <Link href="/" className="flex items-center gap-3 lg:hidden">
@@ -103,11 +103,11 @@ export default function SignUpPage() {
         </header>
 
         {/* Main Content */}
-        <main className="my-auto w-full max-w-md mx-auto py-2">
-          <div className="space-y-4">
-            <div className="text-left space-y-1">
-              <h1 className="display text-2xl font-bold tracking-tight text-ink">Create Account</h1>
-              <p className="text-xs text-muted-foreground">
+        <main className="my-auto w-full max-w-md mx-auto py-4">
+          <div className="space-y-5">
+            <div className="text-left space-y-1.5">
+              <h1 className="display text-3xl font-bold tracking-tight text-ink">Create Account</h1>
+              <p className="text-sm text-muted-foreground">
                 Get started for free and optimize your financial health
               </p>
             </div>
@@ -117,120 +117,120 @@ export default function SignUpPage() {
                 <CheckCircle2 className="size-10 text-purple mx-auto" />
                 <h3 className="text-lg font-bold text-ink">Account Created!</h3>
                 <p className="text-xs text-muted-foreground">
-                  Welcome to Koshin. Your financial health workspace is ready.
+                  Welcome to Koshin. Let's set up your personalized engine.
                 </p>
                 <Link
-                  href="/dashboard"
+                  href="/onboarding"
                   className="inline-flex items-center justify-center w-full rounded-full bg-purple py-3 text-xs font-bold text-white transition-all hover:bg-purple/90 shadow-lg"
                 >
-                  Launch Intelligence Dashboard
+                  Start Onboarding Process
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-medium text-ink/80">Full Name</label>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <label className="text-sm font-medium text-ink/80">Full Name</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <User className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Full name"
-                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                       />
                     </div>
                   </div>
-                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-medium text-ink/80">Phone <span className="text-ink/40 font-normal">(Opt)</span></label>
+                  <div className="space-y-1.5 flex-1">
+                    <label className="text-sm font-medium text-ink/80">Phone <span className="text-ink/40 font-normal">(Opt)</span></label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Phone number"
-                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                       />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-ink/80">Email Address</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-ink/80">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                     />
                   </div>
                 </div>
 
-                <div className="flex gap-3">
-                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-medium text-ink/80">Password</label>
+                <div className="flex gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <label className="text-sm font-medium text-ink/80">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type={showPassword ? "text" : "password"}
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Create password"
-                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-8 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
                       >
-                        {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
                     </div>
                   </div>
-                  <div className="space-y-1 flex-1">
-                    <label className="text-xs font-medium text-ink/80">Confirm</label>
+                  <div className="space-y-1.5 flex-1">
+                    <label className="text-sm font-medium text-ink/80">Confirm</label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         required
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm password"
-                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-8 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
                       >
-                        {showConfirmPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
                     </div>
                   </div>
                 </div>
-                <div className="text-[10px] text-ink/60 pl-2 mt-0.5">
+                <div className="text-xs text-ink/60 pl-2 mt-1">
                   Requirements: 8+ chars, 1 number, 1 upper/lowercase
                 </div>
 
-                <div className="flex items-start gap-2 pt-1">
+                <div className="flex items-start gap-2 pt-2">
                   <input
                     type="checkbox"
                     id="terms"
                     required
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="mt-0.5 size-3.5 rounded border-hairline bg-offwhite text-purple focus:ring-purple"
+                    className="mt-0.5 size-4 rounded border-hairline bg-offwhite text-purple focus:ring-purple"
                   />
-                  <label htmlFor="terms" className="text-[10px] text-ink/70 leading-relaxed">
+                  <label htmlFor="terms" className="text-xs text-ink/70 leading-relaxed">
                     I agree to Koshin&apos;s{" "}
                     <a href="#" className="text-purple hover:underline">
                       Terms of Service
@@ -245,14 +245,14 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading || !agreed}
-                  className="w-full rounded-full bg-purple py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-2"
+                  className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
                 >
                   {loading ? "Creating..." : "Create Account"}
                 </button>
               </form>
             )}
 
-            <div className="text-center text-[11px] text-muted-foreground mt-2">
+            <div className="text-center text-sm text-muted-foreground mt-4">
               Already have an account?{" "}
               <Link href="/login" className="font-semibold text-purple hover:underline">
                 Sign In Here
@@ -261,7 +261,7 @@ export default function SignUpPage() {
           </div>
         </main>
 
-        <footer className="text-center text-[10px] text-muted-foreground lg:hidden mt-2">
+        <footer className="text-center text-xs text-muted-foreground lg:hidden mt-4">
           © {new Date().getFullYear()} Koshin Financial Intelligence.
         </footer>
       </div>
