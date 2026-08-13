@@ -3,13 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -82,12 +86,12 @@ export default function SignUpPage() {
       </div>
 
       {/* Right Panel: Form container */}
-      <div className="flex-1 flex flex-col justify-between p-6 sm:p-10 md:p-16 lg:w-1/2 bg-white relative">
+      <div className="flex-1 flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:w-1/2 bg-white relative overflow-y-auto lg:overflow-visible">
         {/* Back Link and Mobile Logo */}
-        <header className="flex items-center justify-between w-full mb-8">
+        <header className="flex items-center justify-between w-full mb-2">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-4 py-2 text-xs font-semibold text-ink transition-all hover:bg-hairline/20"
+            className="inline-flex items-center gap-2 rounded-full border border-hairline bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-all hover:bg-hairline/20"
           >
             <ArrowLeft className="size-3.5" /> Back
           </Link>
@@ -99,11 +103,11 @@ export default function SignUpPage() {
         </header>
 
         {/* Main Content */}
-        <main className="my-auto w-full max-w-md mx-auto py-6">
-          <div className="space-y-6">
-            <div className="text-left space-y-2">
-              <h1 className="display text-3xl font-bold tracking-tight text-ink">Create Account</h1>
-              <p className="text-sm text-muted-foreground">
+        <main className="my-auto w-full max-w-md mx-auto py-2">
+          <div className="space-y-4">
+            <div className="text-left space-y-1">
+              <h1 className="display text-2xl font-bold tracking-tight text-ink">Create Account</h1>
+              <p className="text-xs text-muted-foreground">
                 Get started for free and optimize your financial health
               </p>
             </div>
@@ -123,66 +127,115 @@ export default function SignUpPage() {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-ink/80">Full Name</label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Alex Morgan"
-                      className="w-full rounded-full border border-hairline bg-offwhite py-3 pr-4 pl-11 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
-                    />
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-xs font-medium text-ink/80">Full Name</label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Full name"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <label className="text-xs font-medium text-ink/80">Phone <span className="text-ink/40 font-normal">(Opt)</span></label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <input
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Phone number"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <label className="text-xs font-medium text-ink/80">Email Address</label>
                   <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="w-full rounded-full border border-hairline bg-offwhite py-3 pr-4 pl-11 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      placeholder="you@example.com"
+                      className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-3 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-ink/80">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Create password (min 8 chars)"
-                      className="w-full rounded-full border border-hairline bg-offwhite py-3 pr-11 pl-11 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
-                    />
+                <div className="flex gap-3">
+                  <div className="space-y-1 flex-1">
+                    <label className="text-xs font-medium text-ink/80">Password</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Create password"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-8 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                      >
+                        {showPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="space-y-1 flex-1">
+                    <label className="text-xs font-medium text-ink/80">Confirm</label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-ink/40" />
+                      <input
+                        type={showConfirmPassword ? "text" : "password"}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm password"
+                        className="w-full rounded-full border border-hairline bg-offwhite py-2 pr-8 pl-9 text-xs text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                      >
+                        {showConfirmPassword ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                      </button>
+                    </div>
                   </div>
                 </div>
+                <div className="text-[10px] text-ink/60 pl-2 mt-0.5">
+                  Requirements: 8+ chars, 1 number, 1 upper/lowercase
+                </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex items-start gap-2 pt-1">
                   <input
                     type="checkbox"
                     id="terms"
+                    required
                     checked={agreed}
                     onChange={(e) => setAgreed(e.target.checked)}
-                    className="size-4 rounded border-hairline bg-offwhite text-purple focus:ring-purple"
+                    className="mt-0.5 size-3.5 rounded border-hairline bg-offwhite text-purple focus:ring-purple"
                   />
-                  <label htmlFor="terms" className="text-xs text-ink/70">
+                  <label htmlFor="terms" className="text-[10px] text-ink/70 leading-relaxed">
                     I agree to Koshin&apos;s{" "}
                     <a href="#" className="text-purple hover:underline">
                       Terms of Service
                     </a>{" "}
-                    &{" "}
+                    and{" "}
                     <a href="#" className="text-purple hover:underline">
                       Privacy Policy
                     </a>
@@ -192,14 +245,14 @@ export default function SignUpPage() {
                 <button
                   type="submit"
                   disabled={loading || !agreed}
-                  className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
+                  className="w-full rounded-full bg-purple py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-2"
                 >
-                  {loading ? "Creating Account..." : "Create Account"}
+                  {loading ? "Creating..." : "Create Account"}
                 </button>
               </form>
             )}
 
-            <div className="text-center text-xs text-muted-foreground">
+            <div className="text-center text-[11px] text-muted-foreground mt-2">
               Already have an account?{" "}
               <Link href="/login" className="font-semibold text-purple hover:underline">
                 Sign In Here
@@ -208,7 +261,7 @@ export default function SignUpPage() {
           </div>
         </main>
 
-        <footer className="text-center text-xs text-muted-foreground lg:hidden mt-8">
+        <footer className="text-center text-[10px] text-muted-foreground lg:hidden mt-2">
           © {new Date().getFullYear()} Koshin Financial Intelligence.
         </footer>
       </div>
