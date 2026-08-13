@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@/styles.css";
 import { SmoothScroll } from "@/components/site/SmoothScroll";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Koshin — Smart Expense Analyzer & Financial Health Dashboard",
@@ -27,7 +28,9 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <SmoothScroll>{children}</SmoothScroll>
+        <AuthProvider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </AuthProvider>
       </body>
     </html>
   );

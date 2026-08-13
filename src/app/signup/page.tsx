@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone } from "lucide-react";
+import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone, AlertCircle } from "lucide-react";
+import { signUp } from "@/lib/firebase/auth";
+import { createUserProfile } from "@/lib/firebase/db";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -17,6 +19,7 @@ export default function SignUpPage() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (success) {
@@ -27,14 +30,47 @@ export default function SignUpPage() {
     }
   }, [success, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (!agreed) return;
+    
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
+      // 1. Create user in Firebase Auth
+      const userCredential = await signUp(email, password);
+      
+      // 2. Create user profile in Firestore
+      await createUserProfile(userCredential.user.uid, {
+        name,
+        email,
+        phone, // Optional
+        createdAt: new Date(),
+      });
+      
       setSuccess(true);
-    }, 1000);
+    } catch (err: any) {
+      let errorMessage = "Failed to create an account.";
+      if (err.code === "auth/email-already-in-use") {
+        errorMessage = "This email is already registered. Please sign in.";
+      } else if (err.code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters.";
+      } else if (err.code === "auth/invalid-email") {
+        errorMessage = "Please enter a valid email address.";
+      } else if (err.message) {
+        // Fallback to original Firebase message if it's not handled above
+        errorMessage = err.message.replace("Firebase: ", "");
+      }
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -128,6 +164,12 @@ export default function SignUpPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4" suppressHydrationWarning>
+                {error && (
+                  <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
+                    <AlertCircle className="size-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
                 <div className="flex gap-4">
                   <div className="space-y-1.5 flex-1">
                     <label className="text-sm font-medium text-ink/80">Full Name</label>
@@ -140,6 +182,7 @@ export default function SignUpPage() {
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Full name"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        suppressHydrationWarning
                       />
                     </div>
                   </div>
@@ -153,6 +196,7 @@ export default function SignUpPage() {
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Phone number"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        suppressHydrationWarning
                       />
                     </div>
                   </div>
@@ -169,6 +213,7 @@ export default function SignUpPage() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-4 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                      suppressHydrationWarning
                     />
                   </div>
                 </div>
@@ -185,11 +230,13 @@ export default function SignUpPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="Create password"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        suppressHydrationWarning
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                        suppressHydrationWarning
                       >
                         {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
@@ -206,11 +253,13 @@ export default function SignUpPage() {
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm password"
                         className="w-full rounded-full border border-hairline bg-offwhite py-2.5 pr-10 pl-10 text-sm text-ink placeholder-ink/40 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple"
+                        suppressHydrationWarning
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink/40 hover:text-ink/60 focus:outline-none"
+                        suppressHydrationWarning
                       >
                         {showConfirmPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                       </button>
@@ -246,6 +295,7 @@ export default function SignUpPage() {
                   type="submit"
                   disabled={loading || !agreed}
                   className="w-full rounded-full bg-purple py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-purple/90 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 mt-4"
+                  suppressHydrationWarning
                 >
                   {loading ? "Creating..." : "Create Account"}
                 </button>
