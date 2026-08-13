@@ -5,11 +5,11 @@ import { Dispatch, SetStateAction } from "react";
 
 interface SimulatorViewProps {
   foodCut: number;
-  setFoodCut: Dispatch<SetStateAction<number>>;
+  setFoodCut: (val: number) => void;
   subCut: number;
-  setSubCut: Dispatch<SetStateAction<number>>;
+  setSubCut: (val: number) => void;
   shoppingCut: number;
-  setShoppingCut: Dispatch<SetStateAction<number>>;
+  setShoppingCut: (val: number) => void;
   totalExpenses?: number;
   simFoodSavings?: number;
   simSubSavings?: number;

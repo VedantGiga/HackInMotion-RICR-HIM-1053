@@ -204,7 +204,7 @@ export function KoshinDashboard() {
     { id: "subscriptions", label: "Silent Bills", icon: Bell, badge: `${recurringBills.length}` },
     { id: "simulator", label: "Savings Simulator", icon: SlidersHorizontal, badge: "AI" },
     { id: "goals", label: "Savings Goals", icon: Target, badge: null },
-    { id: "ai-advisor", label: "AI Advisor", icon: Bot, badge: "Live" },
+    { id: "ai", label: "AI Advisor", icon: Bot, badge: "Live" },
     { id: "settings", label: "Settings", icon: Settings, badge: null },
   ] as const;
 
@@ -281,7 +281,7 @@ export function KoshinDashboard() {
             </button>
 
             <button
-              onClick={() => setActiveTab("ai-advisor")}
+              onClick={() => setActiveTab("ai")}
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple/30 bg-purple/10 text-purple text-xs font-semibold hover:bg-purple/20 transition-all"
             >
               <Bot className="size-4" />
@@ -381,7 +381,7 @@ export function KoshinDashboard() {
                             </button>
 
                             <button
-                              onClick={() => setActiveTab("ai-advisor")}
+                              onClick={() => setActiveTab("ai")}
                               className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all"
                             >
                               <Bot className="size-4 text-lime" />
@@ -518,7 +518,7 @@ export function KoshinDashboard() {
                     <GoalsView />
                   )}
 
-                  {activeTab === "ai-advisor" && (
+                  {activeTab === "ai" && (
                     <div className="rounded-3xl border border-hairline bg-white p-8 shadow-sm space-y-6 max-w-4xl mx-auto">
                       <div className="flex items-center gap-3 pb-4 border-b border-hairline">
                         <div className="size-10 rounded-2xl bg-purple/10 text-purple border border-purple/20 flex items-center justify-center">
