@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function RootLayout({
   children,
@@ -30,11 +29,9 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            <SmoothScroll>{children}</SmoothScroll>
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <SmoothScroll>{children}</SmoothScroll>
+        </AuthProvider>
       </body>
     </html>
   );
