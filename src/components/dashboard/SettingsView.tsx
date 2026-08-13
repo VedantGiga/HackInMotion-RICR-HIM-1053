@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles } from "lucide-react";
 import { useSession } from "next-auth/react";
 
@@ -15,14 +15,43 @@ export function SettingsView() {
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[0]);
   const [savedSuccess, setSavedSuccess] = useState(false);
 
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
   const userName = session?.user?.name || "User";
   const userEmail = session?.user?.email || "";
+  const userPhone = (session?.user as any)?.phone || "";
   const firstName = userName.split(" ")[0] || "";
   const lastName = userName.split(" ").slice(1).join(" ") || "";
 
-  const handleSave = () => {
+  const [phoneInput, setPhoneInput] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync session phone to local state once it loads
+  useEffect(() => {
+    if (userPhone) setPhoneInput(userPhone);
+  }, [userPhone]);
+
+  const handleSave = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
+    
+    // Only attempt save if there's no phone in session yet, but user entered one
+    if (!userPhone && phoneInput.trim()) {
+      try {
+        const res = await fetch("/api/v1/user/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone: phoneInput.trim() }),
+        });
+        if (res.ok) {
+          await update(); // Refreshes the NextAuth session seamlessly
+        }
+      } catch (err) {
+        console.error("Failed to save phone", err);
+      }
+    }
+
     setSavedSuccess(true);
+    setIsSaving(false);
     setTimeout(() => setSavedSuccess(false), 2500);
   };
 
@@ -39,9 +68,10 @@ export function SettingsView() {
         </div>
         <button
           onClick={handleSave}
-          className="px-6 py-2.5 rounded-full bg-ink text-white text-xs font-bold hover:bg-purple transition-all shadow-md cursor-pointer self-start md:self-auto"
+          disabled={isSaving}
+          className="px-6 py-2.5 rounded-full bg-ink text-white text-xs font-bold hover:bg-purple transition-all shadow-md cursor-pointer self-start md:self-auto disabled:opacity-70"
         >
-          {savedSuccess ? "✓ Saved Changes" : "Save Settings"}
+          {isSaving ? "Saving..." : savedSuccess ? "✓ Saved Changes" : "Save Settings"}
         </button>
       </div>
 
@@ -127,8 +157,21 @@ export function SettingsView() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Phone Number</label>
-              <input type="tel" defaultValue="+1 (555) 234-8901" className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1">
+                Phone Number {!!userPhone && <Lock className="size-3 text-emerald-600" />}
+              </label>
+              <input 
+                type="tel" 
+                value={phoneInput}
+                onChange={(e) => setPhoneInput(e.target.value)}
+                readOnly={!!userPhone}
+                placeholder="+1 (555) 000-0000"
+                className={`w-full px-4 py-3 rounded-xl border text-[14px] text-ink font-semibold focus:outline-none transition-colors ${
+                  userPhone 
+                    ? "bg-hairline/30 border-transparent text-ink/60 cursor-not-allowed" 
+                    : "bg-offwhite border-hairline focus:border-purple focus:ring-1 focus:ring-purple"
+                }`} 
+              />
             </div>
 
             <div className="space-y-2">
