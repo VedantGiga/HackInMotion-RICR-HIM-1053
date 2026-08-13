@@ -95,25 +95,7 @@ export function CaseStudies() {
                       {c.body}
                     </p>
 
-                    <div>
-                      <a
-                        href="#demo"
-                        className={`inline-flex items-center justify-between gap-3 rounded-full border px-4 py-2 text-xs font-semibold transition-all duration-300 ${
-                          isHovered
-                            ? "border-ink/25 bg-white text-ink hover:border-ink hover:bg-ink hover:text-white"
-                            : "border-white/35 bg-white/5 text-white hover:border-white hover:bg-white/10"
-                        }`}
-                      >
-                        <span>Read more</span>
-                        <span
-                          className={`grid size-6 place-items-center rounded-full border transition-transform duration-300 group-hover:translate-x-1 ${
-                            isHovered ? "border-ink/25 text-current" : "border-white/35 text-white"
-                          }`}
-                        >
-                          <ArrowRight className="size-3" strokeWidth={2} />
-                        </span>
-                      </a>
-                    </div>
+
                   </div>
                 </article>
               </Reveal>
