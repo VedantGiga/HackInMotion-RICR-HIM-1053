@@ -44,6 +44,9 @@ export default function ProcessingPage() {
         clearInterval(interval);
         // Add a slight delay before redirecting to the dashboard
         setTimeout(() => {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("koshin_onboarded", "true");
+          }
           router.push("/dashboard");
         }, 1500);
       }

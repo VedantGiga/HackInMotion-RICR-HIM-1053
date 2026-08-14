@@ -101,6 +101,12 @@ export function KoshinDashboard() {
   const [manualIsRecurring, setManualIsRecurring] = useState(false);
 
   const [curr, setCurr] = useState("₹");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("koshin_onboarded", "true");
+    }
+  }, []);
   const [parsingStep, setParsingStep] = useState(0);
   const [isParsing, setIsParsing] = useState(false);
   const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,10 +19,17 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { status } = useSession();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
 
   const {
     register,
@@ -50,6 +57,9 @@ export default function LoginPage() {
         return;
       }
 
+      if (typeof window !== "undefined") {
+        localStorage.setItem("koshin_onboarded", "true");
+      }
       setRedirecting(true);
       router.push("/dashboard");
     } catch (err: any) {

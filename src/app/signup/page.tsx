@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone, AlertCircle } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,12 +26,19 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
   const router = useRouter();
+  const { status } = useSession();
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
 
   const {
     register,
@@ -49,6 +56,9 @@ export default function SignUpPage() {
     setLoading(true);
     
     try {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("koshin_onboarded");
+      }
       // 1. Create user in Prisma Database via REST API
       const res = await fetch("/api/v1/auth/register", {
         method: "POST",

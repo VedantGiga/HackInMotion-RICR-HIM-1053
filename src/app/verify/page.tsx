@@ -16,14 +16,23 @@ const verifySchema = z.object({
 
 type VerifyFormValues = z.infer<typeof verifySchema>;
 
+import { useSession } from "next-auth/react";
+
 export default function VerifyPage() {
   const router = useRouter();
+  const { status } = useSession();
   
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
   const [codeDigits, setCodeDigits] = useState(['', '', '', '', '', '']);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
 
   const {
     handleSubmit,
