@@ -44,15 +44,16 @@ export default function LoginPage() {
         redirect: false,
       });
 
-      if (res?.error) {
-        throw new Error(res.error);
+      if (!res || res.error || !res.ok) {
+        setAuthError("Invalid email or password. Please try again.");
+        setLoading(false);
+        return;
       }
 
       setRedirecting(true);
       router.push("/dashboard");
     } catch (err: any) {
-      setAuthError(err.message || "Invalid email or password.");
-    } finally {
+      setAuthError(err.message || "Invalid email or password. Please try again.");
       setLoading(false);
     }
   };
