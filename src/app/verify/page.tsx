@@ -20,7 +20,7 @@ import { useSession, signOut } from "next-auth/react";
 
 export default function VerifyPage() {
   const router = useRouter();
-  const { status, data: session } = useSession();
+  const { status, data: session, update } = useSession();
   
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -102,6 +102,9 @@ export default function VerifyPage() {
       if (!res.ok) {
         throw new Error(json.error || "Invalid verification code");
       }
+      
+      // Force update the NextAuth session token to reflect the verified status
+      await update({ emailVerified: new Date().toISOString() });
       
       setRedirecting(true);
       router.push("/onboarding");

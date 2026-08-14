@@ -64,11 +64,20 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.currency = (user as any).currency;
         token.emailVerified = (user as any).emailVerified;
+      }
+      
+      if (trigger === "update" && session) {
+        if (session.emailVerified !== undefined) {
+          token.emailVerified = session.emailVerified;
+        }
+        if (session.currency !== undefined) {
+          token.currency = session.currency;
+        }
       }
       return token;
     },
