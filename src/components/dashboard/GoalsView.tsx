@@ -209,7 +209,7 @@ export function GoalsView() {
                   </div>
                   <div className="flex justify-between items-center mt-3 text-[12px] font-bold text-muted-foreground">
                     <span>{pct}% Funded</span>
-                    <span>{isCompleted ? "Goal Completed!" : `$${(target - current).toFixed(2)} Remaining`}</span>
+                    <span>{isCompleted ? "Goal Completed!" : `${curr}${(target - current).toFixed(2)} Remaining`}</span>
                   </div>
                 </div>
               </div>

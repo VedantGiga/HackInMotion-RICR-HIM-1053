@@ -24,31 +24,37 @@ export function SettingsView() {
   const lastName = userName.split(" ").slice(1).join(" ") || "";
 
   const [phoneInput, setPhoneInput] = useState("");
+  const [currencyInput, setCurrencyInput] = useState(curr);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sync session phone to local state once it loads
+  // Sync session data to local state once it loads
   useEffect(() => {
     if (userPhone) setPhoneInput(userPhone);
-  }, [userPhone]);
+    if (curr) setCurrencyInput(curr);
+  }, [userPhone, curr]);
 
   const handleSave = async () => {
     if (isSaving) return;
     setIsSaving(true);
     
-    // Only attempt save if there's no phone in session yet, but user entered one
-    if (!userPhone && phoneInput.trim()) {
-      try {
+    // Save phone and currency
+    try {
+      const payload: any = {};
+      if (!userPhone && phoneInput.trim()) payload.phone = phoneInput.trim();
+      if (currencyInput !== curr) payload.currency = currencyInput;
+
+      if (Object.keys(payload).length > 0) {
         const res = await fetch("/api/v1/user/profile", {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone: phoneInput.trim() }),
+          body: JSON.stringify(payload),
         });
         if (res.ok) {
-          await update(); // Refreshes the NextAuth session seamlessly
+          await update(payload); // Refreshes the NextAuth session with new data
         }
-      } catch (err) {
-        console.error("Failed to save phone", err);
       }
+    } catch (err) {
+      console.error("Failed to save settings", err);
     }
 
     setSavedSuccess(true);
@@ -153,6 +159,21 @@ export function SettingsView() {
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Savings Target</label>
               <input type="text" defaultValue={`${curr}1,500 / month`} className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Base Currency</label>
+              <select
+                value={currencyInput}
+                onChange={(e) => setCurrencyInput(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors appearance-none"
+              >
+                <option value="$">USD ($)</option>
+                <option value="€">EUR (€)</option>
+                <option value="£">GBP (£)</option>
+                <option value="¥">JPY (¥)</option>
+                <option value="₹">INR (₹)</option>
+              </select>
             </div>
           </div>
 

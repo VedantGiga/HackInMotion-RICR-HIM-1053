@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import gsap from "gsap";
 import { ArrowLeft, ArrowRight, Target, TrendingUp, ShieldCheck, CheckCircle2, DollarSign, Globe } from "lucide-react";
 
@@ -20,6 +21,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export default function CreateProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { update } = useSession();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>("INR");
   const [monthlyIncome, setMonthlyIncome] = useState<string>("");
@@ -64,6 +66,7 @@ export default function CreateProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ currency: CURRENCY_SYMBOLS[selectedCurrency] || "$" }),
       });
+      await update({ currency: CURRENCY_SYMBOLS[selectedCurrency] || "$" });
     } catch (err) {
       console.error("Failed to update currency on server", err);
     }
