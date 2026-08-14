@@ -141,7 +141,7 @@ export default function SignUpPage() {
 
         {/* Logo and Brand */}
         <Link href="/" className="relative z-10 flex items-center gap-3">
-          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" className="h-32 w-auto object-contain brightness-0 invert scale-110 origin-left drop-shadow-md" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin Logo" decoding="async" loading="eager" className="h-32 w-auto object-contain brightness-0 invert scale-110 origin-left drop-shadow-md" />
         </Link>
 
         {/* Visual Content */}

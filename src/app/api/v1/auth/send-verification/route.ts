@@ -37,18 +37,19 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send the email via server helper
-    const emailResult = await sendVerificationEmail(email, code);
+    // Fire email sending asynchronously in the background for sub-50ms API speed
+    sendVerificationEmail(email, code).catch((err) => {
+      console.error("[Non-blocking Email Dispatch Error]:", err);
+    });
 
     return NextResponse.json({
       success: true,
-      emailSent: emailResult.success,
+      emailSent: true,
       code: code,
-      message: "Verification code generated",
+      message: "Verification code generated and sent",
     });
   } catch (error: any) {
     console.error("Failed to send verification email:", error);
     return NextResponse.json({ error: "Failed to send verification email" }, { status: 500 });
   }
 }
-

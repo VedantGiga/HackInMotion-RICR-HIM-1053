@@ -120,7 +120,14 @@ export function Navbar() {
           <div className="hidden sm:flex items-center gap-3">
             {isDashboard ? (
               <button
-                onClick={() => signOut({ callbackUrl: "/" })}
+                onClick={async () => {
+                  if (typeof window !== "undefined") {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                  }
+                  await signOut({ redirect: false });
+                  window.location.href = "/login";
+                }}
                 className="inline-flex items-center justify-center rounded-full border border-white/20 bg-transparent px-5 py-2 text-xs font-semibold text-white transition-all hover:bg-white/10 cursor-pointer"
               >
                 Sign Out

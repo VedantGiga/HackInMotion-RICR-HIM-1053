@@ -1244,16 +1244,16 @@ export function KoshinDashboard() {
               </div>
 
               {/* Table Body */}
-              <div className="flex-1 overflow-y-auto p-6">
-                <table className="w-full text-left text-xs">
-                  <thead>
+              <div className="flex-1 max-h-[60vh] min-h-[300px] overflow-y-auto overflow-x-auto p-6 border-b border-hairline scrollbar-thin">
+                <table className="w-full text-left text-xs min-w-[650px]">
+                  <thead className="sticky top-0 bg-white shadow-xs z-10">
                     <tr className="border-b border-hairline text-muted-foreground uppercase text-[10px] tracking-wider font-bold">
-                      <th className="py-2 px-3 text-center">Import</th>
-                      <th className="py-2 px-3">Date</th>
-                      <th className="py-2 px-3">Description</th>
-                      <th className="py-2 px-3">Category</th>
-                      <th className="py-2 px-3">AI Confidence</th>
-                      <th className="py-2 px-3 text-right">Amount</th>
+                      <th className="py-2.5 px-3 text-center bg-white">Import</th>
+                      <th className="py-2.5 px-3 bg-white">Date</th>
+                      <th className="py-2.5 px-3 bg-white">Description</th>
+                      <th className="py-2.5 px-3 bg-white">Category</th>
+                      <th className="py-2.5 px-3 bg-white">AI Confidence</th>
+                      <th className="py-2.5 px-3 text-right bg-white">Amount</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-hairline">

@@ -48,9 +48,9 @@ export default function ProcessingPage() {
             localStorage.setItem("koshin_onboarded", "true");
           }
           router.push("/dashboard");
-        }, 1500);
+        }, 300);
       }
-    }, 1800); // 1.8 seconds per step
+    }, 350); // 1.8 seconds per step
 
     return () => {
       ctx.revert();

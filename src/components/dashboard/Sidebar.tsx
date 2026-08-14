@@ -52,7 +52,7 @@ export function Sidebar({
       {/* Logo */}
       <div className="hidden lg:flex items-center gap-3 px-6 pt-7 pb-6">
         <a href="/">
-          <img src="/logofinal-bgremoved.png" alt="Koshin" className="h-9 w-auto object-contain scale-[3] origin-left ml-3" />
+          <img src="/logofinal-bgremoved.png" alt="Koshin" decoding="async" loading="eager" className="h-9 w-auto object-contain scale-[3] origin-left ml-3" />
         </a>
       </div>
 
@@ -136,7 +136,18 @@ export function Sidebar({
             </div>
           </div>
           {isDashboardPage && (
-            <button onClick={() => signOut({ callbackUrl: "/" })} title="Sign out" className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer">
+            <button
+              onClick={async () => {
+                if (typeof window !== "undefined") {
+                  localStorage.clear();
+                  sessionStorage.clear();
+                }
+                await signOut({ redirect: false });
+                window.location.href = "/login";
+              }}
+              title="Sign out"
+              className="p-2 rounded-xl hover:bg-black/5 text-muted-foreground hover:text-ink transition-all cursor-pointer"
+            >
               <LogOut className="size-4" />
             </button>
           )}
