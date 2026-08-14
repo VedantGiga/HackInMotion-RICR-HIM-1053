@@ -107,6 +107,30 @@ export function KoshinDashboard() {
   const [apiInsights, setApiInsights] = useState<string[]>([]);
   const [apiSpending, setApiSpending] = useState<any>(null);
 
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processFileImport(file);
+    }
+  };
+
   useEffect(() => {
     setCurr(getCurrencySymbol());
   }, []);
@@ -458,10 +482,11 @@ export function KoshinDashboard() {
 
             <button
               onClick={() => setIsUploadModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple/25 cursor-pointer"
+              aria-label="Import Bank Statement"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-extrabold transition-all shadow-md hover:shadow-purple/25 cursor-pointer ring-2 ring-purple/20"
             >
               <UploadCloud className="size-4 text-lime-300" />
-              <span>+ Scan Receipt / Statement</span>
+              <span>+ Import Bank Statement</span>
             </button>
 
             <button
@@ -880,7 +905,14 @@ export function KoshinDashboard() {
                 <div className="space-y-4">
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-purple/30 rounded-2xl p-8 text-center bg-purple/5 hover:border-purple cursor-pointer transition-all space-y-3"
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all space-y-3 ${
+                      isDragging
+                        ? "border-purple bg-purple/15 scale-[1.02] shadow-xl"
+                        : "border-purple/30 bg-purple/5 hover:border-purple"
+                    }`}
                   >
                     <input 
                       type="file" 
@@ -889,13 +921,17 @@ export function KoshinDashboard() {
                       accept=".csv, .pdf"
                       onChange={handleFileUpload}
                     />
-                    <UploadCloud className="size-10 text-purple mx-auto animate-bounce" />
+                    <UploadCloud className={`size-10 mx-auto transition-all ${isDragging ? 'text-purple scale-125' : 'text-purple animate-bounce'}`} />
                     <div>
-                      <p className="text-sm font-bold text-ink">Upload Bank CSV or PDF Statement</p>
-                      <p className="text-xs text-muted-foreground mt-1">Supports HDFC, ICICI, SBI, Chase, Amex & custom bank schemas</p>
+                      <p className="text-sm font-bold text-ink">
+                        {isDragging ? "Drop Bank CSV / PDF Statement Here!" : "Drag & Drop or Upload Bank CSV / PDF Statement"}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Drag any bank CSV, XLS, XLSX, or PDF statement file directly into this dropzone
+                      </p>
                     </div>
                     <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
-                      Select CSV or PDF File
+                      Browse Files
                     </button>
                   </div>
 
