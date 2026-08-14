@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles, Trash2, Plus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { getCurrencySymbol } from "@/lib/utils";
 
 export function SettingsView() {
+  const { data: session, update } = useSession();
+  const curr = (session?.user as any)?.currency || getCurrencySymbol();
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [rules, setRules] = useState([
     { id: "1", keyword: "Gas Station", category: "Travel & Rides" },
@@ -13,7 +16,7 @@ export function SettingsView() {
   const [newKeyword, setNewKeyword] = useState("");
   const [newCategory, setNewCategory] = useState("Food & Dining");
 
-  const { data: session, update } = useSession();
+  const newCategory_ = newCategory;
   const userName = session?.user?.name || "User";
   const userEmail = session?.user?.email || "";
   const userPhone = (session?.user as any)?.phone || "";
@@ -149,7 +152,7 @@ export function SettingsView() {
 
             <div className="space-y-2">
               <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Savings Target</label>
-              <input type="text" defaultValue="$1,500 / month" className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
+              <input type="text" defaultValue={`${curr}1,500 / month`} className="w-full px-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors" />
             </div>
           </div>
 

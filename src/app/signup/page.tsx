@@ -14,6 +14,7 @@ const signUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   phone: z.string().optional(),
+
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
   agreed: z.boolean().refine(val => val === true, "You must agree to the terms"),
@@ -68,6 +69,7 @@ export default function SignUpPage() {
           email: data.email,
           phone: data.phone,
           password: data.password,
+          currency: data.currency,
         }),
       });
 
@@ -240,7 +242,7 @@ export default function SignUpPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <div className="space-y-1.5 flex-1">
+                  <div className="space-y-1.5 flex-[2]">
                     <label className="text-sm font-medium text-ink/80">Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
@@ -263,7 +265,7 @@ export default function SignUpPage() {
                     {errors.password && <p className="text-xs text-red-500 pl-2 mt-1">{errors.password.message}</p>}
                   </div>
                   <div className="space-y-1.5 flex-1">
-                    <label className="text-sm font-medium text-ink/80">Confirm</label>
+                    <label className="text-sm font-medium text-ink/80">Confirm Password</label>
                     <div className="relative">
                       <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-ink/40" />
                       <input

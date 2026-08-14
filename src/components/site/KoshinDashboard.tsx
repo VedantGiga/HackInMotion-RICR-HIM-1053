@@ -3,6 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   TrendingUp,
   CreditCard,
@@ -100,8 +101,14 @@ export function KoshinDashboard() {
   const [manualType, setManualType] = useState<"expense" | "income">("expense");
   const [manualIsRecurring, setManualIsRecurring] = useState(false);
 
-  const [curr, setCurr] = useState("₹");
+  const { data: session } = useSession();
+  const [curr, setCurr] = useState((session?.user as any)?.currency || "$");
 
+  useEffect(() => {
+    if ((session?.user as any)?.currency) {
+      setCurr((session?.user as any).currency);
+    }
+  }, [session]);
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("koshin_onboarded", "true");
