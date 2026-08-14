@@ -63,8 +63,8 @@ export default function LoginPage() {
 
       setRedirecting(true);
       if (typeof window !== "undefined") {
-        const hasOnboarded = localStorage.getItem("koshin_onboarded") === "true";
-        window.location.href = hasOnboarded ? "/dashboard" : "/onboarding";
+        localStorage.setItem("koshin_onboarded", "true");
+        window.location.href = "/dashboard";
       }
     } catch (err: any) {
       setAuthError(err.message || "Invalid email or password. Please try again.");
