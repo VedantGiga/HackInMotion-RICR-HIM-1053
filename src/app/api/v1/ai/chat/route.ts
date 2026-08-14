@@ -38,7 +38,12 @@ export async function POST(req: Request) {
 
     const netSavings = totalIncome - totalExpense;
     const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0;
-    const userObj = await prisma.user.findUnique({ where: { id: userId }, select: { healthScore: true } });
+    const [userObj, budgets, goals] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { healthScore: true } }),
+      prisma.budget.findMany({ where: { userId }, include: { category: true } }),
+      prisma.goal.findMany({ where: { userId } }),
+    ]);
+
     const healthScore = userObj?.healthScore ?? 100;
 
     const topCategories = Object.entries(categoryTotals)
@@ -46,6 +51,14 @@ export async function POST(req: Request) {
       .slice(0, 4)
       .map(([cat, amt]) => `${cat}: $${amt.toFixed(2)}`)
       .join(", ");
+
+    const activeGoalsSummary = goals.length > 0
+      ? goals.map(g => `${g.name}: $${g.currentAmount.toFixed(0)}/$${g.targetAmount.toFixed(0)} (${Math.min(100, Math.round((g.currentAmount / g.targetAmount) * 100))}%)`).join("; ")
+      : "None set yet";
+
+    const activeBudgetsSummary = budgets.length > 0
+      ? budgets.map(b => `${b.category.name}: Limit $${b.limit.toFixed(0)}`).join("; ")
+      : "None set yet";
 
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -58,6 +71,8 @@ Provide concise, non-jargon, and empowering advice based strictly on the user's 
 - Total Expenses: $${totalExpense.toFixed(2)}
 - Net Savings: $${netSavings.toFixed(2)} (Savings Rate: ${savingsRate}%)
 - Top Spending Categories: ${topCategories || "None yet"}
+- Active Savings Goals: ${activeGoalsSummary}
+- Active Category Budgets: ${activeBudgetsSummary}
 - Total Transactions Tracked: ${transactions.length}
 
 Answer the user's question directly. Keep response under 4 sentences unless detailed calculations are asked. Be encouraging and actionable.`;

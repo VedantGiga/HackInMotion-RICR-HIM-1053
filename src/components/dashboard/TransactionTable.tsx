@@ -3,6 +3,7 @@
 import { Trash2 } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { getCurrencySymbol } from "@/lib/utils";
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -11,6 +12,7 @@ interface TransactionTableProps {
 
 export function TransactionTable({ transactions, onDeleteTransaction }: TransactionTableProps) {
   const { setTransactions } = useDashboardStore();
+  const curr = getCurrencySymbol();
 
   const handleDelete = async (id: string) => {
     if (onDeleteTransaction) {
@@ -94,7 +96,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                     <td className={`py-4 px-6 text-right font-bold text-[15px] whitespace-nowrap ${
                       tx.type === 'income' ? 'text-emerald-600' : 'text-ink'
                     }`}>
-                      {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                      {tx.type === 'income' ? '+' : '-'}{curr}{tx.amount.toFixed(2)}
                     </td>
                     <td className="py-4 px-4 text-center">
                       <button

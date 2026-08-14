@@ -4,12 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { ArrowLeft, ArrowRight, Target, TrendingUp, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Target, TrendingUp, ShieldCheck, CheckCircle2, DollarSign, Globe } from "lucide-react";
+
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  INR: "₹",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  CAD: "$",
+  AUD: "$",
+  AED: "AED ",
+  SGD: "$",
+};
 
 export default function CreateProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<string>("INR");
+  const [monthlyIncome, setMonthlyIncome] = useState<string>("");
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -33,7 +46,12 @@ export default function CreateProfilePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API transition to next step
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user_currency", selectedCurrency);
+      localStorage.setItem("user_monthly_income", monthlyIncome);
+    }
+
     setTimeout(() => {
       router.push("/onboarding/accounts"); 
     }, 1200);
@@ -74,7 +92,7 @@ export default function CreateProfilePage() {
               Create your financial profile
             </h1>
             <p className="reveal-elem text-xs sm:text-sm text-ink/60">
-              Tell us a bit about your current situation so we can tailor Koshin's AI to your specific needs.
+              Tell us a bit about your current situation so we can tailor Koshin&apos;s AI to your specific needs.
             </p>
           </div>
 
@@ -116,24 +134,40 @@ export default function CreateProfilePage() {
               <div className="reveal-elem space-y-1">
                 <label className="text-xs font-bold text-ink/80">Estimated Monthly Income</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-mono text-xs">$</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple font-bold text-xs">
+                    {CURRENCY_SYMBOLS[selectedCurrency] || "₹"}
+                  </span>
                   <input 
                     type="number" 
-                    placeholder="5,000"
-                    className="w-full rounded-xl border border-hairline bg-white py-2.5 pr-3 pl-7 text-xs text-ink placeholder-ink/30 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors"
+                    placeholder="75,000"
+                    value={monthlyIncome}
+                    onChange={(e) => setMonthlyIncome(e.target.value)}
+                    className="w-full rounded-xl border border-hairline bg-white py-2.5 pr-3 pl-8 text-xs font-semibold text-ink placeholder-ink/30 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors"
                   />
                 </div>
               </div>
               
               <div className="reveal-elem space-y-1">
-                <label className="text-xs font-bold text-ink/80">Base Currency</label>
-                <select className="w-full rounded-xl border border-hairline bg-white py-2.5 px-3 text-xs text-ink focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors appearance-none">
-                  <option value="USD">USD - US Dollar</option>
-                  <option value="EUR">EUR - Euro</option>
-                  <option value="GBP">GBP - British Pound</option>
-                  <option value="CAD">CAD - Canadian Dollar</option>
-                  <option value="INR">INR - Indian Rupee</option>
-                </select>
+                <label className="text-xs font-bold text-ink/80 flex items-center justify-between">
+                  <span>Base Currency</span>
+                  <span className="text-[10px] font-semibold text-purple">Default: INR</span>
+                </label>
+                <div className="relative">
+                  <select 
+                    value={selectedCurrency}
+                    onChange={(e) => setSelectedCurrency(e.target.value)}
+                    className="w-full rounded-xl border border-hairline bg-white py-2.5 px-3.5 text-xs font-bold text-ink focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors cursor-pointer"
+                  >
+                    <option value="INR">₹ INR - Indian Rupee</option>
+                    <option value="USD">$ USD - US Dollar</option>
+                    <option value="EUR">€ EUR - Euro</option>
+                    <option value="GBP">£ GBP - British Pound</option>
+                    <option value="CAD">$ CAD - Canadian Dollar</option>
+                    <option value="AUD">$ AUD - Australian Dollar</option>
+                    <option value="AED">AED - UAE Dirham</option>
+                    <option value="SGD">$ SGD - Singapore Dollar</option>
+                  </select>
+                </div>
               </div>
             </div>
 

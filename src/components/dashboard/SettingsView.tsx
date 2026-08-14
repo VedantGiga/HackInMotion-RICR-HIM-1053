@@ -304,6 +304,34 @@ export function SettingsView() {
           </div>
         </div>
       </div>
+
+      {/* DATABASE & DEMO RESET CARD */}
+      <div className="rounded-3xl border border-pinkish/30 bg-pinkish/5 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-bold text-pinkish flex items-center gap-2">
+            <Trash2 className="size-4" /> Reset Statement & Analytics Data
+          </h4>
+          <p className="text-xs text-muted-foreground mt-1">
+            Wipe all imported bank transactions and start fresh for a clean demo state.
+          </p>
+        </div>
+        <button
+          onClick={async () => {
+            if (confirm("Are you sure you want to delete all stored transactions and reset dashboard metrics?")) {
+              try {
+                await fetch("/api/v1/transactions", { method: "DELETE" });
+                alert("Database state cleared successfully! Reloading...");
+                window.location.reload();
+              } catch (err) {
+                console.error("Failed to reset data", err);
+              }
+            }
+          }}
+          className="px-4 py-2 bg-pinkish hover:bg-pinkish/90 text-white rounded-full text-xs font-bold transition-colors cursor-pointer shrink-0"
+        >
+          Reset Demo Data
+        </button>
+      </div>
     </div>
   );
 }

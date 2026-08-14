@@ -2,6 +2,7 @@
 
 import { Activity, Coffee, Tv, ShoppingBag, ShieldCheck, TrendingUp, Target } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
+import { getCurrencySymbol } from "@/lib/utils";
 
 interface SimulatorViewProps {
   foodCut: number;
@@ -26,6 +27,7 @@ export function SimulatorView({
   simFoodSavings, simSubSavings, simShopSavings,
   totalMonthlySimSavings, totalAnnualSimSavings
 }: SimulatorViewProps) {
+  const curr = getCurrencySymbol();
   const computedFoodSavings = simFoodSavings ?? (totalExpenses * 0.35 * (foodCut / 100));
   const computedSubSavings = simSubSavings ?? (totalExpenses * 0.12 * (subCut / 100));
   const computedShopSavings = simShopSavings ?? (totalExpenses * 0.20 * (shoppingCut / 100));
@@ -145,7 +147,7 @@ export function SimulatorView({
           ].map(r => (
             <div key={r.label} className="flex items-center justify-between text-[13px] font-bold border-b border-hairline pb-2 last:border-0 last:pb-0">
               <span className="text-ink">{r.label}</span>
-              <span className={`${r.color}`}>-${r.saving.toFixed(2)}/mo</span>
+              <span className={`${r.color}`}>-{curr}{r.saving.toFixed(2)}/mo</span>
             </div>
           ))}
         </div>
@@ -164,23 +166,23 @@ export function SimulatorView({
             </h4>
 
             <div className="display text-[50px] font-extrabold text-purple tracking-tight leading-none mb-2">
-              +${computedAnnualSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              +{curr}{computedAnnualSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </div>
-            <div className="text-[14px] font-bold text-muted-foreground">per year · frees up ${computedMonthlySavings.toFixed(2)}/mo</div>
+            <div className="text-[14px] font-bold text-muted-foreground">per year · frees up {curr}{computedMonthlySavings.toFixed(2)}/mo</div>
 
             {/* Compound Growth Timeline Breakdown */}
             <div className="grid grid-cols-3 gap-2.5 mt-6 pt-5 border-t border-purple/20">
               <div className="p-3 rounded-xl bg-white border border-purple/20 text-center">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">1-Year</span>
-                <span className="text-[13px] font-extrabold text-purple block mt-1">+${Math.round(growth1Yr).toLocaleString()}</span>
+                <span className="text-[13px] font-extrabold text-purple block mt-1">+{curr}{Math.round(growth1Yr).toLocaleString()}</span>
               </div>
               <div className="p-3 rounded-xl bg-white border border-purple/20 text-center">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">5-Year</span>
-                <span className="text-[13px] font-extrabold text-purple block mt-1">+${Math.round(growth5Yr).toLocaleString()}</span>
+                <span className="text-[13px] font-extrabold text-purple block mt-1">+{curr}{Math.round(growth5Yr).toLocaleString()}</span>
               </div>
               <div className="p-3 rounded-xl bg-purple text-white border border-purple text-center shadow-sm">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-lime block">10-Year</span>
-                <span className="text-[13px] font-extrabold text-lime block mt-1">+${Math.round(growth10Yr).toLocaleString()}</span>
+                <span className="text-[13px] font-extrabold text-lime block mt-1">+{curr}{Math.round(growth10Yr).toLocaleString()}</span>
               </div>
             </div>
 

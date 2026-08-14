@@ -46,6 +46,7 @@ import { SimulatorView } from "@/components/dashboard/SimulatorView";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { MetricCard } from "@/components/dashboard/MetricCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { getCurrencySymbol } from "@/lib/utils";
 
 export type Transaction = {
   id: string;
@@ -99,11 +100,16 @@ export function KoshinDashboard() {
   const [manualType, setManualType] = useState<"expense" | "income">("expense");
   const [manualIsRecurring, setManualIsRecurring] = useState(false);
 
+  const [curr, setCurr] = useState("₹");
   const [parsingStep, setParsingStep] = useState(0);
   const [isParsing, setIsParsing] = useState(false);
   const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);
   const [apiInsights, setApiInsights] = useState<string[]>([]);
   const [apiSpending, setApiSpending] = useState<any>(null);
+
+  useEffect(() => {
+    setCurr(getCurrencySymbol());
+  }, []);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -214,6 +220,18 @@ export function KoshinDashboard() {
   const recurringBills = useMemo(() => {
     return transactions.filter(t => t.isRecurring);
   }, [transactions]);
+
+  const runwayData = useMemo(() => {
+    if (totalExpenses === 0) {
+      return { months: "Infinite", targetDate: "N/A" };
+    }
+    const estimatedLiquidReserve = totalIncome > 0 ? (totalIncome * 3 + netSavings) : Math.max(netSavings, 0);
+    const months = Math.max(1, parseFloat((estimatedLiquidReserve / totalExpenses).toFixed(1)));
+    const now = new Date();
+    const future = new Date(now.getFullYear(), now.getMonth() + Math.round(months), 1);
+    const targetDate = future.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    return { months: `${months} Months`, targetDate };
+  }, [totalIncome, totalExpenses, netSavings]);
 
   const processFileImport = async (file: File) => {
     setIsParsing(true);
@@ -593,7 +611,7 @@ export function KoshinDashboard() {
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <MetricCard
                           title="Total Income"
-                          value={`$${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          value={`${curr}${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<CheckCircle2 className="size-3.5" />}
                           trendIcon={<ArrowDownLeft className="size-4" />}
                           trendLabel="Verified Statement Deposits"
@@ -602,7 +620,7 @@ export function KoshinDashboard() {
 
                         <MetricCard
                           title="Total Expenses"
-                          value={`$${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          value={`${curr}${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<CreditCard className="size-3.5" />}
                           trendIcon={<ArrowUpRight className="size-4" />}
                           trendLabel={apiSpending && apiSpending.monthOverMonthChange !== undefined 
@@ -613,7 +631,7 @@ export function KoshinDashboard() {
 
                         <MetricCard
                           title="Net Reserve"
-                          value={`${netSavings >= 0 ? '+' : ''}$${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+                          value={`${netSavings >= 0 ? '+' : ''}${curr}${Math.abs(netSavings).toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<Zap className="size-3.5" />}
                           trendIcon={<DollarSign className="size-4" />}
                           trendLabel={`${savingsRate}% Savings Rate`}
@@ -634,10 +652,10 @@ export function KoshinDashboard() {
                               <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">100% Protected</span>
                             </div>
                             <h4 className="display text-2xl font-extrabold text-ink flex items-center gap-2">
-                              🛡️ Financial Runway: <span className="text-purple">14.2 Months</span>
+                              🛡️ Financial Runway: <span className="text-purple">{runwayData.months}</span>
                             </h4>
                             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                              &quot;Based on current net savings and expense velocity, your cash reserves provide a comfortable buffer.&quot;
+                              &quot;If all income stopped today, your cash reserves would cover living expenses until <strong className="text-ink font-semibold">{runwayData.targetDate}</strong>.&quot;
                             </p>
                           </div>
                         </div>
@@ -681,7 +699,7 @@ export function KoshinDashboard() {
                                         <span className="flex items-center gap-2 text-ink">
                                           <Icon className={`size-4 ${cfg.color}`} /> {cat}
                                         </span>
-                                        <span className="text-ink font-bold">${amount.toFixed(2)} ({pct}%)</span>
+                                        <span className="text-ink font-bold">{curr}{amount.toFixed(2)} ({pct}%)</span>
                                       </div>
                                       <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
                                         <div className={`h-full bg-gradient-to-r ${cfg.gradient} to-purple rounded-full`} style={{ width: `${pct}%` }} />
@@ -709,7 +727,7 @@ export function KoshinDashboard() {
                                     <div className="text-[10px] text-muted-foreground">{tx.date} • {tx.category}</div>
                                   </div>
                                   <span className={`font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-ink'}`}>
-                                    {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                                    {tx.type === 'income' ? '+' : '-'}{curr}{tx.amount.toFixed(2)}
                                   </span>
                                 </div>
                               ))
@@ -727,7 +745,7 @@ export function KoshinDashboard() {
                   )}
 
                   {activeTab === "budget" && (
-                    <BudgetView categoryBreakdown={categoryBreakdown} />
+                    <BudgetView transactions={transactions} />
                   )}
 
                   {activeTab === "subscriptions" && (
