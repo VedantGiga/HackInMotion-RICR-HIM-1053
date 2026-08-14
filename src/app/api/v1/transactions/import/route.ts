@@ -244,6 +244,7 @@ export async function POST(req: Request) {
         confidence: item.confidence || 0.95,
         isRecurring: !!item.isRecurring,
         type: item.type || "expense",
+        account: item.account || "Main Bank",
         createdAt: new Date().toISOString(),
       }));
 
@@ -317,6 +318,7 @@ export async function POST(req: Request) {
                 merchant: item.merchant || item.description,
                 confidence: item.confidence || 0.95,
                 isRecurring: !!item.isRecurring,
+                account: item.account || "Main Bank",
                 categoryId: categoryId || null,
               },
             });
@@ -357,6 +359,7 @@ export async function POST(req: Request) {
       amount: number;
       type: "expense" | "income";
       isRecurring: boolean;
+      account?: string;
       selected: boolean;
     }> = [];
 
@@ -391,6 +394,7 @@ export async function POST(req: Request) {
           amount: Math.abs(row.amount),
           type: row.type,
           isRecurring: catRes.isRecurring,
+          account: "Main Bank", // Default for PDF
           selected: true,
         });
       }
@@ -468,6 +472,7 @@ export async function POST(req: Request) {
         const dateObj = parseFlexibleDate(String(dateVal || ""));
         const catRes = await categorizeTransactionDetailed(cleanDesc);
         const targetCat = isIncome ? "Income" : (findRowValue(row, ["category", "cat"]) || catRes.category);
+        const accountStr = findRowValue(row, ["account", "card", "source", "bank"]);
 
         previewList.push({
           id: `csv_${i}_${Date.now()}`,
@@ -479,6 +484,7 @@ export async function POST(req: Request) {
           amount: Math.abs(amount),
           type: isIncome ? "income" : "expense",
           isRecurring: catRes.isRecurring,
+          account: accountStr ? String(accountStr).trim() : "Main Bank",
           selected: true,
         });
       }
@@ -502,6 +508,7 @@ export async function POST(req: Request) {
             amount: Math.abs(row.amount),
             type: row.type,
             isRecurring: catRes.isRecurring,
+            account: "Main Bank", // Default for line fallback
             selected: true,
           });
         }

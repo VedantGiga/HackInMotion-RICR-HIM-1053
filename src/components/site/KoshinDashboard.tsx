@@ -60,6 +60,7 @@ export type Transaction = {
   isRecurring: boolean;
   type: "expense" | "income";
   isUnused?: boolean;
+  account?: string;
 };
 
 const CATEGORY_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string; gradient: string }> = {
@@ -102,6 +103,9 @@ export function KoshinDashboard() {
   const [manualCategory, setManualCategory] = useState("Food & Dining");
   const [manualType, setManualType] = useState<"expense" | "income">("expense");
   const [manualIsRecurring, setManualIsRecurring] = useState(false);
+  const [manualAccount, setManualAccount] = useState("Main Bank");
+
+  const [activeAccount, setActiveAccount] = useState("All Accounts");
 
   const { data: session } = useSession();
   const [curr, setCurr] = useState((session?.user as any)?.currency || "$");
@@ -179,6 +183,7 @@ export function KoshinDashboard() {
             confidence: t.confidence || 0.95,
             isRecurring: !!t.isRecurring,
             type: (t.category?.name === "Income" || t.category?.type === "income") ? "income" : "expense",
+            account: t.account || "Main Bank",
             isUnused: !!t.isRecurring && /(gym|planet fitness|hulu|adobe|subscription)/i.test(t.merchant || t.description || "")
           }));
           setTransactions(mapped);
@@ -210,28 +215,41 @@ export function KoshinDashboard() {
     loadApiData();
   }, []);
 
-  const totalIncome = useMemo(() => {
-    return transactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);
+  const availableAccounts = useMemo(() => {
+    const accs = new Set<string>();
+    transactions.forEach(t => {
+      if (t.account) accs.add(t.account);
+    });
+    return ["All Accounts", ...Array.from(accs)];
   }, [transactions]);
 
+  const filteredTransactions = useMemo(() => {
+    if (activeAccount === "All Accounts") return transactions;
+    return transactions.filter(t => t.account === activeAccount);
+  }, [transactions, activeAccount]);
+
+  const totalIncome = useMemo(() => {
+    return filteredTransactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);
+  }, [filteredTransactions]);
+
   const totalExpenses = useMemo(() => {
-    return transactions.filter(t => t.type === "expense").reduce((acc, t) => acc + t.amount, 0);
-  }, [transactions]);
+    return filteredTransactions.filter(t => t.type === "expense").reduce((acc, t) => acc + t.amount, 0);
+  }, [filteredTransactions]);
 
   const netSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0;
 
   const categoryBreakdown = useMemo(() => {
     const breakDown: Record<string, number> = {};
-    transactions.filter(t => t.type === "expense").forEach(t => {
+    filteredTransactions.filter(t => t.type === "expense").forEach(t => {
       breakDown[t.category] = (breakDown[t.category] || 0) + t.amount;
     });
     return breakDown;
-  }, [transactions]);
+  }, [filteredTransactions]);
 
   const calculatedHealthScore = useMemo(() => {
     let score = 100;
-    if (transactions.length === 0) return 0;
+    if (filteredTransactions.length === 0) return 0;
 
     const savings = totalIncome - totalExpenses;
     if (totalIncome > 0) {
@@ -252,14 +270,14 @@ export function KoshinDashboard() {
     }
 
     return Math.min(100, Math.max(0, score));
-  }, [totalIncome, totalExpenses, categoryBreakdown, transactions]);
+  }, [totalIncome, totalExpenses, categoryBreakdown, filteredTransactions]);
 
   const healthScore = apiHealthScore !== null ? apiHealthScore : calculatedHealthScore;
   const healthRingColor = healthScore >= 80 ? "text-lime" : healthScore >= 65 ? "text-purple" : "text-orange-500";
 
   const recurringBills = useMemo(() => {
-    return transactions.filter(t => t.isRecurring);
-  }, [transactions]);
+    return filteredTransactions.filter(t => t.isRecurring);
+  }, [filteredTransactions]);
 
   const runwayData = useMemo(() => {
     if (totalExpenses === 0) {
@@ -284,6 +302,7 @@ export function KoshinDashboard() {
     amount: number;
     type: "expense" | "income";
     isRecurring: boolean;
+    account?: string;
     selected: boolean;
   }>>([]);
   const [isImportingBatch, setIsImportingBatch] = useState(false);
@@ -320,6 +339,7 @@ export function KoshinDashboard() {
         confidence: item.confidence || 0.95,
         isRecurring: !!item.isRecurring,
         type: item.type || "expense",
+        account: item.account || "Main Bank",
         isUnused: !!item.isRecurring && /(gym|planet fitness|hulu|adobe|subscription)/i.test(item.merchant || item.description || "")
       }));
 
@@ -425,6 +445,7 @@ export function KoshinDashboard() {
           date: manualDate,
           categoryName: manualType === "income" ? "Income" : manualCategory,
           isRecurring: manualIsRecurring,
+          account: manualAccount,
         }),
       });
 
@@ -552,6 +573,18 @@ export function KoshinDashboard() {
                 />
               </div>
             )}
+            
+            <div className="flex items-center gap-2 bg-white border border-hairline shadow-xs rounded-full px-4 py-2">
+              <select 
+                value={activeAccount}
+                onChange={e => setActiveAccount(e.target.value)}
+                className="bg-transparent border-none outline-none text-[13px] text-ink font-bold cursor-pointer"
+              >
+                {availableAccounts.map(acc => (
+                  <option key={acc} value={acc}>{acc}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Quick Action Pill Bar */}
@@ -676,9 +709,9 @@ export function KoshinDashboard() {
                           <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
                             {apiInsights.length > 0 
                               ? apiInsights[0]
-                              : transactions.length === 0
+                              : filteredTransactions.length === 0
                               ? "Upload a bank CSV or scan a PDF statement to run your automated financial audit!"
-                              : `Based on your ${transactions.length} real line items, your monthly savings rate is ${savingsRate}%.`}
+                              : `Based on your ${filteredTransactions.length} real line items, your monthly savings rate is ${savingsRate}%.`}
                           </p>
 
                           <div className="flex flex-wrap items-center gap-3 pt-2">
@@ -692,7 +725,7 @@ export function KoshinDashboard() {
                               onClick={() => setActiveTab("transactions")}
                               className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/15 transition-all cursor-pointer"
                             >
-                              View All {transactions.length} Items
+                              View All {filteredTransactions.length} Items
                             </button>
                           </div>
                         </div>
@@ -747,7 +780,7 @@ export function KoshinDashboard() {
                           trendIcon={<ArrowUpRight className="size-4" />}
                           trendLabel={apiSpending && apiSpending.monthOverMonthChange !== undefined 
                             ? `${apiSpending.monthOverMonthChange > 0 ? '+' : ''}${apiSpending.monthOverMonthChange.toFixed(1)}% vs Last Month` 
-                            : `${transactions.filter(t => t.type === 'expense').length} Line Items`}
+                            : `${filteredTransactions.filter(t => t.type === 'expense').length} Line Items`}
                           colorTheme="pinkish"
                         />
 
@@ -837,12 +870,12 @@ export function KoshinDashboard() {
                         <div className="xl:col-span-4 rounded-2xl border border-hairline bg-white p-7 shadow-sm space-y-4">
                           <h3 className="display text-lg font-bold text-ink">Recent Activity</h3>
                           <div className="space-y-3">
-                            {transactions.length === 0 ? (
+                            {filteredTransactions.length === 0 ? (
                               <div className="p-8 text-center bg-offwhite/50 border border-hairline rounded-xl text-xs text-muted-foreground">
                                 No recent activity. Scan a receipt or import a bank statement to get started.
                               </div>
                             ) : (
-                              transactions.slice(0, 6).map(tx => (
+                              filteredTransactions.slice(0, 6).map(tx => (
                                 <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-offwhite/50 border border-hairline text-xs">
                                   <div>
                                     <div className="font-bold text-ink truncate max-w-[140px]">{tx.merchant}</div>
@@ -863,11 +896,11 @@ export function KoshinDashboard() {
 
                   {/* ── OTHER DASHBOARD TABS ── */}
                   {activeTab === "transactions" && (
-                    <TransactionTable transactions={transactions.filter(t => t.merchant.toLowerCase().includes(searchTerm.toLowerCase()))} />
+                    <TransactionTable transactions={filteredTransactions.filter(t => t.merchant.toLowerCase().includes(searchTerm.toLowerCase()))} />
                   )}
 
                   {activeTab === "budget" && (
-                    <BudgetView transactions={transactions} />
+                    <BudgetView transactions={filteredTransactions} />
                   )}
 
                   {activeTab === "subscriptions" && (
@@ -1194,6 +1227,17 @@ export function KoshinDashboard() {
                   <label htmlFor="manualRecurring" className="text-xs font-semibold text-ink cursor-pointer">
                     Is Recurring Monthly Bill?
                   </label>
+                </div>
+
+                <div className="space-y-1 pt-1">
+                  <label className="font-bold text-ink">Account</label>
+                  <input
+                    type="text"
+                    required
+                    value={manualAccount}
+                    onChange={e => setManualAccount(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                  />
                 </div>
 
                 <div className="pt-3">
