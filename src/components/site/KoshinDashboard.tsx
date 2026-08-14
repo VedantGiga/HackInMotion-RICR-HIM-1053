@@ -59,6 +59,7 @@ export type Transaction = {
   confidence: number;
   isRecurring: boolean;
   type: "expense" | "income";
+  isUnused?: boolean;
 };
 
 const CATEGORY_CONFIG: Record<string, { icon: any; color: string; bg: string; border: string; gradient: string }> = {
@@ -177,7 +178,8 @@ export function KoshinDashboard() {
             category: t.category?.name || "General Expense",
             confidence: t.confidence || 0.95,
             isRecurring: !!t.isRecurring,
-            type: (t.category?.name === "Income" || t.category?.type === "income") ? "income" : "expense"
+            type: (t.category?.name === "Income" || t.category?.type === "income") ? "income" : "expense",
+            isUnused: !!t.isRecurring && /(gym|planet fitness|hulu|adobe|subscription)/i.test(t.merchant || t.description || "")
           }));
           setTransactions(mapped);
         }
@@ -318,6 +320,7 @@ export function KoshinDashboard() {
         confidence: item.confidence || 0.95,
         isRecurring: !!item.isRecurring,
         type: item.type || "expense",
+        isUnused: !!item.isRecurring && /(gym|planet fitness|hulu|adobe|subscription)/i.test(item.merchant || item.description || "")
       }));
 
       setTransactions(prev => {

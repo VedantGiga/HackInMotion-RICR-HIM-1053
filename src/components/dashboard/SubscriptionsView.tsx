@@ -116,14 +116,26 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                   <motion.div
                     key={item.id}
                     whileHover={{ x: 4 }}
-                    className="p-4 rounded-xl bg-offwhite/50 border border-hairline hover:border-purple/30 transition-all duration-200 flex items-center justify-between gap-4 shadow-sm"
+                    className={`p-4 rounded-xl border transition-all duration-200 flex items-center justify-between gap-4 shadow-sm ${item.isUnused ? 'bg-orange-50/50 border-orange-200 hover:border-orange-300' : 'bg-offwhite/50 border-hairline hover:border-purple/30'}`}
                   >
                     <div className="flex items-center gap-4">
-                      <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white`}>
+                      <div className={`size-12 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0 bg-white relative`}>
                         <Icon className={`size-5 ${cfg.color}`} />
+                        {item.isUnused && (
+                          <div className="absolute -top-1.5 -right-1.5 size-4 bg-orange-500 rounded-full border-2 border-white flex items-center justify-center shadow-sm">
+                            <ShieldAlert className="size-2.5 text-white" />
+                          </div>
+                        )}
                       </div>
                       <div>
-                        <div className="font-bold text-ink text-[15px]">{item.merchant}</div>
+                        <div className="font-bold text-ink text-[15px] flex items-center gap-2">
+                          {item.merchant}
+                          {item.isUnused && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded border border-orange-200">
+                              Forgotten?
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[12px] font-medium text-muted-foreground flex items-center gap-1.5 mt-1">
                           <span className={`${cfg.color}`}>{item.category}</span>
                           <span className="text-hairline">•</span>
@@ -134,11 +146,13 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
                         <div className="text-[15px] font-bold text-ink">{curr}{item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
-                        <div className="text-[9px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
+                        <div className={`text-[9px] font-bold uppercase tracking-widest mt-1 inline-block px-2 py-0.5 rounded-md ${item.isUnused ? 'bg-orange-100 text-orange-700' : 'bg-purple/10 text-purple'}`}>
+                          {item.isUnused ? 'Flagged' : 'Monitored'}
+                        </div>
                       </div>
                       <button
                         onClick={() => setCancellingSub(item)}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-pinkish/20 bg-pinkish/5 hover:bg-pinkish/10 text-pinkish text-xs font-bold transition-all shadow-xs cursor-pointer"
+                        className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border text-xs font-bold transition-all shadow-xs cursor-pointer ${item.isUnused ? 'border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-600' : 'border-pinkish/20 bg-pinkish/5 hover:bg-pinkish/10 text-pinkish'}`}
                       >
                         <Bot className="size-3.5" />
                         <span>Cancel with AI</span>

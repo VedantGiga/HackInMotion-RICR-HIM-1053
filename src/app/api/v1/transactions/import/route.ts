@@ -309,6 +309,7 @@ export async function POST(req: Request) {
           try {
             await prisma.transaction.create({
               data: {
+                id: item.id,
                 userId,
                 amount: item.amount,
                 date: isNaN(dateObj.getTime()) ? new Date() : dateObj,
