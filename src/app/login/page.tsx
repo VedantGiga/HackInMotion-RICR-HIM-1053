@@ -59,6 +59,7 @@ export default function LoginPage() {
 
       if (typeof window !== "undefined") {
         localStorage.setItem("koshin_onboarded", "true");
+        localStorage.setItem("koshin_login_bypass", "true");
       }
       setRedirecting(true);
       router.push("/dashboard");

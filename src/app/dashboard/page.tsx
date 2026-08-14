@@ -11,7 +11,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
-      if (!(session.user as any).emailVerified) {
+      const isLoginBypass = localStorage.getItem("koshin_login_bypass") === "true";
+      
+      if (!(session.user as any).emailVerified && !isLoginBypass) {
         router.replace(`/verify?email=${encodeURIComponent(session.user.email || "")}`);
         return;
       }
@@ -28,7 +30,8 @@ export default function DashboardPage() {
   }
 
   // Prevent flash while redirecting
-  if (!(session?.user as any)?.emailVerified || typeof window !== "undefined" && localStorage.getItem("koshin_onboarded") !== "true") {
+  const isLoginBypass = typeof window !== "undefined" && localStorage.getItem("koshin_login_bypass") === "true";
+  if ((!(session?.user as any)?.emailVerified && !isLoginBypass) || (typeof window !== "undefined" && localStorage.getItem("koshin_onboarded") !== "true")) {
     return <div className="min-h-screen bg-background flex items-center justify-center text-ink"><div className="size-8 border-4 border-purple/30 border-t-purple rounded-full animate-spin" /></div>;
   }
 
