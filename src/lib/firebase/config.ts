@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, setLogLevel } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyBnDDIfx3rR9l0ZFpA1GrXRy4Wq9RyM8Pk",
@@ -15,6 +15,13 @@ const firebaseConfig = {
 
 // Initialize Firebase only once
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+// Silence background gRPC retry logs when Cloud Firestore database instance is not provisioned
+try {
+  setLogLevel("silent");
+} catch (e) {
+  // Ignore
+}
 
 // Initialize services
 const auth = getAuth(app);

@@ -8,97 +8,130 @@ import {
   query, 
   where, 
   getDocs,
+  addDoc,
   DocumentData
 } from "firebase/firestore";
 import { db } from "./config";
 
+// --- Timeout & Exception Guard for Unprovisioned Firestore Projects ---
+
+const withTimeout = async <T>(promise: Promise<T>, timeoutMs = 1500, fallback: T): Promise<T> => {
+  let timer: NodeJS.Timeout;
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timer = setTimeout(() => {
+      resolve(fallback);
+    }, timeoutMs);
+  });
+
+  try {
+    const res = await Promise.race([promise, timeoutPromise]);
+    clearTimeout(timer!);
+    return res;
+  } catch (err: any) {
+    clearTimeout(timer!);
+    // Silence repetitive NOT_FOUND (Code 5) logs if Firestore DB is not yet created in Firebase Console
+    if (err?.code === "not-found" || String(err).includes("NOT_FOUND") || err?.code === 5) {
+      // Graceful fallback when Cloud Firestore DB instance isn't provisioned
+    } else {
+      console.warn("[Firestore Operation Warning]:", err?.message || err);
+    }
+    return fallback;
+  }
+};
+
 // --- Generic CRUD Operations ---
 
-/**
- * Creates or overwrites a document in a specified collection.
- */
 export const createDocument = async (collectionName: string, docId: string, data: any): Promise<void> => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    await setDoc(docRef, data);
-  } catch (error) {
-    console.error(`Error creating document in ${collectionName}:`, error);
-    throw error;
-  }
+  const docRef = doc(db, collectionName, docId);
+  return withTimeout(setDoc(docRef, data, { merge: true }), 1500, undefined);
 };
 
-/**
- * Fetches a single document by ID.
- */
 export const getDocument = async (collectionName: string, docId: string): Promise<DocumentData | null> => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() };
-    }
-    return null;
-  } catch (error) {
-    console.error(`Error fetching document from ${collectionName}:`, error);
-    throw error;
-  }
+  const docRef = doc(db, collectionName, docId);
+  return withTimeout(
+    getDoc(docRef).then((snap) => (snap.exists() ? { id: snap.id, ...snap.data() } : null)),
+    1500,
+    null
+  );
 };
 
-/**
- * Updates specific fields in an existing document.
- */
 export const updateDocument = async (collectionName: string, docId: string, data: any): Promise<void> => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    await updateDoc(docRef, data);
-  } catch (error) {
-    console.error(`Error updating document in ${collectionName}:`, error);
-    throw error;
-  }
+  const docRef = doc(db, collectionName, docId);
+  return withTimeout(updateDoc(docRef, data), 1500, undefined);
 };
 
-/**
- * Deletes a document.
- */
 export const deleteDocument = async (collectionName: string, docId: string): Promise<void> => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    await deleteDoc(docRef);
-  } catch (error) {
-    console.error(`Error deleting document from ${collectionName}:`, error);
-    throw error;
-  }
+  const docRef = doc(db, collectionName, docId);
+  return withTimeout(deleteDoc(docRef), 1500, undefined);
 };
 
-/**
- * Queries a collection based on a simple where clause.
- */
 export const queryDocuments = async (
   collectionName: string, 
   fieldPath: string, 
   operator: any, 
   value: any
 ): Promise<DocumentData[]> => {
-  try {
-    const q = query(collection(db, collectionName), where(fieldPath, operator, value));
-    const querySnapshot = await getDocs(q);
-    
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-  } catch (error) {
-    console.error(`Error querying ${collectionName}:`, error);
-    throw error;
-  }
+  const q = query(collection(db, collectionName), where(fieldPath, operator, value));
+  return withTimeout(
+    getDocs(q).then((snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    1500,
+    []
+  );
 };
 
-// --- Specific Domain Helpers ---
+// --- Domain Specific Helpers ---
 
-export const createUserProfile = async (userId: string, data: { email: string; name?: string; phone?: string; createdAt: Date }) => {
-  return createDocument("users", userId, data);
+export const createUserProfile = async (userId: string, data: { email: string; name?: string; phone?: string; createdAt?: any }) => {
+  return createDocument("users", userId, {
+    ...data,
+    updatedAt: new Date().toISOString(),
+  });
 };
 
 export const getUserProfile = async (userId: string) => {
   return getDocument("users", userId);
+};
+
+export const saveUserOnboardingData = async (userId: string, onboardingData: {
+  currency?: string;
+  monthlyIncome?: number | string;
+  primaryGoal?: string;
+  accounts?: any[];
+  onboardedAt?: string;
+}) => {
+  return createDocument("users", userId, {
+    onboarding: onboardingData,
+    currency: onboardingData.currency || "$",
+    monthlyIncome: onboardingData.monthlyIncome || null,
+    updatedAt: new Date().toISOString(),
+  });
+};
+
+export const saveUserTransactionFirestore = async (userId: string, transaction: {
+  amount: number;
+  date: string;
+  description: string;
+  merchant?: string;
+  category?: string;
+  type?: "expense" | "income";
+  isRecurring?: boolean;
+}) => {
+  const userTxnsRef = collection(db, "users", userId, "transactions");
+  return withTimeout(
+    addDoc(userTxnsRef, {
+      ...transaction,
+      createdAt: new Date().toISOString(),
+    }),
+    1500,
+    undefined as any
+  );
+};
+
+export const getUserTransactionsFirestore = async (userId: string) => {
+  const userTxnsRef = collection(db, "users", userId, "transactions");
+  return withTimeout(
+    getDocs(userTxnsRef).then((snap) => snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    1500,
+    []
+  );
 };

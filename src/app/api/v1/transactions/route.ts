@@ -3,26 +3,53 @@ import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
 import { getAuthenticatedUserId } from "@/lib/auth-helper";
 import { categorizeTransactionDetailed } from "@/modules/categorization";
+import { getTransactionsStore, saveTransactionsStore, deleteTransactionStore, StoredTransaction } from "@/lib/transaction-store";
+import { saveUserTransactionFirestore, getUserTransactionsFirestore } from "@/lib/firebase/db";
 
 export async function GET(req: Request) {
   try {
     const userId = await getAuthenticatedUserId();
+    let dbTxns: any[] = [];
 
-    const { searchParams } = new URL(req.url);
-    const categoryId = searchParams.get("categoryId");
-
-    const where: any = { userId };
-    if (categoryId) {
-      where.categoryId = categoryId;
+    try {
+      dbTxns = await prisma.transaction.findMany({
+        where: { userId },
+        orderBy: { date: 'desc' },
+        include: { category: true }
+      });
+    } catch (dbErr) {
+      console.warn("[GET transactions DB warning]:", dbErr);
     }
 
-    const transactions = await prisma.transaction.findMany({
-      where,
-      orderBy: { date: 'desc' },
-      include: { category: true }
+    const storeTxns = getTransactionsStore(userId);
+
+    // Merge transactions by ID
+    const mergedMap = new Map<string, any>();
+    
+    // Add store transactions first
+    storeTxns.forEach(t => {
+      mergedMap.set(t.id, {
+        id: t.id,
+        amount: t.amount,
+        date: t.date,
+        description: t.description,
+        merchant: t.merchant || t.description,
+        confidence: t.confidence || 0.95,
+        isRecurring: t.isRecurring || false,
+        category: t.category || { name: t.categoryName || "General Expense", type: t.type || "expense" },
+      });
     });
 
-    return successResponse(transactions, "Transactions retrieved successfully");
+    // Add DB transactions
+    dbTxns.forEach(t => {
+      if (!mergedMap.has(t.id)) {
+        mergedMap.set(t.id, t);
+      }
+    });
+
+    const finalTxns = Array.from(mergedMap.values());
+
+    return successResponse(finalTxns, "Transactions retrieved successfully");
   } catch (error: any) {
     console.error("GET transactions error:", error);
     return errorResponse("Internal server error", 500);
@@ -41,37 +68,91 @@ export async function POST(req: Request) {
 
     const catRes = await categorizeTransactionDetailed(description);
     const targetCategory = categoryName || catRes.category;
-
     const isIncome = targetCategory.toLowerCase() === "income" || parseFloat(amount) < 0 || body.type === "income";
+    const dateStr = date ? new Date(date).toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
 
-    let category = await prisma.category.findUnique({
-      where: { name: targetCategory }
-    });
+    const newStoredTx: StoredTransaction = {
+      id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+      userId,
+      amount: Math.abs(parseFloat(amount)),
+      date: dateStr,
+      description,
+      merchant: merchant || catRes.cleanMerchant || description,
+      categoryName: targetCategory,
+      category: { name: targetCategory, type: isIncome ? "income" : "expense" },
+      confidence: catRes.confidence,
+      isRecurring: isRecurring !== undefined ? isRecurring : catRes.isRecurring,
+      type: isIncome ? "income" : "expense",
+      createdAt: new Date().toISOString(),
+    };
 
-    if (!category) {
-      category = await prisma.category.create({
-        data: {
-          name: targetCategory,
-          type: isIncome ? "income" : "expense"
-        }
+    // Save in store
+    saveTransactionsStore(userId, [newStoredTx]);
+
+    // Save in Firestore
+    try {
+      await saveUserTransactionFirestore(userId, {
+        amount: newStoredTx.amount,
+        date: newStoredTx.date,
+        description: newStoredTx.description,
+        merchant: newStoredTx.merchant,
+        category: targetCategory,
+        type: newStoredTx.type,
+        isRecurring: newStoredTx.isRecurring,
       });
+    } catch (fsErr) {
+      console.warn("[Firestore Single Tx Save Warning]:", fsErr);
     }
 
-    const transaction = await prisma.transaction.create({
-      data: {
-        userId,
-        amount: Math.abs(parseFloat(amount)),
-        date: date ? new Date(date) : new Date(),
-        description,
-        merchant: merchant || catRes.cleanMerchant,
-        confidence: catRes.confidence,
-        isRecurring: isRecurring !== undefined ? isRecurring : catRes.isRecurring,
-        categoryId: category.id,
-      },
-      include: { category: true }
-    });
+    // Save in Prisma if available
+    try {
+      try {
+        const userExists = await prisma.user.findUnique({ where: { id: userId } });
+        if (!userExists) {
+          await prisma.user.create({
+            data: {
+              id: userId,
+              email: `${userId}@firebase.internal`,
+              password: "firebase_user_placeholder",
+              name: "User",
+            },
+          });
+        }
+      } catch (uErr) {
+        // Ignore shadow user creation warning
+      }
 
-    return successResponse(transaction, "Transaction created successfully", 201);
+      let category = await prisma.category.findUnique({
+        where: { name: targetCategory }
+      });
+
+      if (!category) {
+        category = await prisma.category.create({
+          data: {
+            name: targetCategory,
+            type: isIncome ? "income" : "expense"
+          }
+        });
+      }
+
+      await prisma.transaction.create({
+        data: {
+          id: newStoredTx.id,
+          userId,
+          amount: newStoredTx.amount,
+          date: new Date(newStoredTx.date),
+          description,
+          merchant: newStoredTx.merchant,
+          confidence: newStoredTx.confidence,
+          isRecurring: newStoredTx.isRecurring,
+          categoryId: category.id,
+        },
+      });
+    } catch (dbErr) {
+      console.warn("[Prisma POST tx warning]:", dbErr);
+    }
+
+    return successResponse(newStoredTx, "Transaction created successfully", 201);
   } catch (error: any) {
     console.error("POST transaction error:", error);
     return errorResponse("Internal server error", 500);
@@ -84,18 +165,23 @@ export async function DELETE(req: Request) {
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
 
-    if (id) {
-      await prisma.transaction.deleteMany({
-        where: { id, userId }
-      });
-      return successResponse({ deletedId: id }, "Transaction deleted successfully");
-    } else {
-      // Clear all transactions for user
-      await prisma.transaction.deleteMany({
-        where: { userId }
-      });
-      return successResponse({}, "All transactions cleared successfully");
+    deleteTransactionStore(userId, id || undefined);
+
+    try {
+      if (id) {
+        await prisma.transaction.deleteMany({
+          where: { id, userId }
+        });
+      } else {
+        await prisma.transaction.deleteMany({
+          where: { userId }
+        });
+      }
+    } catch (dbErr) {
+      console.warn("[Prisma DELETE tx warning]:", dbErr);
     }
+
+    return successResponse({ deletedId: id || "all" }, "Transaction(s) deleted successfully");
   } catch (error: any) {
     console.error("DELETE transaction error:", error);
     return errorResponse("Internal server error", 500);

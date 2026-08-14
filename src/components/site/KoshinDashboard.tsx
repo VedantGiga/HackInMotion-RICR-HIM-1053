@@ -307,6 +307,25 @@ export function KoshinDashboard() {
 
     try {
       setIsImportingBatch(true);
+
+      // Immediately append imported transactions to React dashboard state
+      const importedMapped: Transaction[] = selectedList.map((item, idx) => ({
+        id: item.id || `imp_${idx}_${Date.now()}`,
+        date: item.date,
+        merchant: item.merchant || item.description,
+        amount: Math.abs(item.amount),
+        category: item.category || "General Expense",
+        confidence: item.confidence || 0.95,
+        isRecurring: !!item.isRecurring,
+        type: item.type || "expense",
+      }));
+
+      setTransactions(prev => {
+        const existingIds = new Set(prev.map(t => t.id));
+        const filteredNew = importedMapped.filter(t => !existingIds.has(t.id));
+        return [...filteredNew, ...prev];
+      });
+
       const res = await fetch("/api/v1/transactions/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

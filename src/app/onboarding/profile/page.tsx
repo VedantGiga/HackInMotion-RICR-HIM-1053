@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/context/AuthContext";
+import { useSession, useAuth } from "@/context/AuthContext";
+import { saveUserOnboardingData } from "@/lib/firebase/db";
 import gsap from "gsap";
 import { ArrowLeft, ArrowRight, Target, TrendingUp, ShieldCheck, CheckCircle2, DollarSign, Globe } from "lucide-react";
 
@@ -21,12 +22,13 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 export default function CreateProfilePage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+  const { user } = useAuth();
   const sessionData = useSession();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>("INR");
   const [monthlyIncome, setMonthlyIncome] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Progress bar animation
@@ -55,16 +57,33 @@ export default function CreateProfilePage() {
     e.preventDefault();
     setLoading(true);
 
+    const symbol = CURRENCY_SYMBOLS[selectedCurrency] || "$";
+
     if (typeof window !== "undefined") {
       localStorage.setItem("user_currency", selectedCurrency);
       localStorage.setItem("user_monthly_income", monthlyIncome);
     }
 
+    // 1. Persist to Cloud Firestore Database if user is authenticated
+    if (user?.uid) {
+      try {
+        await saveUserOnboardingData(user.uid, {
+          currency: symbol,
+          monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome.replace(/[^0-9\.]/g, "")) : undefined,
+          primaryGoal: selectedGoal || undefined,
+          onboardedAt: new Date().toISOString(),
+        });
+      } catch (fsErr) {
+        console.warn("[Firestore Onboarding Save Warning]:", fsErr);
+      }
+    }
+
+    // 2. Also patch backend API profile
     try {
       await fetch("/api/v1/user/profile", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ currency: CURRENCY_SYMBOLS[selectedCurrency] || "$" }),
+        body: JSON.stringify({ currency: symbol }),
       });
     } catch (err) {
       console.error("Failed to update currency on server", err);
