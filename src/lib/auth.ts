@@ -39,6 +39,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             currency: user.currency,
+            emailVerified: user.emailVerified,
           };
         } catch (error) {
           console.error("[NextAuth Authorize Error]:", error);
@@ -59,6 +60,7 @@ export const authOptions: NextAuthOptions = {
       if (token && session.user) {
         (session.user as any).id = token.id;
         (session.user as any).currency = token.currency;
+        (session.user as any).emailVerified = token.emailVerified;
       }
       return session;
     },
@@ -66,6 +68,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.currency = (user as any).currency;
+        token.emailVerified = (user as any).emailVerified;
       }
       return token;
     },

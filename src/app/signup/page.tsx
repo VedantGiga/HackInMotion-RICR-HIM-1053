@@ -69,7 +69,6 @@ export default function SignUpPage() {
           email: data.email,
           phone: data.phone,
           password: data.password,
-          currency: data.currency,
         }),
       });
 
