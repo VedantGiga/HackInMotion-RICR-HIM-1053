@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSession } from "next-auth/react";
 import { Bell, RefreshCw, Bot, Terminal, ShieldAlert, Sparkles, CheckCircle, X } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { useDashboardStore } from "@/store/useDashboardStore";
@@ -11,6 +12,8 @@ interface SubscriptionsViewProps {
 }
 
 export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
+  const { data: session } = useSession();
+  const curr = (session?.user as any)?.currency || "$";
   const { setTransactions } = useDashboardStore();
   const [cancellingSub, setCancellingSub] = useState<Transaction | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
@@ -26,7 +29,7 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
     `[Agent] Automating form-fill with virtual CC token confirmation...`,
     `[System] Handshake verified. Cancellation code: KSH-${Math.floor(Math.random() * 900000 + 100000)}`,
     `[Success] ${merchant} billing cycle successfully terminated!`,
-    `[Summary] Saved $${amount.toFixed(2)}/mo ($${(amount * 12).toFixed(2)}/yr).`
+    `[Summary] Saved ${curr}${amount.toFixed(2)}/mo (${curr}${(amount * 12).toFixed(2)}/yr).`
   ];
 
   useEffect(() => {
@@ -76,14 +79,14 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
           </div>
           <div className="flex-1">
             <div className="display text-3xl font-bold text-ink">
-              ${recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0).toFixed(2)}
+              {curr}{recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0).toFixed(2)}
               <span className="text-[15px] text-muted-foreground font-medium ml-2">/ month</span>
             </div>
             <div className="text-[13px] font-medium text-muted-foreground mt-1">{recurringBills.length} active commitments auto-detected</div>
           </div>
           <div className="sm:text-right p-4 bg-offwhite rounded-xl border border-hairline">
             <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Annual Cost</div>
-            <div className="text-xl font-bold text-pinkish">${(recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0) * 12).toFixed(0)}</div>
+            <div className="text-xl font-bold text-pinkish">{curr}{(recurringBills.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0) * 12).toFixed(0)}</div>
           </div>
         </div>
 
@@ -129,7 +132,7 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                     </div>
                     <div className="flex items-center gap-4 shrink-0">
                       <div className="text-right hidden sm:block">
-                        <div className="text-[15px] font-bold text-ink">${item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
+                        <div className="text-[15px] font-bold text-ink">{curr}{item.amount.toFixed(2)}<span className="text-muted-foreground text-[11px]">/mo</span></div>
                         <div className="text-[9px] text-purple font-bold uppercase tracking-widest mt-1 bg-purple/10 inline-block px-2 py-0.5 rounded-md">Monitored</div>
                       </div>
                       <button
@@ -191,7 +194,7 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                       {bill.nextDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </span>
                   </div>
-                  <div className="text-2xl font-bold text-ink">${bill.amount.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-ink">{curr}{bill.amount.toFixed(2)}</div>
                   <div className="text-[12px] font-medium text-muted-foreground truncate">{bill.category}</div>
                 </div>
               );
@@ -244,7 +247,7 @@ export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
                 </div>
                 <div className="text-right">
                   <div className="text-xs text-white/50">Monthly Savings</div>
-                  <div className="text-base font-bold text-pinkish mt-0.5">${cancellingSub.amount.toFixed(2)}</div>
+                  <div className="text-base font-bold text-pinkish mt-0.5">{curr}{cancellingSub.amount.toFixed(2)}</div>
                 </div>
               </div>
 

@@ -10,7 +10,6 @@ export default withAuth(
     const isAuthPage =
       pathname === "/login" ||
       pathname === "/signup" ||
-      pathname === "/verify" ||
       pathname === "/forgot-password";
 
     if (token && isAuthPage) {

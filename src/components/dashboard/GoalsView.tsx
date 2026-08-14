@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PlusCircle, Target, Trash2, Loader2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 interface DBGoal {
   id: string;
@@ -14,6 +15,8 @@ interface DBGoal {
 }
 
 export function GoalsView() {
+  const { data: session } = useSession();
+  const curr = (session?.user as any)?.currency || "$";
   const [goals, setGoals] = useState<DBGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -120,7 +123,7 @@ export function GoalsView() {
             <div className="grid grid-cols-2 gap-3">
               <input 
                 type="number" 
-                placeholder="Target Amount ($)"
+                placeholder={`Target Amount (${curr})`}
                 value={newTarget}
                 onChange={e => setNewTarget(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-white text-xs font-semibold text-ink outline-none focus:border-purple"
@@ -128,7 +131,7 @@ export function GoalsView() {
               />
               <input 
                 type="number" 
-                placeholder="Initial Saved ($)"
+                placeholder={`Initial Saved (${curr})`}
                 value={newCurrent}
                 onChange={e => setNewCurrent(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-hairline bg-white text-xs font-semibold text-ink outline-none focus:border-purple"
@@ -198,8 +201,8 @@ export function GoalsView() {
                 
                 <div className="mt-auto">
                   <div className="flex items-end justify-between mb-2">
-                    <div className="text-3xl font-bold text-ink tracking-tight">${current.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
-                    <div className="text-[13px] font-medium text-muted-foreground mb-1">Target: ${target.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    <div className="text-3xl font-bold text-ink tracking-tight">{curr}{current.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
+                    <div className="text-[13px] font-medium text-muted-foreground mb-1">Target: {curr}{target.toLocaleString('en-US', { minimumFractionDigits: 2 })}</div>
                   </div>
                   <div className="h-2.5 w-full bg-offwhite rounded-full overflow-hidden">
                     <div className="h-full bg-cyan rounded-full transition-all duration-1000" style={{ width: `${pct}%` }} />

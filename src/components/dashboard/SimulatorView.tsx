@@ -2,6 +2,7 @@
 
 import { Activity, Coffee, Tv, ShoppingBag, ShieldCheck, TrendingUp, Target } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
+import { useSession } from "next-auth/react";
 import { getCurrencySymbol } from "@/lib/utils";
 
 interface SimulatorViewProps {
@@ -27,7 +28,8 @@ export function SimulatorView({
   simFoodSavings, simSubSavings, simShopSavings,
   totalMonthlySimSavings, totalAnnualSimSavings
 }: SimulatorViewProps) {
-  const curr = getCurrencySymbol();
+  const { data: session } = useSession();
+  const curr = (session?.user as any)?.currency || getCurrencySymbol();
   const computedFoodSavings = simFoodSavings ?? (totalExpenses * 0.35 * (foodCut / 100));
   const computedSubSavings = simSubSavings ?? (totalExpenses * 0.12 * (subCut / 100));
   const computedShopSavings = simShopSavings ?? (totalExpenses * 0.20 * (shoppingCut / 100));
@@ -70,7 +72,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-orange-500">{foodCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedFoodSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-{curr}{computedFoodSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -96,7 +98,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-purple">{subCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedSubSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-{curr}{computedSubSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -122,7 +124,7 @@ export function SimulatorView({
             </div>
             <div className="text-right">
               <span className="text-[16px] font-bold text-pinkish">{shoppingCut}%</span>
-              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-${computedShopSavings.toFixed(2)}/mo)</span>
+              <span className="text-[12px] font-medium text-muted-foreground ml-2">(-{curr}{computedShopSavings.toFixed(2)}/mo)</span>
             </div>
           </div>
           <div className="relative">
@@ -187,7 +189,7 @@ export function SimulatorView({
             </div>
 
             <p className="text-[13px] text-ink leading-relaxed mt-4 font-medium">
-              Re-investing <strong className="text-purple">${computedMonthlySavings.toFixed(2)}/mo</strong> at 8% annual return yields <strong className="text-purple">+${Math.round(growth10Yr).toLocaleString()}</strong> in 10 years.
+              Re-investing <strong className="text-purple">{curr}{computedMonthlySavings.toFixed(2)}/mo</strong> at 8% annual return yields <strong className="text-purple">+{curr}{Math.round(growth10Yr).toLocaleString()}</strong> in 10 years.
             </p>
           </div>
 

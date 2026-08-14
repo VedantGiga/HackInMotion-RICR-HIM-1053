@@ -13,7 +13,7 @@ export async function PATCH(req: Request) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { phone } = body;
+    const { phone, currency } = body;
 
     // Validate if the user exists
     const user = await prisma.user.findUnique({
@@ -25,18 +25,22 @@ export async function PATCH(req: Request) {
     }
 
     // Protect existing phone number from being overwritten
-    if (user.phone) {
+    if (phone !== undefined && user.phone) {
       return errorResponse("Phone number cannot be changed once set", 400);
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { phone },
+      data: { 
+        ...(phone && { phone }),
+        ...(currency && { currency })
+      },
       select: {
         id: true,
         email: true,
         name: true,
         phone: true,
+        currency: true,
       }
     });
 

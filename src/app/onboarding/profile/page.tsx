@@ -58,6 +58,16 @@ export default function CreateProfilePage() {
       localStorage.setItem("user_monthly_income", monthlyIncome);
     }
 
+    try {
+      await fetch("/api/v1/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currency: CURRENCY_SYMBOLS[selectedCurrency] || "$" }),
+      });
+    } catch (err) {
+      console.error("Failed to update currency on server", err);
+    }
+
     if (monthlyIncome.trim()) {
       try {
         const numericIncome = parseFloat(monthlyIncome.replace(/[^0-9\.]/g, ""));

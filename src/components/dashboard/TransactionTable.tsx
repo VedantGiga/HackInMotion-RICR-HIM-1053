@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
+import { format, parseISO } from "date-fns";
 import { useDashboardStore } from "@/store/useDashboardStore";
-import { getCurrencySymbol } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -12,8 +13,9 @@ interface TransactionTableProps {
 }
 
 export function TransactionTable({ transactions, onDeleteTransaction }: TransactionTableProps) {
+  const { data: session } = useSession();
+  const curr = (session?.user as any)?.currency || "$";
   const { setTransactions } = useDashboardStore();
-  const curr = getCurrencySymbol();
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [editDesc, setEditDesc] = useState("");
@@ -214,7 +216,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="font-bold text-ink">Amount ($)</label>
+                  <label className="font-bold text-ink">Amount ({curr})</label>
                   <input
                     type="number"
                     step="0.01"

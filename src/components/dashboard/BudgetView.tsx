@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PlusCircle, Loader2, Edit2, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { getCurrencySymbol } from "@/lib/utils";
 
@@ -22,7 +23,8 @@ interface DBBudget {
 }
 
 export function BudgetView({ transactions }: BudgetViewProps) {
-  const curr = getCurrencySymbol();
+  const { data: session } = useSession();
+  const curr = (session?.user as any)?.currency || getCurrencySymbol();
   const [dbBudgets, setDbBudgets] = useState<DBBudget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);

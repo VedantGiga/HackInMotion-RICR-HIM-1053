@@ -38,6 +38,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            currency: user.currency,
           };
         } catch (error) {
           console.error("[NextAuth Authorize Error]:", error);
@@ -57,12 +58,14 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token && session.user) {
         (session.user as any).id = token.id;
+        (session.user as any).currency = token.currency;
       }
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.currency = (user as any).currency;
       }
       return token;
     },
