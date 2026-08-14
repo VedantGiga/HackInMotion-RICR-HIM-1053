@@ -214,45 +214,6 @@ export function SettingsView() {
         </div>
       </div>
 
-      {/* SECURITY & LINKED ACCOUNTS */}
-      <div className="rounded-3xl border border-hairline bg-white shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-hairline bg-offwhite/50">
-          <h4 className="text-[15px] font-bold text-ink">Security & Connected Vaults</h4>
-          <p className="text-[13px] text-muted-foreground mt-1">Bank-grade encryption, active devices, and credentials.</p>
-        </div>
-
-        <div className="p-6 space-y-5">
-          
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-offwhite/60 border border-hairline">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                <Lock className="size-5" />
-              </div>
-              <div>
-                <div className="text-[14px] font-bold text-ink">Two-Factor Authentication (2FA)</div>
-                <div className="text-[12px] text-muted-foreground">Encrypted SMS & Authenticator App enabled</div>
-              </div>
-            </div>
-            <span className="text-[12px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200">
-              Active & Protected
-            </span>
-          </div>
-
-          <div className="flex items-center justify-between p-4 rounded-2xl bg-offwhite/60 border border-hairline">
-            <div className="flex items-center gap-3">
-              <div className="size-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center shrink-0">
-                <CreditCard className="size-5" />
-              </div>
-              <div>
-                <div className="text-[14px] font-bold text-ink">Connected Bank Vaults</div>
-                <div className="text-[12px] text-muted-foreground">3 Bank Accounts & Credit Cards synced</div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
       {/* CUSTOM AI CATEGORIZATION RULES */}
       <div className="rounded-3xl border border-hairline bg-white shadow-sm overflow-hidden">
         <div className="p-6 border-b border-hairline bg-offwhite/50">
