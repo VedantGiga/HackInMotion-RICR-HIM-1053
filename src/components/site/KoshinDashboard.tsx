@@ -820,15 +820,16 @@ export function KoshinDashboard() {
                     type="file" 
                     ref={fileInputRef} 
                     className="hidden" 
+                    accept=".csv, .pdf"
                     onChange={handleFileUpload}
                   />
                   <UploadCloud className="size-12 text-purple mx-auto animate-bounce" />
                   <div>
-                    <p className="text-sm font-bold text-ink">Upload CSV Statement</p>
-                    <p className="text-xs text-muted-foreground mt-1">Import your transactions from a CSV file</p>
+                    <p className="text-sm font-bold text-ink">Upload CSV or PDF Statement</p>
+                    <p className="text-xs text-muted-foreground mt-1">Extract and import transactions from any bank CSV or PDF file</p>
                   </div>
                   <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
-                    Select File
+                    Select CSV or PDF File
                   </button>
                 </div>
               ) : (
