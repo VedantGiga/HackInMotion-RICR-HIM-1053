@@ -35,7 +35,8 @@ import {
   Lock,
   Trash2,
   FileSpreadsheet,
-  Target
+  Target,
+  Loader2
 } from "lucide-react";
 import { TransactionTable } from "@/components/dashboard/TransactionTable";
 import { SettingsView } from "@/components/dashboard/SettingsView";
@@ -263,6 +264,64 @@ export function KoshinDashboard() {
     return { months: `${months} Months`, targetDate };
   }, [totalIncome, totalExpenses, netSavings]);
 
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [previewItems, setPreviewItems] = useState<Array<{
+    id: string;
+    date: string;
+    description: string;
+    merchant: string;
+    category: string;
+    confidence: number;
+    amount: number;
+    type: "expense" | "income";
+    isRecurring: boolean;
+    selected: boolean;
+  }>>([]);
+  const [isImportingBatch, setIsImportingBatch] = useState(false);
+
+  const handleToggleSelectAll = (select: boolean) => {
+    setPreviewItems(prev => prev.map(item => ({ ...item, selected: select })));
+  };
+
+  const handleToggleItemSelect = (id: string) => {
+    setPreviewItems(prev => prev.map(item => item.id === id ? { ...item, selected: !item.selected } : item));
+  };
+
+  const handleItemCategoryChange = (id: string, category: string) => {
+    setPreviewItems(prev => prev.map(item => item.id === id ? { ...item, category } : item));
+  };
+
+  const handleConfirmBatchImport = async () => {
+    const selectedList = previewItems.filter(i => i.selected);
+    if (selectedList.length === 0) {
+      alert("Please select at least one transaction to import.");
+      return;
+    }
+
+    try {
+      setIsImportingBatch(true);
+      const res = await fetch("/api/v1/transactions/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: selectedList }),
+      });
+
+      if (res.ok) {
+        setIsPreviewModalOpen(false);
+        setPreviewItems([]);
+        await loadApiData();
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 4000);
+      } else {
+        alert("Failed to batch import selected transactions.");
+      }
+    } catch (err) {
+      console.error("Error batch importing transactions:", err);
+    } finally {
+      setIsImportingBatch(false);
+    }
+  };
+
   const processFileImport = async (file: File) => {
     setIsParsing(true);
     setParsingStep(1);
@@ -272,21 +331,24 @@ export function KoshinDashboard() {
 
     try {
       setParsingStep(2);
-      const res = await fetch("/api/v1/transactions/import", {
+      const res = await fetch("/api/v1/transactions/import?preview=true", {
         method: "POST",
         body: formData,
       });
 
       if (res.ok) {
+        const json = await res.json();
+        const items = json.data?.preview || [];
         setParsingStep(3);
-        await loadApiData();
+        setIsParsing(false);
+        setIsUploadModalOpen(false);
 
-        setTimeout(() => {
-          setIsParsing(false);
-          setIsUploadModalOpen(false);
-          setUploadSuccess(true);
-          setTimeout(() => setUploadSuccess(false), 4000);
-        }, 800);
+        if (items.length > 0) {
+          setPreviewItems(items);
+          setIsPreviewModalOpen(true);
+        } else {
+          alert("No transaction items were extracted from the statement.");
+        }
       } else {
         const json = await res.json().catch(() => ({}));
         alert(json.error || "Failed to parse bank statement");
@@ -1114,6 +1176,173 @@ export function KoshinDashboard() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* STATEMENT IMPORT PREVIEW MODAL */}
+      <AnimatePresence>
+        {isPreviewModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 sm:p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl max-w-4xl w-full border border-hairline shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
+            >
+              {/* Header */}
+              <div className="p-6 border-b border-hairline flex items-center justify-between bg-offwhite/50">
+                <div>
+                  <h3 className="display text-xl font-bold text-ink flex items-center gap-2">
+                    <FileSpreadsheet className="size-5 text-purple" /> Statement Import Preview
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Review extracted line items, categorization confidence scores, and toggle items before saving to SQLite.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsPreviewModalOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-offwhite text-muted-foreground hover:text-ink cursor-pointer"
+                >
+                  <X className="size-5" />
+                </button>
+              </div>
+
+              {/* Action Toolbar */}
+              <div className="px-6 py-3 border-b border-hairline bg-white flex items-center justify-between text-xs">
+                <div className="flex items-center gap-3 font-semibold text-ink">
+                  <button
+                    onClick={() => handleToggleSelectAll(true)}
+                    className="text-purple hover:underline cursor-pointer font-bold"
+                  >
+                    Select All ({previewItems.length})
+                  </button>
+                  <span className="text-hairline">|</span>
+                  <button
+                    onClick={() => handleToggleSelectAll(false)}
+                    className="text-muted-foreground hover:text-ink cursor-pointer font-semibold"
+                  >
+                    Deselect All
+                  </button>
+                </div>
+                <div className="text-xs font-bold text-ink">
+                  Selected: <span className="text-purple font-extrabold">{previewItems.filter((i) => i.selected).length}</span> of {previewItems.length} items
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="flex-1 overflow-y-auto p-6">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-hairline text-muted-foreground uppercase text-[10px] tracking-wider font-bold">
+                      <th className="py-2 px-3 text-center">Import</th>
+                      <th className="py-2 px-3">Date</th>
+                      <th className="py-2 px-3">Description</th>
+                      <th className="py-2 px-3">Category</th>
+                      <th className="py-2 px-3">AI Confidence</th>
+                      <th className="py-2 px-3 text-right">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-hairline">
+                    {previewItems.map((item) => (
+                      <tr
+                        key={item.id}
+                        className={`hover:bg-offwhite/50 transition-colors ${!item.selected ? "opacity-40 bg-gray-50" : ""}`}
+                      >
+                        <td className="py-3 px-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={item.selected}
+                            onChange={() => handleToggleItemSelect(item.id)}
+                            className="rounded border-hairline text-purple focus:ring-purple cursor-pointer"
+                          />
+                        </td>
+                        <td className="py-3 px-3 font-medium whitespace-nowrap text-muted-foreground">{item.date}</td>
+                        <td className="py-3 px-3 font-bold text-ink">
+                          {item.merchant || item.description}
+                          {item.isRecurring && (
+                            <span className="ml-2 text-[9px] font-bold text-cyan-700 bg-cyan/10 border border-cyan/20 px-1.5 py-0.5 rounded">
+                              Recurring
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-3">
+                          <select
+                            value={item.category}
+                            onChange={(e) => handleItemCategoryChange(item.id, e.target.value)}
+                            className="px-2.5 py-1 rounded-lg border border-hairline bg-white text-xs font-semibold text-ink focus:border-purple outline-none cursor-pointer"
+                          >
+                            <option value="Food & Dining">Food & Dining</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Subscriptions">Subscriptions</option>
+                            <option value="Housing & Rent">Housing & Rent</option>
+                            <option value="Travel & Rides">Travel & Rides</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Income">Income</option>
+                            <option value="General Expense">General Expense</option>
+                          </select>
+                        </td>
+                        <td className="py-3 px-3">
+                          <span
+                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                              item.confidence >= 0.9
+                                ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+                                : item.confidence >= 0.75
+                                ? "bg-purple/10 text-purple border-purple/20"
+                                : "bg-amber-100 text-amber-800 border-amber-200"
+                            }`}
+                          >
+                            {Math.round(item.confidence * 100)}% Match
+                          </span>
+                        </td>
+                        <td
+                          className={`py-3 px-3 text-right font-bold whitespace-nowrap ${
+                            item.type === "income" ? "text-emerald-600" : "text-ink"
+                          }`}
+                        >
+                          {item.type === "income" ? "+" : "-"}{curr}
+                          {item.amount.toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 border-t border-hairline bg-offwhite/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-xs text-muted-foreground">
+                  Total Selected Sum:{" "}
+                  <span className="font-bold text-ink text-sm">
+                    {curr}
+                    {previewItems
+                      .filter((i) => i.selected)
+                      .reduce((acc, i) => acc + i.amount, 0)
+                      .toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <button
+                    onClick={() => setIsPreviewModalOpen(false)}
+                    className="px-5 py-2.5 rounded-xl border border-hairline hover:bg-white text-xs font-bold text-ink transition-colors cursor-pointer w-full sm:w-auto"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmBatchImport}
+                    disabled={isImportingBatch || previewItems.filter((i) => i.selected).length === 0}
+                    className="px-6 py-2.5 rounded-xl bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto"
+                  >
+                    {isImportingBatch ? <Loader2 className="size-4 animate-spin" /> : "Confirm & Import to DB"}
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}

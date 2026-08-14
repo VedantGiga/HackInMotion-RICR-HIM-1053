@@ -22,11 +22,9 @@ function parseRobustDate(dateStr: string): Date {
   if (!dateStr) return new Date();
   const trimmed = dateStr.trim();
 
-  // Try standard JS Date parser
   const parsed = new Date(trimmed);
   if (!isNaN(parsed.getTime())) return parsed;
 
-  // Handle DD-MMM-YYYY or MMM DD, YYYY
   const textParts = trimmed.toLowerCase().split(/[\s\/\-\.]+/);
   if (textParts.length >= 3) {
     let day = parseInt(textParts[0], 10);
@@ -62,9 +60,6 @@ function parseRobustDate(dateStr: string): Date {
   return new Date();
 }
 
-/**
- * Normalizes CSV headers/keys for maximum flexibility across bank CSV formats
- */
 function findRowValue(row: Record<string, any>, possibleKeys: string[]): any {
   for (const rawKey of Object.keys(row)) {
     const cleanKey = rawKey.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -80,9 +75,6 @@ function findRowValue(row: Record<string, any>, possibleKeys: string[]): any {
   return undefined;
 }
 
-/**
- * Extracts transactions from raw PDF bank statement text lines
- */
 function extractTransactionsFromPdfText(text: string) {
   const lines = text.split(/\r?\n/);
   const extracted: Array<{ date: string; amount: number; description: string; type?: "expense" | "income" }> = [];
@@ -137,6 +129,63 @@ function extractTransactionsFromPdfText(text: string) {
 export async function POST(req: Request) {
   try {
     const userId = await getAuthenticatedUserId();
+    const contentType = req.headers.get("content-type") || "";
+
+    // 1. If JSON payload: batch insert confirmed items
+    if (contentType.includes("application/json")) {
+      const body = await req.json();
+      const { items } = body;
+
+      if (!Array.isArray(items) || items.length === 0) {
+        return errorResponse("No items provided for import", 400);
+      }
+
+      const categories = await prisma.category.findMany();
+      const categoryMap = new Map<string, string>();
+      categories.forEach((c) => categoryMap.set(c.name, c.id));
+
+      let insertedCount = 0;
+
+      for (const item of items) {
+        const catName = item.category || "General Expense";
+        let categoryId = categoryMap.get(catName);
+
+        if (!categoryId) {
+          const newCat = await prisma.category.create({
+            data: { name: catName, type: item.type || "expense" },
+          });
+          categoryId = newCat.id;
+          categoryMap.set(catName, categoryId);
+        }
+
+        const dateObj = item.date ? new Date(item.date) : new Date();
+
+        await prisma.transaction.create({
+          data: {
+            userId,
+            amount: Math.abs(parseFloat(item.amount)),
+            date: isNaN(dateObj.getTime()) ? new Date() : dateObj,
+            description: item.description || item.merchant || "Imported Item",
+            merchant: item.merchant || item.description || "Imported Item",
+            confidence: item.confidence || 0.95,
+            isRecurring: !!item.isRecurring,
+            categoryId,
+          },
+        });
+
+        insertedCount++;
+      }
+
+      return successResponse(
+        { imported: insertedCount },
+        `Successfully imported ${insertedCount} transactions`,
+        201
+      );
+    }
+
+    // 2. FormData file upload (preview mode or direct import)
+    const { searchParams } = new URL(req.url);
+    const isPreview = searchParams.get("preview") === "true";
 
     const formData = await req.formData();
     const file = formData.get("file") as File;
@@ -146,25 +195,18 @@ export async function POST(req: Request) {
     }
 
     const isPdf = file.name.toLowerCase().endsWith(".pdf") || file.type === "application/pdf";
-
-    // Pre-fetch existing user transactions & DB categories
-    const [existingTx, categories] = await Promise.all([
-      prisma.transaction.findMany({
-        where: { userId },
-        select: { amount: true, date: true, description: true },
-      }),
-      prisma.category.findMany(),
-    ]);
-
-    const existingKeys = new Set(
-      existingTx.map((t) => `${t.amount}_${t.date.toISOString().split("T")[0]}_${t.description.toLowerCase().trim()}`)
-    );
-
-    const categoryMap = new Map<string, string>();
-    categories.forEach((c) => categoryMap.set(c.name, c.id));
-
-    let importedCount = 0;
-    let duplicateCount = 0;
+    const previewList: Array<{
+      id: string;
+      date: string;
+      description: string;
+      merchant: string;
+      category: string;
+      confidence: number;
+      amount: number;
+      type: "expense" | "income";
+      isRecurring: boolean;
+      selected: boolean;
+    }> = [];
 
     if (isPdf) {
       let pdfText = "";
@@ -175,182 +217,151 @@ export async function POST(req: Request) {
         const parsedPdf = await parseFn(buffer);
         pdfText = parsedPdf.text || "";
       } catch (err) {
-        console.warn("PDF-parse fallback to buffer text:", err);
+        console.warn("PDF parse fallback:", err);
         pdfText = await file.text();
       }
 
       const rows = extractTransactionsFromPdfText(pdfText);
 
-      for (const row of rows) {
-        const date = parseRobustDate(row.date);
-        const dateKey = date.toISOString().split("T")[0];
-        const dedupeKey = `${row.amount}_${dateKey}_${row.description.toLowerCase().trim()}`;
-
-        if (existingKeys.has(dedupeKey)) {
-          duplicateCount++;
-          continue;
-        }
-
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const dateObj = parseRobustDate(row.date);
         const catRes = await categorizeTransactionDetailed(row.description);
-        const targetCategoryName = row.type === "income" ? "Income" : catRes.category;
-        
-        let categoryId = categoryMap.get(targetCategoryName);
-        if (!categoryId) {
-          const newCat = await prisma.category.create({
-            data: { name: targetCategoryName, type: row.type || "expense" },
-          });
-          categoryId = newCat.id;
-          categoryMap.set(targetCategoryName, categoryId);
-        }
+        const targetCat = row.type === "income" ? "Income" : catRes.category;
 
-        await prisma.transaction.create({
-          data: {
-            userId,
-            amount: Math.abs(row.amount),
-            date,
-            description: row.description,
-            merchant: catRes.cleanMerchant,
-            confidence: catRes.confidence,
-            isRecurring: catRes.isRecurring,
-            categoryId,
-          },
+        previewList.push({
+          id: `pdf_${i}_${Date.now()}`,
+          date: dateObj.toISOString().split("T")[0],
+          description: row.description,
+          merchant: catRes.cleanMerchant || row.description,
+          category: targetCat,
+          confidence: catRes.confidence,
+          amount: Math.abs(row.amount),
+          type: row.type || (row.amount < 0 ? "income" : "expense"),
+          isRecurring: catRes.isRecurring,
+          selected: true,
         });
-
-        existingKeys.add(dedupeKey);
-        importedCount++;
       }
+    } else {
+      // CSV Parsing
+      const text = await file.text();
+      const parseResult: any = await new Promise((res) => {
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => res(results),
+        });
+      });
 
+      const data = parseResult.data as any[];
+
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const description =
+          findRowValue(row, [
+            "description", "narration", "particulars", "payee", "merchant",
+            "details", "name", "memo", "remarks", "summary", "transaction"
+          ]) || Object.values(row).find(v => typeof v === "string" && v.length > 3 && !v.match(/^\d{1,4}[\/\-\.]/));
+
+        if (!description || String(description).trim().length < 2) continue;
+        const cleanDesc = String(description).trim();
+
+        const dateVal = findRowValue(row, [
+          "date", "dt", "txndate", "transactiondate", "postingdate", "valuedate", "timestamp", "time"
+        ]) || Object.values(row).find(v => typeof v === "string" && v.match(/\d{1,4}[\/\-\.]/));
+
+        const dateObj = parseRobustDate(String(dateVal || ""));
+
+        const debitVal = parseCleanNumber(findRowValue(row, ["debit", "withdrawal", "dr", "out", "paidout"]));
+        const creditVal = parseCleanNumber(findRowValue(row, ["credit", "deposit", "cr", "in", "paidin"]));
+        const rawAmount = findRowValue(row, ["amount", "amt", "val", "value", "sum", "price", "total"]);
+        const singleAmountVal = parseCleanNumber(rawAmount);
+
+        let amount = 0;
+        let isIncome = false;
+
+        if (creditVal !== null && creditVal > 0) {
+          amount = creditVal;
+          isIncome = true;
+        } else if (debitVal !== null && debitVal > 0) {
+          amount = debitVal;
+          isIncome = false;
+        } else if (singleAmountVal !== null) {
+          const categoryCol = String(findRowValue(row, ["category", "cat", "type"]) || "").toLowerCase();
+          if (categoryCol.includes("income") || categoryCol.includes("credit") || singleAmountVal < 0) {
+            isIncome = singleAmountVal < 0 || categoryCol.includes("income");
+            amount = Math.abs(singleAmountVal);
+          } else {
+            amount = Math.abs(singleAmountVal);
+            isIncome = false;
+          }
+        } else continue;
+
+        if (amount === 0) continue;
+
+        const catRes = await categorizeTransactionDetailed(cleanDesc);
+        const targetCat = isIncome ? "Income" : (findRowValue(row, ["category", "cat"]) || catRes.category);
+
+        previewList.push({
+          id: `csv_${i}_${Date.now()}`,
+          date: dateObj.toISOString().split("T")[0],
+          description: cleanDesc,
+          merchant: catRes.cleanMerchant || cleanDesc,
+          category: targetCat,
+          confidence: catRes.confidence,
+          amount: Math.abs(amount),
+          type: isIncome ? "income" : "expense",
+          isRecurring: catRes.isRecurring,
+          selected: true,
+        });
+      }
+    }
+
+    // Return preview payload or direct batch insert if not preview
+    if (isPreview) {
       return successResponse(
-        { imported: importedCount, duplicatesSkipped: duplicateCount },
-        `Successfully extracted and imported ${importedCount} transactions from PDF bank statement`,
-        201
+        { preview: previewList, count: previewList.length },
+        `Parsed ${previewList.length} transactions for review`
       );
     }
 
-    // CSV Bank Statement Parsing
-    const text = await file.text();
+    // If not preview mode, proceed to batch insert directly
+    const categories = await prisma.category.findMany();
+    const categoryMap = new Map<string, string>();
+    categories.forEach((c) => categoryMap.set(c.name, c.id));
 
-    return new Promise<NextResponse>((resolve) => {
-      Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          try {
-            const data = results.data as any[];
+    let importedCount = 0;
 
-            for (const row of data) {
-              // Flexible column matching for Description
-              const description = findRowValue(row, [
-                "description", "narration", "particulars", "payee", "merchant",
-                "details", "name", "memo", "remarks", "summary", "transaction"
-              ]) || Object.values(row).find(v => typeof v === "string" && v.length > 3 && !v.match(/^\d{1,4}[\/\-\.]/));
+    for (const item of previewList) {
+      let categoryId = categoryMap.get(item.category);
+      if (!categoryId) {
+        const newCat = await prisma.category.create({
+          data: { name: item.category, type: item.type },
+        });
+        categoryId = newCat.id;
+        categoryMap.set(item.category, categoryId);
+      }
 
-              if (!description || String(description).trim().length < 2) continue;
-
-              const cleanDesc = String(description).trim();
-
-              // Flexible column matching for Date
-              const dateVal = findRowValue(row, [
-                "date", "dt", "txndate", "transactiondate", "postingdate", "valuedate", "timestamp", "time"
-              ]) || Object.values(row).find(v => typeof v === "string" && v.match(/\d{1,4}[\/\-\.]/));
-
-              const date = parseRobustDate(String(dateVal || ""));
-
-              // Check split Debit / Credit columns vs single Amount
-              const debitVal = parseCleanNumber(findRowValue(row, ["debit", "withdrawal", "dr", "out", "paidout"]));
-              const creditVal = parseCleanNumber(findRowValue(row, ["credit", "deposit", "cr", "in", "paidin"]));
-              const rawAmount = findRowValue(row, ["amount", "amt", "val", "value", "sum", "price", "total"]);
-              const singleAmountVal = parseCleanNumber(rawAmount);
-
-              let amount = 0;
-              let isIncome = false;
-
-              if (creditVal !== null && creditVal > 0) {
-                amount = creditVal;
-                isIncome = true;
-              } else if (debitVal !== null && debitVal > 0) {
-                amount = debitVal;
-                isIncome = false;
-              } else if (singleAmountVal !== null) {
-                const categoryCol = String(findRowValue(row, ["category", "cat", "type"]) || "").toLowerCase();
-                if (categoryCol.includes("income") || categoryCol.includes("credit") || singleAmountVal < 0) {
-                  isIncome = singleAmountVal < 0 || categoryCol.includes("income");
-                  amount = Math.abs(singleAmountVal);
-                } else {
-                  amount = Math.abs(singleAmountVal);
-                  isIncome = false;
-                }
-              } else {
-                // Try scanning numeric values in the row if key names didn't match
-                const numericVals = Object.values(row)
-                  .map(v => parseCleanNumber(v))
-                  .filter((n): n is number => n !== null && n !== 0);
-
-                if (numericVals.length > 0) {
-                  amount = Math.abs(numericVals[0]);
-                  isIncome = numericVals[0] < 0;
-                } else {
-                  continue;
-                }
-              }
-
-              if (amount === 0) continue;
-
-              const dateKey = date.toISOString().split("T")[0];
-              const dedupeKey = `${amount}_${dateKey}_${cleanDesc.toLowerCase()}`;
-
-              if (existingKeys.has(dedupeKey)) {
-                duplicateCount++;
-                continue;
-              }
-
-              const catRes = await categorizeTransactionDetailed(cleanDesc);
-              const targetCategoryName = isIncome ? "Income" : (findRowValue(row, ["category", "cat"]) || catRes.category);
-
-              let categoryId = categoryMap.get(targetCategoryName);
-              if (!categoryId) {
-                const newCat = await prisma.category.create({
-                  data: { name: targetCategoryName, type: isIncome ? "income" : "expense" },
-                });
-                categoryId = newCat.id;
-                categoryMap.set(targetCategoryName, categoryId);
-              }
-
-              await prisma.transaction.create({
-                data: {
-                  userId,
-                  amount: amount,
-                  date,
-                  description: cleanDesc,
-                  merchant: catRes.cleanMerchant,
-                  confidence: catRes.confidence,
-                  isRecurring: catRes.isRecurring,
-                  categoryId,
-                },
-              });
-
-              existingKeys.add(dedupeKey);
-              importedCount++;
-            }
-
-            resolve(
-              successResponse(
-                { imported: importedCount, duplicatesSkipped: duplicateCount },
-                `Successfully imported ${importedCount} transactions from CSV statement (${duplicateCount} duplicates skipped)`,
-                201
-              )
-            );
-          } catch (err) {
-            console.error("Error inserting parsed CSV data:", err);
-            resolve(errorResponse("Error processing CSV data", 500));
-          }
-        },
-        error: (error: any) => {
-          console.error("PapaParse error:", error);
-          resolve(errorResponse("Error parsing CSV file", 400));
+      await prisma.transaction.create({
+        data: {
+          userId,
+          amount: item.amount,
+          date: new Date(item.date),
+          description: item.description,
+          merchant: item.merchant,
+          confidence: item.confidence,
+          isRecurring: item.isRecurring,
+          categoryId,
         },
       });
-    });
+      importedCount++;
+    }
+
+    return successResponse(
+      { imported: importedCount },
+      `Successfully imported ${importedCount} transactions`,
+      201
+    );
   } catch (error: any) {
     console.error("POST import error:", error);
     return errorResponse("Internal server error", 500);
