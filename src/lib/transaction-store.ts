@@ -13,6 +13,7 @@ export interface StoredTransaction {
   confidence?: number;
   isRecurring?: boolean;
   type?: "expense" | "income";
+  account?: string;
   createdAt?: string;
 }
 

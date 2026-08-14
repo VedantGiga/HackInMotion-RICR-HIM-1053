@@ -50,6 +50,7 @@ model Transaction {
   merchant    String?
   confidence  Float?   @default(0.95)
   isRecurring Boolean  @default(false)
+  account     String?  @default("Main Bank")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

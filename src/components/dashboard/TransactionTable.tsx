@@ -22,6 +22,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
   const [editCategory, setEditCategory] = useState("Food & Dining");
   const [editDate, setEditDate] = useState("");
   const [editIsRecurring, setEditIsRecurring] = useState(false);
+  const [editAccount, setEditAccount] = useState("Main Bank");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDelete = async (id: string) => {
@@ -44,6 +45,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
     setEditCategory(tx.category || "Food & Dining");
     setEditDate(tx.date || new Date().toISOString().split("T")[0]);
     setEditIsRecurring(tx.isRecurring || false);
+    setEditAccount(tx.account || "Main Bank");
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -61,6 +63,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
           categoryName: editCategory,
           date: editDate,
           isRecurring: editIsRecurring,
+          account: editAccount,
         }),
       });
 
@@ -76,6 +79,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                   category: editCategory,
                   date: editDate,
                   isRecurring: editIsRecurring,
+                  account: editAccount,
                 }
               : t
           )
@@ -110,6 +114,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
               <tr className="border-b border-hairline bg-offwhite/50">
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant / Description</th>
+                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Account</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">AI Confidence</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Type</th>
@@ -136,6 +141,11 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                           )}
                         </div>
                       </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <span className="px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-[11px] font-bold border border-gray-200 whitespace-nowrap">
+                        {tx.account || "Main Bank"}
+                      </span>
                     </td>
                     <td className="py-4 px-6">
                       <span className={`px-2.5 py-1 rounded-md ${cfg.bg} ${cfg.color} text-[12px] font-bold border ${cfg.border}`}>
@@ -255,18 +265,29 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                 </select>
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="editRecurring"
-                  checked={editIsRecurring}
-                  onChange={(e) => setEditIsRecurring(e.target.checked)}
-                  className="rounded border-hairline text-purple focus:ring-purple"
-                />
-                <label htmlFor="editRecurring" className="text-xs font-semibold text-ink cursor-pointer">
-                  Is Recurring Monthly Bill?
-                </label>
-              </div>
+                <div className="space-y-1">
+                  <label className="font-bold text-ink">Account</label>
+                  <input
+                    type="text"
+                    required
+                    value={editAccount}
+                    onChange={(e) => setEditAccount(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite text-ink font-semibold"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="editRecurring"
+                    checked={editIsRecurring}
+                    onChange={(e) => setEditIsRecurring(e.target.checked)}
+                    className="rounded border-hairline text-purple focus:ring-purple"
+                  />
+                  <label htmlFor="editRecurring" className="text-xs font-semibold text-ink cursor-pointer">
+                    Is Recurring Monthly Bill?
+                  </label>
+                </div>
 
               <button
                 type="submit"
