@@ -43,6 +43,12 @@ export default function CreateProfilePage() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("user_currency", selectedCurrency);
+    }
+  }, [selectedCurrency]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
