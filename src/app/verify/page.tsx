@@ -115,6 +115,7 @@ export default function VerifyPage() {
 
       setRedirecting(true);
       if (typeof window !== "undefined") {
+        sessionStorage.removeItem("koshin_pending_verification");
         localStorage.removeItem("koshin_onboarded");
         window.location.href = "/onboarding";
       } else {

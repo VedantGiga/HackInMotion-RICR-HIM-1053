@@ -37,10 +37,17 @@ export default function SignUpPage() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    if (user && !authLoading) {
+    // Prevent flash redirect to /dashboard if currently creating an account & heading to /verify
+    if (
+      user &&
+      !authLoading &&
+      !redirecting &&
+      typeof window !== "undefined" &&
+      !sessionStorage.getItem("koshin_pending_verification")
+    ) {
       router.replace("/dashboard");
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, redirecting, router]);
 
   const {
     register,
@@ -69,7 +76,9 @@ export default function SignUpPage() {
     setLoading(true);
     
     try {
+      setRedirecting(true);
       if (typeof window !== "undefined") {
+        sessionStorage.setItem("koshin_pending_verification", "true");
         localStorage.removeItem("koshin_onboarded");
       }
       
