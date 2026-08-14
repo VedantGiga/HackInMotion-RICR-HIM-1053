@@ -16,11 +16,13 @@ const verifySchema = z.object({
 
 type VerifyFormValues = z.infer<typeof verifySchema>;
 
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+import { auth } from "@/lib/firebase/config";
+import { logOut } from "@/lib/firebase/auth";
 
 export default function VerifyPage() {
   const router = useRouter();
-  const { status, data: session, update } = useSession();
+  const { user } = useAuth();
   
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -94,35 +96,25 @@ export default function VerifyPage() {
     setLoading(true);
     
     try {
-      if (!email) {
+      const targetEmail = email || (typeof window !== "undefined" ? sessionStorage.getItem("koshin_signup_email") : null) || auth.currentUser?.email;
+
+      if (!targetEmail) {
         throw new Error("Missing email address. Please restart signup.");
       }
 
       const res = await fetch("/api/v1/auth/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code: data.code }),
+        body: JSON.stringify({ email: targetEmail, code: data.code }),
       });
 
       const json = await res.json();
       if (!res.ok) {
         throw new Error(json.error || "Invalid verification code");
       }
-      
+
       setRedirecting(true);
       if (typeof window !== "undefined") {
-        const signupEmail = sessionStorage.getItem("koshin_signup_email") || email;
-        const signupPass = sessionStorage.getItem("koshin_signup_pass");
-
-        if (signupEmail && signupPass) {
-          await signIn("credentials", {
-            email: signupEmail,
-            password: signupPass,
-            redirect: false,
-          });
-          sessionStorage.removeItem("koshin_signup_email");
-          sessionStorage.removeItem("koshin_signup_pass");
-        }
         localStorage.removeItem("koshin_onboarded");
         window.location.href = "/onboarding";
       } else {
@@ -136,14 +128,21 @@ export default function VerifyPage() {
   };
 
   const handleResend = async () => {
-    if (!email) return;
+    const targetEmail = email || (typeof window !== "undefined" ? sessionStorage.getItem("koshin_signup_email") : null) || auth.currentUser?.email;
+    if (!targetEmail) {
+      alert("Missing email address.");
+      return;
+    }
+
     try {
       const res = await fetch("/api/v1/auth/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: targetEmail }),
       });
+
       const json = await res.json();
+
       if (res.ok) {
         if (json?.code && !json?.emailSent) {
           try {
@@ -152,8 +151,8 @@ export default function VerifyPage() {
               process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_dvicy8b",
               process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_ii8om4m",
               {
-                to_email: email,
-                email: email,
+                to_email: targetEmail,
+                email: targetEmail,
                 passcode: json.code,
                 code: json.code,
                 company_name: "Koshin AI",
@@ -164,12 +163,12 @@ export default function VerifyPage() {
             console.error("[EmailJS Resend Error]:", clientErr);
           }
         }
-        alert("Verification code sent to " + email);
+        alert("New verification code sent to " + targetEmail);
       } else {
-        alert(json.error || "Failed to resend code.");
+        alert(json.error || "Failed to resend verification code.");
       }
-    } catch (err) {
-      alert("Failed to resend code.");
+    } catch (err: any) {
+      alert("Failed to resend verification code.");
     }
   };
 
@@ -333,11 +332,12 @@ export default function VerifyPage() {
         {/* Back navigation */}
         <button 
           type="button" 
-          onClick={() => {
+          onClick={async () => {
             const params = new URLSearchParams();
-            if (session?.user?.email) params.set("email", session.user.email);
-            if (session?.user?.name) params.set("name", session.user.name);
-            signOut({ callbackUrl: `/signup?${params.toString()}` });
+            if (user?.email) params.set("email", user.email);
+            if (user?.displayName) params.set("name", user.displayName);
+            await logOut();
+            router.push(`/signup?${params.toString()}`);
           }}
           className="absolute top-8 right-6 sm:right-12 p-2 rounded-lg hover:bg-offwhite text-muted-foreground hover:text-ink transition-all flex items-center gap-2 text-sm font-bold"
         >

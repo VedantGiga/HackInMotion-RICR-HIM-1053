@@ -1,44 +1,46 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
+import { saveOTPCode } from "@/lib/otp-store";
 
 export async function POST(req: Request) {
   try {
     const { email } = await req.json();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    if (!email || typeof email !== "string" || !email.trim()) {
+      return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
+    const cleanEmail = email.trim().toLowerCase();
 
     // Generate a 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
 
-    // Save or update code in database
-    await prisma.verificationCode.upsert({
-      where: { email },
-      update: {
-        code,
-        expiresAt,
-        createdAt: new Date(),
-      },
-      create: {
-        email,
-        code,
-        expiresAt,
-      },
-    });
+    // Save in serverless resilient OTP store
+    saveOTPCode(cleanEmail, code, 10);
 
-    // Await email delivery so Vercel serverless function stays active during HTTP dispatch
-    const emailRes = await sendVerificationEmail(email, code);
+    // Save or update code in Prisma database if accessible
+    try {
+      await prisma.verificationCode.upsert({
+        where: { email: cleanEmail },
+        update: {
+          code,
+          expiresAt,
+          createdAt: new Date(),
+        },
+        create: {
+          email: cleanEmail,
+          code,
+          expiresAt,
+        },
+      });
+    } catch (dbErr) {
+      console.warn("[SendVerification DB Warning]:", dbErr);
+    }
+
+    // Send verification email via EmailJS / SMTP
+    const emailRes = await sendVerificationEmail(cleanEmail, code);
 
     return NextResponse.json({
       success: true,

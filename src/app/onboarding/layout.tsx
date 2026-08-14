@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();

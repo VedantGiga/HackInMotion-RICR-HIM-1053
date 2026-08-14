@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PlusCircle, Loader2, Edit2, X } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { getCurrencySymbol } from "@/lib/utils";
 

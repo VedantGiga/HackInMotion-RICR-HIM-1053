@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, Eye, EyeOff, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+import { signIn as firebaseSignIn } from "@/lib/firebase/auth";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,17 +20,17 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { user, loading: authLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (user && !authLoading) {
       router.replace("/dashboard");
     }
-  }, [status, router]);
+  }, [user, authLoading, router]);
 
   const {
     register,
@@ -58,17 +59,7 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      const res = await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      if (!res || res.error || !res.ok) {
-        setAuthError("Invalid email or password. Please try again.");
-        setLoading(false);
-        return;
-      }
+      await firebaseSignIn(data.email, data.password);
 
       setRedirecting(true);
       if (typeof window !== "undefined") {

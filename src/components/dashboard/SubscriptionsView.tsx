@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import { Bell, RefreshCw, Bot, Terminal, ShieldAlert, Sparkles, CheckCircle, X } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { useDashboardStore } from "@/store/useDashboardStore";

@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Lock, Mail, User, CheckCircle2, Sparkles, Eye, EyeOff, Phone, AlertCircle } from "lucide-react";
-import { signIn, useSession } from "next-auth/react";
+import { useAuth } from "@/context/AuthContext";
+import { signUp as firebaseSignUp } from "@/lib/firebase/auth";
 
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -27,7 +28,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { user, loading: authLoading } = useAuth();
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -36,10 +37,10 @@ export default function SignUpPage() {
   const [authError, setAuthError] = useState("");
 
   useEffect(() => {
-    if (status === "authenticated") {
+    if (user && !authLoading) {
       router.replace("/dashboard");
     }
-  }, [status, router]);
+  }, [user, authLoading, router]);
 
   const {
     register,
@@ -71,61 +72,47 @@ export default function SignUpPage() {
       if (typeof window !== "undefined") {
         localStorage.removeItem("koshin_onboarded");
       }
-      // 1. Create user in Prisma Database via REST API
-      const res = await fetch("/api/v1/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          password: data.password,
-        }),
-      });
+      
+      // 1. Create account with Firebase Auth
+      await firebaseSignUp(data.email, data.password, data.name);
 
-      const json = await res.json();
-      if (!res.ok) {
-        throw new Error(json.message || json.error || "Failed to create an account.");
-      }
+      // 2. Dispatch 6-Digit Email OTP
+      try {
+        const verifyRes = await fetch("/api/v1/auth/send-verification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: data.email }),
+        });
 
-      // 2. Send Verification Email
-      const verifyRes = await fetch("/api/v1/auth/send-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: data.email }),
-      });
+        const verifyJson = await verifyRes.json();
 
-      const verifyJson = await verifyRes.json();
-
-      // Dual-dispatch: if server-side EmailJS was blocked by non-browser security policy, dispatch via client-side @emailjs/browser
-      if (verifyJson?.code && !verifyJson?.emailSent) {
-        try {
-          const emailjs = (await import("@emailjs/browser")).default;
-          await emailjs.send(
-            process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_dvicy8b",
-            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_ii8om4m",
-            {
-              to_email: data.email,
-              email: data.email,
-              passcode: verifyJson.code,
-              code: verifyJson.code,
-              company_name: "Koshin AI",
-            },
-            process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "JtOjDhYRDchP6rMsp"
-          );
-          console.log("[EmailJS Client] Verification email delivered directly to", data.email);
-        } catch (emailErr) {
-          console.error("[EmailJS Client Dispatch Error]:", emailErr);
+        // Dual-dispatch: if server-side EmailJS was blocked by non-browser security policy, dispatch via client-side @emailjs/browser
+        if (verifyJson?.code && !verifyJson?.emailSent) {
+          try {
+            const emailjs = (await import("@emailjs/browser")).default;
+            await emailjs.send(
+              process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || "service_dvicy8b",
+              process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || "template_ii8om4m",
+              {
+                to_email: data.email,
+                email: data.email,
+                passcode: verifyJson.code,
+                code: verifyJson.code,
+                company_name: "Koshin AI",
+              },
+              process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || "JtOjDhYRDchP6rMsp"
+            );
+          } catch (emailErr) {
+            console.error("[EmailJS Client Dispatch Error]:", emailErr);
+          }
         }
+      } catch (otpErr) {
+        console.warn("[OTP Dispatch Warning]:", otpErr);
       }
 
       if (typeof window !== "undefined") {
         localStorage.removeItem("koshin_onboarded");
         sessionStorage.setItem("koshin_signup_email", data.email);
-        sessionStorage.setItem("koshin_signup_pass", data.password);
-        if (verifyJson?.code) {
-          sessionStorage.setItem("koshin_demo_code", verifyJson.code);
-        }
       }
 
       setRedirecting(true);

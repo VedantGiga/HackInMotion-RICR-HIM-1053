@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { User, ShieldCheck, CheckCircle2, Camera, Key, Lock, CreditCard, Sparkles, Trash2, Plus } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import { getCurrencySymbol } from "@/lib/utils";
 
 export function SettingsView() {

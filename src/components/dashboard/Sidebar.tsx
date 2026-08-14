@@ -2,7 +2,8 @@
 
 import { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { User, LogOut } from "lucide-react";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
+import { logOut } from "@/lib/firebase/auth";
 import { LucideIcon } from "lucide-react";
 
 export type NavItem = {
@@ -142,7 +143,7 @@ export function Sidebar({
                   localStorage.clear();
                   sessionStorage.clear();
                 }
-                await signOut({ redirect: false });
+                await logOut();
                 window.location.href = "/login";
               }}
               title="Sign out"

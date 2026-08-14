@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import { KoshinDashboard } from "@/components/site/KoshinDashboard";
 
 export default function DashboardPage() {

@@ -2,20 +2,28 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Mail, CheckCircle2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Mail, CheckCircle2, ShieldCheck, AlertCircle } from "lucide-react";
+import { resetPassword } from "@/lib/firebase/auth";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email) return;
+    setErrorMsg("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await resetPassword(email);
       setSuccess(true);
-    }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to send password reset email.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

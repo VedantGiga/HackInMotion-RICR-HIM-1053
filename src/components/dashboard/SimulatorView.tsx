@@ -2,7 +2,7 @@
 
 import { Activity, Coffee, Tv, ShoppingBag, ShieldCheck, TrendingUp, Target } from "lucide-react";
 import { Dispatch, SetStateAction } from "react";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import { getCurrencySymbol } from "@/lib/utils";
 
 interface SimulatorViewProps {

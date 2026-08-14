@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
+import { logOut } from "@/lib/firebase/auth";
 import gsap from "gsap";
 
 const LINKS = [
@@ -125,7 +126,7 @@ export function Navbar() {
                     localStorage.clear();
                     sessionStorage.clear();
                   }
-                  await signOut({ redirect: false });
+                  await logOut();
                   window.location.href = "/login";
                 }}
                 className="inline-flex items-center justify-center rounded-full border border-white/20 bg-transparent px-5 py-2 text-xs font-semibold text-white transition-all hover:bg-white/10 cursor-pointer"

@@ -3,7 +3,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession } from "@/context/AuthContext";
 import {
   TrendingUp,
   CreditCard,
