@@ -123,6 +123,9 @@ export default function SignUpPage() {
         localStorage.removeItem("koshin_onboarded");
         sessionStorage.setItem("koshin_signup_email", data.email);
         sessionStorage.setItem("koshin_signup_pass", data.password);
+        if (verifyJson?.code) {
+          sessionStorage.setItem("koshin_demo_code", verifyJson.code);
+        }
       }
 
       setRedirecting(true);

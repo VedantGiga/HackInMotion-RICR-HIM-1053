@@ -75,12 +75,18 @@ export default function VerifyPage() {
   };
 
   const [email, setEmail] = useState<string | null>(null);
+  const [demoCode, setDemoCode] = useState<string | null>(null);
 
   useEffect(() => {
     // Get email from URL params
     const searchParams = new URLSearchParams(window.location.search);
     const emailParam = searchParams.get("email");
     if (emailParam) setEmail(emailParam);
+
+    if (typeof window !== "undefined") {
+      const savedCode = sessionStorage.getItem("koshin_demo_code");
+      if (savedCode) setDemoCode(savedCode);
+    }
   }, []);
 
   const onSubmit = async (data: VerifyFormValues) => {
@@ -263,6 +269,24 @@ export default function VerifyPage() {
                 <p className="text-xs font-bold text-pinkish mt-2 flex items-center gap-1.5">
                   <AlertCircle className="size-3.5" /> {errors.code.message}
                 </p>
+              )}
+              {demoCode && (
+                <div className="mt-3 flex items-center justify-between p-3.5 rounded-xl bg-purple/10 border border-purple/20 text-xs">
+                  <span className="font-medium text-ink">
+                    Verification Code: <strong className="font-mono text-purple text-sm tracking-wider font-extrabold ml-1">{demoCode}</strong>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const digits = demoCode.split("").slice(0, 6);
+                      setCodeDigits(digits);
+                      setValue("code", demoCode, { shouldValidate: true });
+                    }}
+                    className="px-3.5 py-1.5 bg-purple hover:bg-purple/90 text-white font-bold rounded-lg transition-all shadow-xs cursor-pointer text-xs"
+                  >
+                    Auto-Fill
+                  </button>
+                </div>
               )}
             </motion.div>
 

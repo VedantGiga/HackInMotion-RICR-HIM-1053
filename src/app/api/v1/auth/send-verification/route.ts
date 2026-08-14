@@ -37,16 +37,14 @@ export async function POST(req: Request) {
       },
     });
 
-    // Fire email sending asynchronously in the background for sub-50ms API speed
-    sendVerificationEmail(email, code).catch((err) => {
-      console.error("[Non-blocking Email Dispatch Error]:", err);
-    });
+    // Await email delivery so Vercel serverless function stays active during HTTP dispatch
+    const emailRes = await sendVerificationEmail(email, code);
 
     return NextResponse.json({
       success: true,
-      emailSent: true,
+      emailSent: emailRes?.success || false,
       code: code,
-      message: "Verification code generated and sent",
+      message: "Verification code sent to your email address",
     });
   } catch (error: any) {
     console.error("Failed to send verification email:", error);
