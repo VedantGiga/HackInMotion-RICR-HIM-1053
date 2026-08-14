@@ -56,3 +56,5 @@ Thumbs.db
 dev.db
 prisma/dev.db
 prisma/*.db
+public/dev.db
+public/*.db
