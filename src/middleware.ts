@@ -9,11 +9,17 @@ export default withAuth({
       if (pathname.startsWith("/api/v1") && !pathname.startsWith("/api/v1/auth/register")) {
         return token !== null;
       }
+      
+      // Protect the dashboard route
+      if (pathname.startsWith("/dashboard")) {
+        return token !== null;
+      }
+      
       return true;
     },
   },
 });
 
 export const config = {
-  matcher: ["/api/v1/:path*"],
+  matcher: ["/api/v1/:path*", "/dashboard/:path*"],
 };
