@@ -22,7 +22,7 @@ export function SimulatorView({
   foodCut, setFoodCut,
   subCut, setSubCut,
   shoppingCut, setShoppingCut,
-  totalExpenses = 4840,
+  totalExpenses = 0,
   simFoodSavings, simSubSavings, simShopSavings,
   totalMonthlySimSavings, totalAnnualSimSavings
 }: SimulatorViewProps) {

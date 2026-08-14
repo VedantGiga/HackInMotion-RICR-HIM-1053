@@ -1,12 +1,30 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
+import { useDashboardStore } from "@/store/useDashboardStore";
 
 interface TransactionTableProps {
   transactions: Transaction[];
+  onDeleteTransaction?: (id: string) => void;
 }
 
-export function TransactionTable({ transactions }: TransactionTableProps) {
+export function TransactionTable({ transactions, onDeleteTransaction }: TransactionTableProps) {
+  const { setTransactions } = useDashboardStore();
+
+  const handleDelete = async (id: string) => {
+    if (onDeleteTransaction) {
+      onDeleteTransaction(id);
+    } else {
+      try {
+        await fetch(`/api/v1/transactions?id=${id}`, { method: "DELETE" });
+        setTransactions((prev) => prev.filter((t) => t.id !== id));
+      } catch (err) {
+        console.error("Error deleting transaction:", err);
+      }
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-hairline bg-background shadow-sm overflow-hidden">
       {transactions.length === 0 ? (
@@ -16,7 +34,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
           </div>
           <h4 className="display text-lg font-bold text-ink">No Transactions Found</h4>
           <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-            Your transaction log is empty. Upload a bank CSV or scan a receipt to view your line items here.
+            Your transaction log is empty. Upload a bank CSV, PDF statement, or click &quot;+ Scan Receipt&quot; to parse real line items.
           </p>
         </div>
       ) : (
@@ -25,11 +43,12 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
             <thead>
               <tr className="border-b border-hairline bg-offwhite/50">
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant</th>
+                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant / Description</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Confidence</th>
+                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">AI Confidence</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Type</th>
                 <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Amount</th>
+                <th className="py-4 px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-center">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -37,7 +56,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                 const cfg = getCatConfig(tx.category);
                 const Icon = cfg.icon;
                 return (
-                  <tr key={tx.id} className="border-b border-hairline hover:bg-offwhite transition-colors last:border-0">
+                  <tr key={tx.id} className="border-b border-hairline hover:bg-offwhite/80 transition-colors last:border-0">
                     <td className="py-4 px-6 text-[13px] font-medium text-muted-foreground whitespace-nowrap">{tx.date}</td>
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
@@ -47,7 +66,7 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                         <div>
                           <div className="font-bold text-ink text-[14px]">{tx.merchant}</div>
                           {tx.isRecurring && (
-                            <span className="mt-1 inline-block text-[10px] font-bold text-cyan-700 bg-cyan/10 border border-cyan/20 px-2 py-0.5 rounded-md">Recurring</span>
+                            <span className="mt-1 inline-block text-[10px] font-bold text-cyan-700 bg-cyan/10 border border-cyan/20 px-2 py-0.5 rounded-md">Recurring Bill</span>
                           )}
                         </div>
                       </div>
@@ -60,9 +79,9 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2.5">
                         <div className="h-1.5 w-12 bg-offwhite rounded-full overflow-hidden">
-                          <div className="h-full bg-cyan rounded-full" style={{ width: `${Math.round(tx.confidence * 100)}%` }} />
+                          <div className="h-full bg-cyan rounded-full" style={{ width: `${Math.round((tx.confidence || 0.95) * 100)}%` }} />
                         </div>
-                        <span className="font-bold text-[12px] text-ink">{Math.round(tx.confidence * 100)}%</span>
+                        <span className="font-bold text-[12px] text-ink">{Math.round((tx.confidence || 0.95) * 100)}%</span>
                       </div>
                     </td>
                     <td className="py-4 px-6">
@@ -73,9 +92,18 @@ export function TransactionTable({ transactions }: TransactionTableProps) {
                       </span>
                     </td>
                     <td className={`py-4 px-6 text-right font-bold text-[15px] whitespace-nowrap ${
-                      tx.type === 'income' ? 'text-cyan-700' : 'text-ink'
+                      tx.type === 'income' ? 'text-emerald-600' : 'text-ink'
                     }`}>
                       {tx.type === 'income' ? '+' : '-'}${tx.amount.toFixed(2)}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <button
+                        onClick={() => handleDelete(tx.id)}
+                        className="p-1.5 rounded-lg text-muted-foreground hover:text-pinkish hover:bg-pinkish/10 transition-colors cursor-pointer"
+                        title="Delete transaction"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
                     </td>
                   </tr>
                 );

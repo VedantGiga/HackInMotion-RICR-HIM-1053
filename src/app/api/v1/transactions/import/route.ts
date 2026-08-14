@@ -1,36 +1,83 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { errorResponse, successResponse } from "@/lib/api-response";
+import { getAuthenticatedUserId } from "@/lib/auth-helper";
 import Papa from "papaparse";
 import { prisma } from "@/lib/prisma";
 import { categorizeTransactionDetailed } from "@/modules/categorization";
+
+const MONTH_MAP: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+};
+
+function parseCleanNumber(val: any): number | null {
+  if (val === null || val === undefined) return null;
+  const str = String(val).replace(/[^0-9\.\-]/g, "").trim();
+  if (!str) return null;
+  const num = parseFloat(str);
+  return isNaN(num) ? null : num;
+}
 
 function parseRobustDate(dateStr: string): Date {
   if (!dateStr) return new Date();
   const trimmed = dateStr.trim();
 
-  // Standard ISO / YYYY-MM-DD
+  // Try standard JS Date parser
   const parsed = new Date(trimmed);
   if (!isNaN(parsed.getTime())) return parsed;
 
-  // DD/MM/YYYY or MM/DD/YYYY
-  const parts = trimmed.split(/[\/\-\.]/);
-  if (parts.length === 3) {
-    const p1 = parseInt(parts[0], 10);
-    const p2 = parseInt(parts[1], 10);
-    const p3 = parseInt(parts[2], 10);
+  // Handle DD-MMM-YYYY or MMM DD, YYYY
+  const textParts = trimmed.toLowerCase().split(/[\s\/\-\.]+/);
+  if (textParts.length >= 3) {
+    let day = parseInt(textParts[0], 10);
+    let monthIndex = MONTH_MAP[textParts[1].substring(0, 3)];
+    let year = parseInt(textParts[2], 10);
 
-    if (p1 > 12 && p3 > 1000) {
-      return new Date(p3, p2 - 1, p1);
+    if (isNaN(day) && MONTH_MAP[textParts[0].substring(0, 3)] !== undefined) {
+      monthIndex = MONTH_MAP[textParts[0].substring(0, 3)];
+      day = parseInt(textParts[1], 10);
     }
-    if (p1 > 1000) {
-      return new Date(p1, p2 - 1, p3);
+
+    if (!isNaN(day) && monthIndex !== undefined && !isNaN(year)) {
+      if (year < 100) year += 2000;
+      return new Date(year, monthIndex, day);
     }
-    return new Date(p3 > 1000 ? p3 : 2026, p1 - 1, p2);
+
+    const p1 = parseInt(textParts[0], 10);
+    const p2 = parseInt(textParts[1], 10);
+    const p3 = parseInt(textParts[2], 10);
+
+    if (!isNaN(p1) && !isNaN(p2) && !isNaN(p3)) {
+      const fullYear = p3 > 1000 ? p3 : p1 > 1000 ? p1 : 2026;
+      if (p1 > 12 && p3 > 1000) {
+        return new Date(fullYear, p2 - 1, p1);
+      }
+      if (p1 > 1000) {
+        return new Date(fullYear, p2 - 1, p3);
+      }
+      return new Date(fullYear, p1 - 1, p2);
+    }
   }
 
   return new Date();
+}
+
+/**
+ * Normalizes CSV headers/keys for maximum flexibility across bank CSV formats
+ */
+function findRowValue(row: Record<string, any>, possibleKeys: string[]): any {
+  for (const rawKey of Object.keys(row)) {
+    const cleanKey = rawKey.toLowerCase().replace(/[^a-z0-9]/g, "");
+    for (const target of possibleKeys) {
+      if (cleanKey.includes(target)) {
+        const val = row[rawKey];
+        if (val !== undefined && val !== null && String(val).trim().length > 0) {
+          return val;
+        }
+      }
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -38,22 +85,23 @@ function parseRobustDate(dateStr: string): Date {
  */
 function extractTransactionsFromPdfText(text: string) {
   const lines = text.split(/\r?\n/);
-  const extracted: Array<{ date: string; amount: number; description: string }> = [];
+  const extracted: Array<{ date: string; amount: number; description: string; type?: "expense" | "income" }> = [];
 
-  const dateRegex = /(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/;
-  const amountRegex = /[\$\₹\€\£]?\s*(\d{1,6}(?:\.\d{2})?)/;
+  const dateRegex = /(\d{1,2}[\/\-\.](?:[A-Za-z]{3}|\d{1,2})[\/\-\.]\d{2,4})/;
+  const amountRegex = /[\$\₹\€\£]?\s*([\+\-]?\d{1,6}(?:\,\d{3})*(?:\.\d{2})?)/;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line || line.length < 5) continue;
+    if (/balance|page|statement|account number|opening|closing/i.test(line)) continue;
 
     const dateMatch = line.match(dateRegex);
     const amountMatch = line.match(amountRegex);
 
     if (dateMatch && amountMatch) {
       const dateStr = dateMatch[1];
-      const amountVal = parseFloat(amountMatch[1]);
-      if (isNaN(amountVal) || amountVal === 0) continue;
+      const amountVal = parseCleanNumber(amountMatch[1]);
+      if (!amountVal || amountVal === 0) continue;
 
       let description = line
         .replace(dateMatch[0], "")
@@ -63,13 +111,22 @@ function extractTransactionsFromPdfText(text: string) {
         .trim();
 
       if (!description || description.length < 2) {
-        description = "Bank Transaction";
+        description = "Bank Statement Line Item";
       }
+
+      const isCredit = /credit|cr|deposit|payroll|refund|income/i.test(line);
+      const isDebit = /debit|dr|withdrawal|pos|atm|transfer/i.test(line);
+
+      let finalType: "expense" | "income" = "expense";
+      if (isCredit) finalType = "income";
+      else if (isDebit) finalType = "expense";
+      else if (amountVal > 0) finalType = "expense";
 
       extracted.push({
         date: dateStr,
-        amount: amountVal,
+        amount: Math.abs(amountVal),
         description,
+        type: finalType
       });
     }
   }
@@ -79,14 +136,8 @@ function extractTransactionsFromPdfText(text: string) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return errorResponse("Unauthorized", 401);
-    }
+    const userId = await getAuthenticatedUserId();
 
-    const userId = (session.user as any).id;
-
-    // Parse multipart form data
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -116,7 +167,6 @@ export async function POST(req: Request) {
     let duplicateCount = 0;
 
     if (isPdf) {
-      // PDF Bank Statement Parsing
       let pdfText = "";
       try {
         const buffer = Buffer.from(await file.arrayBuffer());
@@ -125,13 +175,12 @@ export async function POST(req: Request) {
         const parsedPdf = await parseFn(buffer);
         pdfText = parsedPdf.text || "";
       } catch (err) {
-        console.warn("PDF-parse fallback to buffer string:", err);
+        console.warn("PDF-parse fallback to buffer text:", err);
         pdfText = await file.text();
       }
 
       const rows = extractTransactionsFromPdfText(pdfText);
 
-      // If PDF text extraction returned structured rows
       for (const row of rows) {
         const date = parseRobustDate(row.date);
         const dateKey = date.toISOString().split("T")[0];
@@ -143,13 +192,15 @@ export async function POST(req: Request) {
         }
 
         const catRes = await categorizeTransactionDetailed(row.description);
-        let categoryId = categoryMap.get(catRes.category);
+        const targetCategoryName = row.type === "income" ? "Income" : catRes.category;
+        
+        let categoryId = categoryMap.get(targetCategoryName);
         if (!categoryId) {
           const newCat = await prisma.category.create({
-            data: { name: catRes.category, type: "expense" },
+            data: { name: targetCategoryName, type: row.type || "expense" },
           });
           categoryId = newCat.id;
-          categoryMap.set(catRes.category, categoryId);
+          categoryMap.set(targetCategoryName, categoryId);
         }
 
         await prisma.transaction.create({
@@ -188,40 +239,89 @@ export async function POST(req: Request) {
             const data = results.data as any[];
 
             for (const row of data) {
-              const dateStr = row.Date || row.date || row.DatePosted || row.TxnDate || row.TransactionDate;
-              const amountStr = row.Amount || row.amount || row.Value || row.TxnAmount;
-              const description = row.Description || row.description || row.Name || row.Memo || row.Payee || row.Merchant;
+              // Flexible column matching for Description
+              const description = findRowValue(row, [
+                "description", "narration", "particulars", "payee", "merchant",
+                "details", "name", "memo", "remarks", "summary", "transaction"
+              ]) || Object.values(row).find(v => typeof v === "string" && v.length > 3 && !v.match(/^\d{1,4}[\/\-\.]/));
 
-              if (!description || !amountStr) continue;
+              if (!description || String(description).trim().length < 2) continue;
 
-              const amount = parseFloat(amountStr);
-              if (isNaN(amount)) continue;
+              const cleanDesc = String(description).trim();
 
-              const date = parseRobustDate(dateStr);
+              // Flexible column matching for Date
+              const dateVal = findRowValue(row, [
+                "date", "dt", "txndate", "transactiondate", "postingdate", "valuedate", "timestamp", "time"
+              ]) || Object.values(row).find(v => typeof v === "string" && v.match(/\d{1,4}[\/\-\.]/));
+
+              const date = parseRobustDate(String(dateVal || ""));
+
+              // Check split Debit / Credit columns vs single Amount
+              const debitVal = parseCleanNumber(findRowValue(row, ["debit", "withdrawal", "dr", "out", "paidout"]));
+              const creditVal = parseCleanNumber(findRowValue(row, ["credit", "deposit", "cr", "in", "paidin"]));
+              const rawAmount = findRowValue(row, ["amount", "amt", "val", "value", "sum", "price", "total"]);
+              const singleAmountVal = parseCleanNumber(rawAmount);
+
+              let amount = 0;
+              let isIncome = false;
+
+              if (creditVal !== null && creditVal > 0) {
+                amount = creditVal;
+                isIncome = true;
+              } else if (debitVal !== null && debitVal > 0) {
+                amount = debitVal;
+                isIncome = false;
+              } else if (singleAmountVal !== null) {
+                const categoryCol = String(findRowValue(row, ["category", "cat", "type"]) || "").toLowerCase();
+                if (categoryCol.includes("income") || categoryCol.includes("credit") || singleAmountVal < 0) {
+                  isIncome = singleAmountVal < 0 || categoryCol.includes("income");
+                  amount = Math.abs(singleAmountVal);
+                } else {
+                  amount = Math.abs(singleAmountVal);
+                  isIncome = false;
+                }
+              } else {
+                // Try scanning numeric values in the row if key names didn't match
+                const numericVals = Object.values(row)
+                  .map(v => parseCleanNumber(v))
+                  .filter((n): n is number => n !== null && n !== 0);
+
+                if (numericVals.length > 0) {
+                  amount = Math.abs(numericVals[0]);
+                  isIncome = numericVals[0] < 0;
+                } else {
+                  continue;
+                }
+              }
+
+              if (amount === 0) continue;
+
               const dateKey = date.toISOString().split("T")[0];
-              const dedupeKey = `${amount}_${dateKey}_${description.toLowerCase().trim()}`;
+              const dedupeKey = `${amount}_${dateKey}_${cleanDesc.toLowerCase()}`;
 
               if (existingKeys.has(dedupeKey)) {
                 duplicateCount++;
                 continue;
               }
 
-              const catRes = await categorizeTransactionDetailed(description);
-              let categoryId = categoryMap.get(catRes.category);
+              const catRes = await categorizeTransactionDetailed(cleanDesc);
+              const targetCategoryName = isIncome ? "Income" : (findRowValue(row, ["category", "cat"]) || catRes.category);
+
+              let categoryId = categoryMap.get(targetCategoryName);
               if (!categoryId) {
                 const newCat = await prisma.category.create({
-                  data: { name: catRes.category, type: amount < 0 ? "expense" : "income" },
+                  data: { name: targetCategoryName, type: isIncome ? "income" : "expense" },
                 });
                 categoryId = newCat.id;
-                categoryMap.set(catRes.category, categoryId);
+                categoryMap.set(targetCategoryName, categoryId);
               }
 
               await prisma.transaction.create({
                 data: {
                   userId,
-                  amount: Math.abs(amount),
+                  amount: amount,
                   date,
-                  description,
+                  description: cleanDesc,
                   merchant: catRes.cleanMerchant,
                   confidence: catRes.confidence,
                   isRecurring: catRes.isRecurring,
@@ -236,7 +336,7 @@ export async function POST(req: Request) {
             resolve(
               successResponse(
                 { imported: importedCount, duplicatesSkipped: duplicateCount },
-                `Successfully imported ${importedCount} transactions from CSV (${duplicateCount} duplicates skipped)`,
+                `Successfully imported ${importedCount} transactions from CSV statement (${duplicateCount} duplicates skipped)`,
                 201
               )
             );

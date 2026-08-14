@@ -8,11 +8,9 @@ import {
   CreditCard,
   PieChart,
   ShieldCheck,
-  AlertCircle,
   Sparkles,
   Zap,
   PlusCircle,
-  FileSpreadsheet,
   CheckCircle2,
   DollarSign,
   Send,
@@ -21,20 +19,11 @@ import {
   Bot,
   ArrowUpRight,
   ArrowDownLeft,
-  ArrowDownRight,
   Settings,
   LayoutDashboard,
-  User,
-  Menu,
   X,
   Search,
-  ChevronRight,
-  Activity,
-  RefreshCw,
-  Wallet,
-  Target,
-  LogOut,
-  Star,
+  Menu,
   Coffee,
   ShoppingBag,
   Home,
@@ -44,7 +33,9 @@ import {
   UploadCloud,
   Download,
   Lock,
-  ArrowRight
+  Trash2,
+  FileSpreadsheet,
+  Target
 } from "lucide-react";
 import { TransactionTable } from "@/components/dashboard/TransactionTable";
 import { SettingsView } from "@/components/dashboard/SettingsView";
@@ -89,13 +80,8 @@ export function KoshinDashboard() {
     activeTab, setActiveTab,
     sidebarOpen, setSidebarOpen,
     transactions, setTransactions,
-    selectedCategory, setSelectedCategory,
     searchTerm, setSearchTerm,
     uploadSuccess, setUploadSuccess,
-    newMerchant, setNewMerchant,
-    newAmount, setNewAmount,
-    newDate, setNewDate,
-    newType, setNewType,
     foodCut, setFoodCut,
     subCut, setSubCut,
     shoppingCut, setShoppingCut
@@ -103,6 +89,16 @@ export function KoshinDashboard() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isManualAddOpen, setIsManualAddOpen] = useState(false);
+
+  // Manual Transaction Form state
+  const [manualDesc, setManualDesc] = useState("");
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualDate, setManualDate] = useState(new Date().toISOString().split("T")[0]);
+  const [manualCategory, setManualCategory] = useState("Food & Dining");
+  const [manualType, setManualType] = useState<"expense" | "income">("expense");
+  const [manualIsRecurring, setManualIsRecurring] = useState(false);
+
   const [parsingStep, setParsingStep] = useState(0);
   const [isParsing, setIsParsing] = useState(false);
   const [apiHealthScore, setApiHealthScore] = useState<number | null>(null);
@@ -112,60 +108,61 @@ export function KoshinDashboard() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string; time: string }>>([
-    { role: "assistant", text: "Hello! I am Koshin AI, your personal financial advisor. Ask me anything about your spending, subscriptions, or savings goals!", time: "12:00 PM" }
+    { role: "assistant", text: "Hello! I am Koshin AI, your personal financial co-pilot. Ask me anything about your bank statement data, recurring bills, or savings strategy!", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
   ]);
   const [chatInput, setChatInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
 
-  // Live API Integration with /api/v1/transactions, health, and spending
-  useEffect(() => {
-    async function loadApiData() {
-      try {
-        const [txRes, healthRes, spendingRes] = await Promise.all([
-          fetch("/api/v1/transactions").catch(() => null),
-          fetch("/api/v1/analysis/health").catch(() => null),
-          fetch("/api/v1/analysis/spending").catch(() => null),
-        ]);
+  // Live API Integration function
+  const loadApiData = async () => {
+    try {
+      const [txRes, healthRes, spendingRes] = await Promise.all([
+        fetch("/api/v1/transactions").catch(() => null),
+        fetch("/api/v1/analysis/health").catch(() => null),
+        fetch("/api/v1/analysis/spending").catch(() => null),
+      ]);
 
-        if (txRes && txRes.ok) {
-          const json = await txRes.json();
-          if (json.data && Array.isArray(json.data) && json.data.length > 0) {
-            const mapped = json.data.map((t: any) => ({
-              id: t.id,
-              date: t.date ? new Date(t.date).toISOString().split('T')[0] : "2026-08-12",
-              merchant: t.merchant || t.description,
-              amount: t.amount,
-              category: t.category?.name || "General Expense",
-              confidence: t.confidence || 0.95,
-              isRecurring: !!t.isRecurring,
-              type: t.amount > 0 ? "expense" : "income"
-            }));
-            setTransactions(mapped);
-          }
+      if (txRes && txRes.ok) {
+        const json = await txRes.json();
+        if (json.data && Array.isArray(json.data)) {
+          const mapped = json.data.map((t: any) => ({
+            id: t.id,
+            date: t.date ? new Date(t.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            merchant: t.merchant || t.description,
+            amount: t.amount,
+            category: t.category?.name || "General Expense",
+            confidence: t.confidence || 0.95,
+            isRecurring: !!t.isRecurring,
+            type: (t.category?.name === "Income" || t.category?.type === "income") ? "income" : "expense"
+          }));
+          setTransactions(mapped);
         }
-
-        if (healthRes && healthRes.ok) {
-          const json = await healthRes.json();
-          if (json.data && typeof json.data.score === 'number') {
-            setApiHealthScore(json.data.score);
-            setApiInsights(json.data.insights || []);
-          }
-        }
-
-        if (spendingRes && spendingRes.ok) {
-          const json = await spendingRes.json();
-          if (json.data) {
-            setApiSpending(json.data);
-          }
-        }
-      } catch (err) {
-        console.log("Error loading API data", err);
-      } finally {
-        setIsLoading(false);
       }
+
+      if (healthRes && healthRes.ok) {
+        const json = await healthRes.json();
+        if (json.data && typeof json.data.score === 'number') {
+          setApiHealthScore(json.data.score);
+          setApiInsights(json.data.insights || []);
+        }
+      }
+
+      if (spendingRes && spendingRes.ok) {
+        const json = await spendingRes.json();
+        if (json.data) {
+          setApiSpending(json.data);
+        }
+      }
+    } catch (err) {
+      console.error("Error loading API data:", err);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
     loadApiData();
-  }, [setTransactions]);
+  }, []);
 
   const totalIncome = useMemo(() => {
     return transactions.filter(t => t.type === "income").reduce((acc, t) => acc + t.amount, 0);
@@ -188,8 +185,6 @@ export function KoshinDashboard() {
 
   const calculatedHealthScore = useMemo(() => {
     let score = 100;
-    
-    // Fallback if no data
     if (transactions.length === 0) return 0;
 
     const savings = totalIncome - totalExpenses;
@@ -197,39 +192,33 @@ export function KoshinDashboard() {
       const rate = savings / totalIncome;
       if (rate < 0.1) score -= 20;
     } else {
-      score -= 30; // No income
+      score -= 25;
     }
-    
-    // Find top expense category
+
     let topCat = "";
     let maxAmt = 0;
     Object.entries(categoryBreakdown).forEach(([cat, amt]) => {
       if (amt > maxAmt) { maxAmt = amt; topCat = cat; }
     });
-    
+
     if (topCat && maxAmt > (totalIncome * 0.4) && totalIncome > 0) {
       score -= 15;
     }
-    
+
     return Math.min(100, Math.max(0, score));
   }, [totalIncome, totalExpenses, categoryBreakdown, transactions]);
 
   const healthScore = apiHealthScore !== null ? apiHealthScore : calculatedHealthScore;
-
-  const healthRatingText = healthScore >= 80 ? "Excellent" : healthScore >= 65 ? "Good & Healthy" : healthScore >= 50 ? "Fair" : "Needs Attention";
   const healthRingColor = healthScore >= 80 ? "text-lime" : healthScore >= 65 ? "text-purple" : "text-orange-500";
 
   const recurringBills = useMemo(() => {
     return transactions.filter(t => t.isRecurring);
   }, [transactions]);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processFileImport = async (file: File) => {
     setIsParsing(true);
     setParsingStep(1);
-    
+
     const formData = new FormData();
     formData.append("file", file);
 
@@ -242,45 +231,7 @@ export function KoshinDashboard() {
 
       if (res.ok) {
         setParsingStep(3);
-        // Refresh transactions to show newly imported ones
-        const txRes = await fetch("/api/v1/transactions");
-        if (txRes.ok) {
-          const json = await txRes.json();
-          if (json.data && Array.isArray(json.data)) {
-            const mapped = json.data.map((t: any) => ({
-              id: t.id,
-              date: t.date ? new Date(t.date).toISOString().split('T')[0] : "2026-08-12",
-              merchant: t.merchant || t.description,
-              amount: t.amount,
-              category: t.category?.name || "General Expense",
-              confidence: t.confidence || 0.95,
-              isRecurring: !!t.isRecurring,
-              type: t.amount > 0 ? "expense" : "income"
-            }));
-            setTransactions(mapped);
-          }
-        }
-        
-        // Refresh health and spending data
-        const [healthRes, spendingRes] = await Promise.all([
-          fetch("/api/v1/analysis/health").catch(() => null),
-          fetch("/api/v1/analysis/spending").catch(() => null),
-        ]);
-        
-        if (healthRes && healthRes.ok) {
-          const json = await healthRes.json();
-          if (json.data && typeof json.data.score === 'number') {
-            setApiHealthScore(json.data.score);
-            setApiInsights(json.data.insights || []);
-          }
-        }
-
-        if (spendingRes && spendingRes.ok) {
-          const json = await spendingRes.json();
-          if (json.data) {
-            setApiSpending(json.data);
-          }
-        }
+        await loadApiData();
 
         setTimeout(() => {
           setIsParsing(false);
@@ -289,16 +240,75 @@ export function KoshinDashboard() {
           setTimeout(() => setUploadSuccess(false), 4000);
         }, 800);
       } else {
-        alert("Failed to import CSV");
+        const json = await res.json().catch(() => ({}));
+        alert(json.error || "Failed to parse bank statement");
         setIsParsing(false);
       }
     } catch (error) {
       console.error(error);
-      alert("Error importing CSV");
+      alert("Error parsing bank statement file");
       setIsParsing(false);
     }
-    
+
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFileImport(file);
+  };
+
+  const handleLoadSampleStatement = async () => {
+    try {
+      setIsParsing(true);
+      setParsingStep(1);
+      const res = await fetch("/sample-bank-statement.csv");
+      const blob = await res.blob();
+      const sampleFile = new File([blob], "sample-bank-statement.csv", { type: "text/csv" });
+      await processFileImport(sampleFile);
+    } catch (err) {
+      console.error("Error loading sample statement:", err);
+      setIsParsing(false);
+    }
+  };
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualDesc || !manualAmount) return;
+
+    try {
+      const res = await fetch("/api/v1/transactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          description: manualDesc,
+          amount: parseFloat(manualAmount) * (manualType === "expense" ? 1 : -1),
+          date: manualDate,
+          categoryName: manualType === "income" ? "Income" : manualCategory,
+          isRecurring: manualIsRecurring,
+        }),
+      });
+
+      if (res.ok) {
+        setIsManualAddOpen(false);
+        setManualDesc("");
+        setManualAmount("");
+        await loadApiData();
+      }
+    } catch (err) {
+      console.error("Error adding transaction:", err);
+    }
+  };
+
+  const handleClearAllTransactions = async () => {
+    if (!confirm("Are you sure you want to clear all imported bank statement data?")) return;
+    try {
+      await fetch("/api/v1/transactions", { method: "DELETE" });
+      setTransactions([]);
+      await loadApiData();
+    } catch (err) {
+      console.error("Error clearing transactions:", err);
+    }
   };
 
   const handleSendMessage = async (e?: React.FormEvent, customText?: string) => {
@@ -321,7 +331,7 @@ export function KoshinDashboard() {
 
       if (res.ok) {
         const json = await res.json();
-        const replyText = json.data?.reply || "I analyzed your spending patterns and updated your financial health score.";
+        const replyText = json.data?.reply || "I analyzed your bank statement data and updated your health audit.";
         setChatMessages(prev => [...prev, { role: "assistant", text: replyText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
       } else {
         setChatMessages(prev => [...prev, { role: "assistant", text: "Unable to process request right now. Please try again.", time: timeStr }]);
@@ -407,12 +417,33 @@ export function KoshinDashboard() {
 
           {/* Quick Action Pill Bar */}
           <div className="flex items-center gap-3">
+            {activeTab === "transactions" && (
+              <>
+                <button
+                  onClick={() => setIsManualAddOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-purple/30 bg-purple/10 text-purple text-xs font-bold hover:bg-purple/20 transition-all cursor-pointer"
+                >
+                  <PlusCircle className="size-3.5" />
+                  <span>+ Manual Line</span>
+                </button>
+                {transactions.length > 0 && (
+                  <button
+                    onClick={handleClearAllTransactions}
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full border border-pinkish/20 bg-pinkish/5 text-pinkish text-xs font-bold hover:bg-pinkish/10 transition-all cursor-pointer"
+                  >
+                    <Trash2 className="size-3.5" />
+                    <span>Clear All</span>
+                  </button>
+                )}
+              </>
+            )}
+
             <button
               onClick={() => setIsUploadModalOpen(true)}
               className="inline-flex items-center gap-2 px-4.5 py-2.5 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-all shadow-md hover:shadow-purple/25 cursor-pointer"
             >
               <UploadCloud className="size-4 text-lime-300" />
-              <span>+ Scan Receipt</span>
+              <span>+ Scan Receipt / Statement</span>
             </button>
 
             <button
@@ -498,58 +529,74 @@ export function KoshinDashboard() {
                             <Sparkles className="size-3.5" /> Koshin AI Health Audit
                           </div>
 
-                          <h3 className="display text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                            Financial Health Score: <span className="text-lime">{healthScore}/100</span>
-                          </h3>
+                          <h2 className="display text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                            Your Financial Health is <span className="text-lime">{healthScore}/100</span>
+                          </h2>
 
-                          <p className="text-sm text-white/70 leading-relaxed font-normal">
-                            You have <strong className="text-white">{healthRatingText}</strong> reserves with a {savingsRate}% savings rate. Your projected financial runway is <strong className="text-lime">14.2 months</strong>.
-                            {apiInsights.length > 0 && (
-                              <span className="block mt-2 text-lime/90 italic text-xs">
-                                💡 Insights: {apiInsights[0]}
-                              </span>
-                            )}
+                          <p className="text-xs sm:text-sm text-white/70 leading-relaxed font-normal">
+                            {apiInsights.length > 0 
+                              ? apiInsights[0]
+                              : transactions.length === 0
+                              ? "Upload a bank CSV or scan a PDF statement to run your automated financial audit!"
+                              : `Based on your ${transactions.length} real line items, your monthly savings rate is ${savingsRate}%.`}
                           </p>
 
-                          <div className="flex flex-wrap gap-3 pt-2">
+                          <div className="flex flex-wrap items-center gap-3 pt-2">
                             <button
                               onClick={() => setIsUploadModalOpen(true)}
-                              className="inline-flex items-center gap-2 rounded-full bg-lime px-6 py-2.5 text-xs font-extrabold text-white hover:scale-105 transition-transform shadow-md cursor-pointer"
+                              className="px-5 py-2.5 rounded-full bg-lime text-black font-extrabold text-xs hover:bg-lime/90 transition-transform hover:scale-[1.02] shadow-lg shadow-lime/20 cursor-pointer"
                             >
-                              <UploadCloud className="size-4" />
-                              <span>Import New Statement</span>
+                              + Import Bank Statement
                             </button>
-
                             <button
-                              onClick={() => setActiveTab("ai")}
-                              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-2.5 text-xs font-semibold text-white hover:bg-white/20 transition-all"
+                              onClick={() => setActiveTab("transactions")}
+                              className="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-xs border border-white/15 transition-all cursor-pointer"
                             >
-                              <Bot className="size-4 text-lime" />
-                              <span>Advisor Recommendations</span>
+                              View All {transactions.length} Items
                             </button>
                           </div>
                         </div>
 
-                        {/* Right Gauge Widget */}
-                        <div className="relative z-10 flex items-center justify-center bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 shrink-0 w-full sm:w-auto">
-                          <div className="text-center space-y-2">
-                            <span className="text-xs font-mono text-white/70 uppercase tracking-widest block">Net Savings Rate</span>
-                            <div className="display text-4xl font-extrabold text-lime">+{savingsRate}%</div>
-                            <span className="text-[11px] font-semibold text-white/80 bg-white/10 px-3 py-1 rounded-full inline-block">
-                              +4.2% vs Last Month
-                            </span>
+                        {/* Right Gauge Badge */}
+                        <div className="relative z-10 bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-6 flex flex-col items-center justify-center text-center shrink-0 w-full sm:w-auto">
+                          <div className="relative size-28 flex items-center justify-center">
+                            <svg className="size-full -rotate-90" viewBox="0 0 36 36">
+                              <path
+                                className="text-white/10"
+                                strokeWidth="3.5"
+                                stroke="currentColor"
+                                fill="none"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              />
+                              <path
+                                className={healthRingColor}
+                                strokeDasharray={`${healthScore}, 100`}
+                                strokeWidth="3.5"
+                                strokeLinecap="round"
+                                stroke="currentColor"
+                                fill="none"
+                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                              />
+                            </svg>
+                            <div className="absolute flex flex-col items-center">
+                              <span className="text-2xl font-black">{healthScore}</span>
+                              <span className="text-[9px] uppercase tracking-widest text-white/50">Score</span>
+                            </div>
                           </div>
+                          <span className="text-xs font-bold mt-3 text-white/90">
+                            {healthScore >= 80 ? "Optimal Reserve" : healthScore >= 65 ? "Good Standings" : "Needs Review"}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Stat Cards Row */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                      {/* 3 TOP LEVEL METRIC CARDS */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <MetricCard
-                          title="Monthly Income"
+                          title="Total Income"
                           value={`$${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<CheckCircle2 className="size-3.5" />}
                           trendIcon={<ArrowDownLeft className="size-4" />}
-                          trendLabel="Auto-Verified Deposits"
+                          trendLabel="Verified Statement Deposits"
                           colorTheme="cyan"
                         />
 
@@ -560,7 +607,7 @@ export function KoshinDashboard() {
                           trendIcon={<ArrowUpRight className="size-4" />}
                           trendLabel={apiSpending && apiSpending.monthOverMonthChange !== undefined 
                             ? `${apiSpending.monthOverMonthChange > 0 ? '+' : ''}${apiSpending.monthOverMonthChange.toFixed(1)}% vs Last Month` 
-                            : `${transactions.filter(t => t.type === 'expense').length} Items Tracked`}
+                            : `${transactions.filter(t => t.type === 'expense').length} Line Items`}
                           colorTheme="pinkish"
                         />
 
@@ -568,14 +615,14 @@ export function KoshinDashboard() {
                           title="Net Reserve"
                           value={`${netSavings >= 0 ? '+' : ''}$${netSavings.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
                           icon={<Zap className="size-3.5" />}
-                          trendIcon={<Wallet className="size-4" />}
+                          trendIcon={<DollarSign className="size-4" />}
                           trendLabel={`${savingsRate}% Savings Rate`}
                           colorTheme="purple"
                           isNetReserve={true}
                         />
                       </div>
 
-                      {/* EMERGENCY FINANCIAL RUNWAY CLOCK WIDGET */}
+                      {/* EMERGENCY FINANCIAL RUNWAY WIDGET */}
                       <div className="rounded-3xl border border-hairline bg-white p-7 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
                         <div className="flex items-start gap-4">
                           <div className="size-12 rounded-2xl bg-purple/10 border border-purple/20 flex items-center justify-center text-purple shrink-0">
@@ -590,7 +637,7 @@ export function KoshinDashboard() {
                               🛡️ Financial Runway: <span className="text-purple">14.2 Months</span>
                             </h4>
                             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                              &quot;If all income stopped today, your emergency fund would cover your living expenses until <strong className="text-ink font-semibold">October 2027</strong>.&quot;
+                              &quot;Based on current net savings and expense velocity, your cash reserves provide a comfortable buffer.&quot;
                             </p>
                           </div>
                         </div>
@@ -612,7 +659,7 @@ export function KoshinDashboard() {
                           <div className="flex items-center justify-between mb-6">
                             <div>
                               <h3 className="display text-lg font-bold text-ink">Spending Allocation</h3>
-                              <p className="text-xs text-muted-foreground mt-0.5">Koshin NLP Categorization Engine</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Koshin Engine Categorization</p>
                             </div>
                           </div>
 
@@ -652,10 +699,10 @@ export function KoshinDashboard() {
                           <div className="space-y-3">
                             {transactions.length === 0 ? (
                               <div className="p-8 text-center bg-offwhite/50 border border-hairline rounded-xl text-xs text-muted-foreground">
-                                No recent activity. Scan a receipt or import a statement to get started.
+                                No recent activity. Scan a receipt or import a bank statement to get started.
                               </div>
                             ) : (
-                              transactions.slice(0, 5).map(tx => (
+                              transactions.slice(0, 6).map(tx => (
                                 <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-offwhite/50 border border-hairline text-xs">
                                   <div>
                                     <div className="font-bold text-ink truncate max-w-[140px]">{tx.merchant}</div>
@@ -711,7 +758,7 @@ export function KoshinDashboard() {
                         </div>
                         <div>
                           <h3 className="display text-xl font-bold text-ink">Koshin Financial AI Advisor</h3>
-                          <p className="text-xs text-muted-foreground">Conversational Financial Assistant</p>
+                          <p className="text-xs text-muted-foreground">Conversational Advisor grounded in your bank statement logs</p>
                         </div>
                       </div>
 
@@ -732,7 +779,7 @@ export function KoshinDashboard() {
 
                         {isTyping && (
                           <div className="flex items-center gap-2 text-xs text-purple font-medium p-3 bg-purple/10 rounded-xl w-max animate-pulse">
-                            <Bot className="size-4 animate-spin" /> Koshin AI is thinking...
+                            <Bot className="size-4 animate-spin" /> Koshin AI analyzing statement context...
                           </div>
                         )}
                         <div ref={chatEndRef} />
@@ -742,13 +789,13 @@ export function KoshinDashboard() {
                       <div className="flex flex-wrap gap-2 pt-2">
                         <button
                           onClick={() => handleSendMessage(undefined, "Where did I spend the most this month?")}
-                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all"
+                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all cursor-pointer"
                         >
                           &quot;Where did I spend the most?&quot;
                         </button>
                         <button
                           onClick={() => handleSendMessage(undefined, "How can I save $340/mo?")}
-                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all"
+                          className="px-3 py-1.5 rounded-full bg-offwhite hover:bg-purple/10 border border-hairline hover:border-purple/30 text-xs font-semibold text-ink transition-all cursor-pointer"
                         >
                           &quot;How can I save $340/mo?&quot;
                         </button>
@@ -783,7 +830,7 @@ export function KoshinDashboard() {
 
       </div>
 
-      {/* STATEMENT UPLOAD MODAL WITH REALISTIC 3-STEP PARSING PROGRESS */}
+      {/* STATEMENT UPLOAD MODAL WITH 1-CLICK DEMO AND SAMPLE DOWNLOAD */}
       <AnimatePresence>
         {isUploadModalOpen && (
           <motion.div
@@ -801,46 +848,73 @@ export function KoshinDashboard() {
               <div className="flex items-center justify-between pb-3 border-b border-hairline">
                 <div className="flex items-center gap-2 text-ink font-bold">
                   <UploadCloud className="size-5 text-purple" />
-                  <span>AI Receipt & Statement Scanner</span>
+                  <span>AI Bank Statement Scanner</span>
                 </div>
                 <button
                   onClick={() => setIsUploadModalOpen(false)}
-                  className="p-1 rounded-full hover:bg-offwhite text-muted-foreground hover:text-ink transition-colors"
+                  className="p-1 rounded-full hover:bg-offwhite text-muted-foreground hover:text-ink transition-colors cursor-pointer"
                 >
                   <X className="size-4" />
                 </button>
               </div>
 
               {!isParsing ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-purple/30 rounded-2xl p-10 text-center bg-purple/5 hover:border-purple cursor-pointer transition-all space-y-3"
-                >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept=".csv, .pdf"
-                    onChange={handleFileUpload}
-                  />
-                  <UploadCloud className="size-12 text-purple mx-auto animate-bounce" />
-                  <div>
-                    <p className="text-sm font-bold text-ink">Upload CSV or PDF Statement</p>
-                    <p className="text-xs text-muted-foreground mt-1">Extract and import transactions from any bank CSV or PDF file</p>
+                <div className="space-y-4">
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="border-2 border-dashed border-purple/30 rounded-2xl p-8 text-center bg-purple/5 hover:border-purple cursor-pointer transition-all space-y-3"
+                  >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept=".csv, .pdf"
+                      onChange={handleFileUpload}
+                    />
+                    <UploadCloud className="size-10 text-purple mx-auto animate-bounce" />
+                    <div>
+                      <p className="text-sm font-bold text-ink">Upload Bank CSV or PDF Statement</p>
+                      <p className="text-xs text-muted-foreground mt-1">Supports HDFC, ICICI, SBI, Chase, Amex & custom bank schemas</p>
+                    </div>
+                    <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
+                      Select CSV or PDF File
+                    </button>
                   </div>
-                  <button className="px-5 py-2 rounded-full bg-purple hover:bg-purple/90 text-white text-xs font-bold transition-colors inline-block mt-2 cursor-pointer shadow-md">
-                    Select CSV or PDF File
-                  </button>
+
+                  {/* Quick Sample Test Options */}
+                  <div className="p-4 rounded-2xl bg-offwhite/80 border border-hairline space-y-2.5 text-center">
+                    <div className="text-xs font-bold text-ink flex items-center justify-center gap-1.5">
+                      <Sparkles className="size-3.5 text-purple" />
+                      <span>Want to test with sample bank data?</span>
+                    </div>
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={handleLoadSampleStatement}
+                        className="px-4 py-2 rounded-full bg-ink hover:bg-purple text-white text-xs font-bold transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+                      >
+                        <FileSpreadsheet className="size-3.5 text-lime" />
+                        <span>⚡ 1-Click Load Sample Bank CSV</span>
+                      </button>
+                      <a
+                        href="/sample-bank-statement.csv"
+                        download="sample-bank-statement.csv"
+                        className="px-3 py-2 rounded-full border border-hairline hover:bg-white text-muted-foreground hover:text-ink text-xs font-semibold transition-all inline-flex items-center gap-1"
+                      >
+                        <Download className="size-3.5" />
+                        <span>Download CSV</span>
+                      </a>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-5 text-center py-6">
                   <Sparkles className="size-10 text-purple mx-auto animate-spin" />
                   <div className="space-y-2">
-                    <h4 className="display text-lg font-bold text-ink">Scanning with AI OCR</h4>
+                    <h4 className="display text-lg font-bold text-ink">Analyzing Statement with NLP</h4>
                     <p className="text-xs font-mono text-purple font-semibold">
-                      {parsingStep === 1 && "Step 1/3: Extracting text from image..."}
-                      {parsingStep === 2 && "Step 2/3: Categorizing Merchant & parsing amounts..."}
-                      {parsingStep === 3 && "Step 3/3: Transaction Synced!"}
+                      {parsingStep === 1 && "Step 1/3: Reading CSV / PDF text headers..."}
+                      {parsingStep === 2 && "Step 2/3: Categorizing Merchants & calculating health score..."}
+                      {parsingStep === 3 && "Step 3/3: Transactions Synced to Dashboard!"}
                     </p>
                   </div>
                   <div className="h-2 w-full bg-offwhite rounded-full overflow-hidden border border-hairline">
@@ -858,6 +932,128 @@ export function KoshinDashboard() {
                 </span>
                 <span>Max File Size: 25MB</span>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MANUAL TRANSACTION MODAL */}
+      <AnimatePresence>
+        {isManualAddOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white rounded-3xl p-8 max-w-md w-full border border-hairline shadow-2xl space-y-5"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-hairline">
+                <h3 className="display text-lg font-bold text-ink flex items-center gap-2">
+                  <PlusCircle className="size-5 text-purple" /> Add Manual Transaction
+                </h3>
+                <button onClick={() => setIsManualAddOpen(false)} className="p-1 rounded-full hover:bg-offwhite text-muted-foreground hover:text-ink">
+                  <X className="size-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleManualSubmit} className="space-y-4 text-xs">
+                <div className="space-y-1">
+                  <label className="font-bold text-ink">Merchant / Description</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Whole Foods Market"
+                    value={manualDesc}
+                    onChange={e => setManualDesc(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-bold text-ink">Amount ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      required
+                      placeholder="e.g. 45.50"
+                      value={manualAmount}
+                      onChange={e => setManualAmount(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-bold text-ink">Transaction Date</label>
+                    <input
+                      type="date"
+                      required
+                      value={manualDate}
+                      onChange={e => setManualDate(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-bold text-ink">Type</label>
+                    <select
+                      value={manualType}
+                      onChange={e => setManualType(e.target.value as any)}
+                      className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                    >
+                      <option value="expense">Expense</option>
+                      <option value="income">Income</option>
+                    </select>
+                  </div>
+
+                  {manualType === "expense" && (
+                    <div className="space-y-1">
+                      <label className="font-bold text-ink">Category</label>
+                      <select
+                        value={manualCategory}
+                        onChange={e => setManualCategory(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite/50 text-ink"
+                      >
+                        <option value="Food & Dining">Food & Dining</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Subscriptions">Subscriptions</option>
+                        <option value="Housing & Rent">Housing & Rent</option>
+                        <option value="Travel & Rides">Travel & Rides</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="General Expense">General Expense</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="manualRecurring"
+                    checked={manualIsRecurring}
+                    onChange={e => setManualIsRecurring(e.target.checked)}
+                    className="rounded border-hairline text-purple focus:ring-purple"
+                  />
+                  <label htmlFor="manualRecurring" className="text-xs font-semibold text-ink cursor-pointer">
+                    Is Recurring Monthly Bill?
+                  </label>
+                </div>
+
+                <div className="pt-3">
+                  <button
+                    type="submit"
+                    className="w-full py-3 rounded-xl bg-purple hover:bg-purple/90 text-white font-bold text-xs transition-colors shadow-md cursor-pointer"
+                  >
+                    Save Transaction Line Item
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </motion.div>
         )}

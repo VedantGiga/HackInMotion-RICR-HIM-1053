@@ -1,20 +1,15 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
+import { getAuthenticatedUserId } from "@/lib/auth-helper";
+import { categorizeTransactionDetailed } from "@/modules/categorization";
 
 export async function GET(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return errorResponse("Unauthorized", 401);
-    }
+    const userId = await getAuthenticatedUserId();
 
     const { searchParams } = new URL(req.url);
     const categoryId = searchParams.get("categoryId");
-
-    const userId = (session.user as any).id;
 
     const where: any = { userId };
     if (categoryId) {
@@ -36,27 +31,40 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return errorResponse("Unauthorized", 401);
+    const userId = await getAuthenticatedUserId();
+    const body = await req.json();
+    const { amount, date, description, categoryName, isRecurring, merchant } = body;
+
+    if (!amount || !description) {
+      return errorResponse("Amount and description are required", 400);
     }
 
-    const userId = (session.user as any).id;
-    const body = await req.json();
-    const { amount, date, description, categoryId, isRecurring } = body;
+    const catRes = await categorizeTransactionDetailed(description);
+    const targetCategory = categoryName || catRes.category;
 
-    if (!amount || !date || !description) {
-      return errorResponse("Amount, date, and description are required", 400);
+    let category = await prisma.category.findUnique({
+      where: { name: targetCategory }
+    });
+
+    if (!category) {
+      category = await prisma.category.create({
+        data: {
+          name: targetCategory,
+          type: parseFloat(amount) < 0 ? "income" : "expense"
+        }
+      });
     }
 
     const transaction = await prisma.transaction.create({
       data: {
         userId,
-        amount: parseFloat(amount),
-        date: new Date(date),
+        amount: Math.abs(parseFloat(amount)),
+        date: date ? new Date(date) : new Date(),
         description,
-        categoryId: categoryId || null,
-        isRecurring: isRecurring || false,
+        merchant: merchant || catRes.cleanMerchant,
+        confidence: catRes.confidence,
+        isRecurring: isRecurring !== undefined ? isRecurring : catRes.isRecurring,
+        categoryId: category.id,
       },
       include: { category: true }
     });
@@ -64,6 +72,30 @@ export async function POST(req: Request) {
     return successResponse(transaction, "Transaction created successfully", 201);
   } catch (error: any) {
     console.error("POST transaction error:", error);
+    return errorResponse("Internal server error", 500);
+  }
+}
+
+export async function DELETE(req: Request) {
+  try {
+    const userId = await getAuthenticatedUserId();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (id) {
+      await prisma.transaction.deleteMany({
+        where: { id, userId }
+      });
+      return successResponse({ deletedId: id }, "Transaction deleted successfully");
+    } else {
+      // Clear all transactions for user
+      await prisma.transaction.deleteMany({
+        where: { userId }
+      });
+      return successResponse({}, "All transactions cleared successfully");
+    }
+  } catch (error: any) {
+    console.error("DELETE transaction error:", error);
     return errorResponse("Internal server error", 500);
   }
 }
