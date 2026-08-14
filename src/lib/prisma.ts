@@ -5,7 +5,11 @@ const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefi
 
 function getPrismaClient() {
   const url = process.env.DATABASE_URL || "file:./dev.db";
-  const adapter = new PrismaLibSql({ url });
+  const authToken = process.env.TURSO_AUTH_TOKEN || process.env.LIBSQL_AUTH_TOKEN;
+  const adapter = new PrismaLibSql({ 
+    url, 
+    ...(authToken ? { authToken } : {}) 
+  });
   return new PrismaClient({ adapter });
 }
 

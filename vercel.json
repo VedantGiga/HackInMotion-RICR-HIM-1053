@@ -1,5 +1,4 @@
 {
-  "framework": "nextjs",
-  "buildCommand": "next build",
-  "outputDirectory": ".next"
+  "buildCommand": "npx prisma generate && next build",
+  "framework": "nextjs"
 }
