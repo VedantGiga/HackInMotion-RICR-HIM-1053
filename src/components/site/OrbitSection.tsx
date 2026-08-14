@@ -32,10 +32,10 @@ export function OrbitSection() {
     <section ref={root} className="bg-white py-16 md:py-24 overflow-hidden w-full">
       {/* Full-width container using full viewport width */}
       <div className="w-full px-3 sm:px-6 md:px-10 lg:px-12 space-y-4 md:space-y-6">
-        
+
         {/* ROW 1: TOP BENTO ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 md:gap-6 items-stretch">
-          
+
           {/* Card 1: Purple D-Pill (The Latest from our Orbit) */}
           <div className="sm:col-span-6 md:col-span-3">
             <Reveal className="h-full">
@@ -106,12 +106,12 @@ export function OrbitSection() {
 
         {/* ROW 2: BOTTOM BENTO ROW */}
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-4 md:gap-6 items-stretch">
-          
+
           {/* Card 5: Massive Hot Coral Pink "100+" Banner with Wireframe Globe */}
           <div className="sm:col-span-12 md:col-span-8 lg:col-span-9">
             <Reveal className="h-full" delay={0.08}>
               <div className="relative flex h-full min-h-[340px] md:min-h-[380px] flex-col justify-between overflow-hidden bg-[#ff3b60] p-8 sm:p-12 rounded-l-none rounded-r-[180px] md:rounded-r-[240px] border border-black/10">
-                
+
                 {/* 100+ Huge Text */}
                 <div className="relative z-10">
                   <p className="display text-[clamp(4.5rem,13vw,10.5rem)] font-black leading-[0.82] tracking-tighter text-black">

@@ -29,7 +29,7 @@ export async function POST(req: Request) {
 
     const storeTxns = getTransactionsStore(userId);
     const mergedMap = new Map<string, any>();
-    
+
     storeTxns.forEach(t => {
       mergedMap.set(t.id, {
         id: t.id,
@@ -67,13 +67,13 @@ export async function POST(req: Request) {
     const netSavings = totalIncome - totalExpense;
     const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0;
     const [userObj, budgets, goals] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId }, select: { healthScore: true, currency: true } }),
+      prisma.user.findUnique({ where: { id: userId }, select: { healthScore: true } }),
       prisma.budget.findMany({ where: { userId }, include: { category: true } }),
       prisma.goal.findMany({ where: { userId } }),
     ]);
 
     const healthScore = userObj?.healthScore ?? 100;
-    const curr = userObj?.currency || "$";
+    const curr = "₹";
 
     const topCategories = Object.entries(categoryTotals)
       .sort((a, b) => b[1] - a[1])
@@ -93,10 +93,10 @@ export async function POST(req: Request) {
 
     // 2. Call Google Gemini API if API key is provided
     if (apiKey && apiKey.trim().length > 0) {
-      
+
       // Simple RAG approach: serialize the most recent and relevant transactions 
       // into a readable format to act as the retrieved context.
-      const recentTxnsContext = transactions.slice(0, 200).map(t => 
+      const recentTxnsContext = transactions.slice(0, 200).map(t =>
         `[${t.date.toISOString().split('T')[0]}] ${t.merchant || t.description}: ${curr}${t.amount.toFixed(2)} (${t.category?.name || 'General'})`
       ).join('\n');
 
@@ -162,7 +162,7 @@ Answer the user's question directly based on their data. If they ask about speci
     const lowerMsg = message.toLowerCase();
 
     if (lowerMsg.includes("spend") || lowerMsg.includes("most") || lowerMsg.includes("top")) {
-      fallbackReply += topCategories 
+      fallbackReply += topCategories
         ? `Your top spending categories are ${topCategories}. Cutting your highest category by 15% would add +${curr}${((Object.values(categoryTotals)[0] || 0) * 0.15).toFixed(2)}/mo to your savings.`
         : `Upload a bank statement to track your top category spending!`;
     } else if (lowerMsg.includes("save") || lowerMsg.includes("cut")) {

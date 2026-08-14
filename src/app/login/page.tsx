@@ -80,10 +80,7 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen bg-offwhite text-ink flex flex-col lg:flex-row overflow-hidden">
       {/* Left Panel: Premium Visual */}
-      <div className="relative hidden lg:flex lg:w-1/2 bg-[url('/bgimage.png')] bg-cover bg-center p-12 flex-col justify-between overflow-hidden">
-        {/* Dark overlay for readability */}
-        <div className="absolute inset-0 bg-navy/85 backdrop-blur-[2px] pointer-events-none" />
-
+      <div className="relative hidden lg:flex lg:w-1/2 bg-[url('/bgimagelogin.png')] bg-cover bg-center p-12 flex-col justify-between overflow-hidden">
         {/* Glow effects */}
         <div className="absolute top-[-10%] left-[-10%] size-[500px] bg-purple/15 rounded-full blur-[150px] pointer-events-none" />
         <div className="absolute bottom-[-10%] right-[-10%] size-[500px] bg-cyan/10 rounded-full blur-[150px] pointer-events-none" />
