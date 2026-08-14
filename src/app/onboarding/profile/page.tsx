@@ -49,7 +49,7 @@ export default function CreateProfilePage() {
     }
   }, [selectedCurrency]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -58,9 +58,28 @@ export default function CreateProfilePage() {
       localStorage.setItem("user_monthly_income", monthlyIncome);
     }
 
-    setTimeout(() => {
-      router.push("/onboarding/accounts"); 
-    }, 1200);
+    if (monthlyIncome.trim()) {
+      try {
+        const numericIncome = parseFloat(monthlyIncome.replace(/[^0-9\.]/g, ""));
+        if (!isNaN(numericIncome) && numericIncome > 0) {
+          await fetch("/api/v1/transactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              amount: numericIncome,
+              description: "Monthly Income / Salary",
+              categoryName: "Income",
+              type: "income",
+              isRecurring: true,
+            }),
+          }).catch(() => null);
+        }
+      } catch (err) {
+        console.error("Error saving income transaction to DB:", err);
+      }
+    }
+
+    router.push("/onboarding/accounts"); 
   };
 
   const goals = [
