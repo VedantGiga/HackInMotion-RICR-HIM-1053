@@ -7,14 +7,15 @@ export function cn(...inputs: ClassValue[]) {
 
 export function getCurrencySymbol(): string {
   if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("user_currency");
-    if (saved === "USD") return "$";
-    if (saved === "EUR") return "€";
-    if (saved === "GBP") return "£";
-    if (saved === "CAD") return "$";
-    if (saved === "AUD") return "$";
+    const saved = localStorage.getItem("koshin_currency") || localStorage.getItem("user_currency");
+    if (!saved) return "₹";
+    if (saved === "₹" || saved === "INR") return "₹";
+    if (saved === "$" || saved === "USD") return "$";
+    if (saved === "€" || saved === "EUR") return "€";
+    if (saved === "£" || saved === "GBP") return "£";
+    if (saved === "CAD" || saved === "AUD" || saved === "SGD") return "$";
     if (saved === "AED") return "AED ";
-    if (saved === "SGD") return "$";
+    return saved;
   }
   return "₹";
 }

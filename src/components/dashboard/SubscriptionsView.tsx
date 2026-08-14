@@ -7,13 +7,14 @@ import { Bell, RefreshCw, Bot, Terminal, ShieldAlert, Sparkles, CheckCircle, X }
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 
+import { getCurrencySymbol } from "@/lib/utils";
+
 interface SubscriptionsViewProps {
   recurringBills: Transaction[];
 }
 
 export function SubscriptionsView({ recurringBills }: SubscriptionsViewProps) {
-  const { data: session } = useSession();
-  const curr = (session?.user as any)?.currency || "$";
+  const curr = getCurrencySymbol();
   const { setTransactions } = useDashboardStore();
   const [cancellingSub, setCancellingSub] = useState<Transaction | null>(null);
   const [logs, setLogs] = useState<string[]>([]);

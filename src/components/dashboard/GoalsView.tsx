@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { PlusCircle, Target, Trash2, Loader2 } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { getCurrencySymbol } from "@/lib/utils";
 
 interface DBGoal {
   id: string;
@@ -15,8 +15,7 @@ interface DBGoal {
 }
 
 export function GoalsView() {
-  const { data: session } = useSession();
-  const curr = (session?.user as any)?.currency || "$";
+  const curr = getCurrencySymbol();
   const [goals, setGoals] = useState<DBGoal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

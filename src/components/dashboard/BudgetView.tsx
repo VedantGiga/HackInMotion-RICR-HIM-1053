@@ -23,8 +23,7 @@ interface DBBudget {
 }
 
 export function BudgetView({ transactions }: BudgetViewProps) {
-  const { data: session } = useSession();
-  const curr = (session?.user as any)?.currency || getCurrencySymbol();
+  const curr = getCurrencySymbol();
   const [dbBudgets, setDbBudgets] = useState<DBBudget[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);

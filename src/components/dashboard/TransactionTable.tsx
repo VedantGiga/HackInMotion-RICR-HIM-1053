@@ -5,7 +5,7 @@ import { Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { format, parseISO } from "date-fns";
 import { useDashboardStore } from "@/store/useDashboardStore";
-import { useSession } from "next-auth/react";
+import { getCurrencySymbol } from "@/lib/utils";
 
 interface TransactionTableProps {
   transactions: Transaction[];
@@ -13,8 +13,7 @@ interface TransactionTableProps {
 }
 
 export function TransactionTable({ transactions, onDeleteTransaction }: TransactionTableProps) {
-  const { data: session } = useSession();
-  const curr = (session?.user as any)?.currency || "$";
+  const curr = getCurrencySymbol();
   const { setTransactions } = useDashboardStore();
 
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);

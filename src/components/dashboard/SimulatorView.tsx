@@ -28,8 +28,7 @@ export function SimulatorView({
   simFoodSavings, simSubSavings, simShopSavings,
   totalMonthlySimSavings, totalAnnualSimSavings
 }: SimulatorViewProps) {
-  const { data: session } = useSession();
-  const curr = (session?.user as any)?.currency || getCurrencySymbol();
+  const curr = getCurrencySymbol();
   const computedFoodSavings = simFoodSavings ?? (totalExpenses * 0.35 * (foodCut / 100));
   const computedSubSavings = simSubSavings ?? (totalExpenses * 0.12 * (subCut / 100));
   const computedShopSavings = simShopSavings ?? (totalExpenses * 0.20 * (shoppingCut / 100));
