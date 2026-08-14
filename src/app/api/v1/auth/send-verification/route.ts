@@ -30,6 +30,7 @@ export async function POST(req: Request) {
           createdAt: new Date(),
         },
         create: {
+          id: `vcode_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
           email: cleanEmail,
           code,
           expiresAt,
