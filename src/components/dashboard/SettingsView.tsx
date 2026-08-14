@@ -25,6 +25,7 @@ export function SettingsView() {
 
   const [phoneInput, setPhoneInput] = useState("");
   const [currencyInput, setCurrencyInput] = useState(curr);
+  const [salaryInput, setSalaryInput] = useState(typeof window !== "undefined" ? (localStorage.getItem("koshin_salary") || "5000") : "5000");
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync session data to local state once it loads
@@ -37,8 +38,27 @@ export function SettingsView() {
     if (isSaving) return;
     setIsSaving(true);
     
-    // Save phone and currency
+    // Save phone, currency, and salary into DB
     try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("koshin_currency", currencyInput);
+        if (salaryInput) localStorage.setItem("koshin_salary", salaryInput);
+      }
+
+      if (salaryInput && !isNaN(parseFloat(salaryInput))) {
+        await fetch("/api/v1/transactions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            description: "Monthly Salary",
+            amount: parseFloat(salaryInput),
+            date: new Date().toISOString().split("T")[0],
+            categoryName: "Income",
+            isRecurring: true,
+          }),
+        }).catch(() => null);
+      }
+
       const payload: any = {};
       if (!userPhone && phoneInput.trim()) payload.phone = phoneInput.trim();
       if (currencyInput !== curr) payload.currency = currencyInput;
@@ -50,7 +70,7 @@ export function SettingsView() {
           body: JSON.stringify(payload),
         });
         if (res.ok) {
-          await update(payload); // Refreshes the NextAuth session with new data
+          await update(payload);
         }
       }
     } catch (err) {
@@ -154,6 +174,20 @@ export function SettingsView() {
                     : "bg-offwhite border-hairline focus:border-purple focus:ring-1 focus:ring-purple"
                 }`} 
               />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Monthly Salary / Base Income</label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-ink">{curr}</span>
+                <input
+                  type="number"
+                  value={salaryInput}
+                  onChange={(e) => setSalaryInput(e.target.value)}
+                  placeholder="5000"
+                  className="w-full pl-9 pr-4 py-3 rounded-xl bg-offwhite border border-hairline text-[14px] text-ink font-semibold focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-colors"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
