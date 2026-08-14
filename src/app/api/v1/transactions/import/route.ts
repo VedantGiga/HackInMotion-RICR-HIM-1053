@@ -61,6 +61,7 @@ function parseRobustDate(dateStr: string): Date {
 }
 
 function findRowValue(row: Record<string, any>, possibleKeys: string[]): any {
+  if (!row || typeof row !== "object") return undefined;
   for (const rawKey of Object.keys(row)) {
     const cleanKey = rawKey.toLowerCase().replace(/[^a-z0-9]/g, "");
     for (const target of possibleKeys) {
@@ -75,52 +76,57 @@ function findRowValue(row: Record<string, any>, possibleKeys: string[]): any {
   return undefined;
 }
 
-function extractTransactionsFromPdfText(text: string) {
+function extractTransactionsFromLineText(text: string) {
   const lines = text.split(/\r?\n/);
-  const extracted: Array<{ date: string; amount: number; description: string; type?: "expense" | "income" }> = [];
+  const extracted: Array<{ date: string; amount: number; description: string; type: "expense" | "income" }> = [];
 
-  const dateRegex = /(\d{1,2}[\/\-\.](?:[A-Za-z]{3}|\d{1,2})[\/\-\.]\d{2,4})/;
-  const amountRegex = /[\$\₹\€\£]?\s*([\+\-]?\d{1,6}(?:\,\d{3})*(?:\.\d{2})?)/;
+  const dateRegex = /(\d{1,4}[\/\-\.](?:[A-Za-z]{3,9}|\d{1,2})[\/\-\.]\d{1,4})/;
+  const amountRegex = /(?:[\$\₹\€\£]\s*[\+\-]?\d{1,6}(?:,\d{3})*(?:\.\d{2})?)|(?:[\+\-]?\d{1,6}(?:,\d{3})*\.\d{2})/g;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line || line.length < 5) continue;
-    if (/balance|page|statement|account number|opening|closing/i.test(line)) continue;
+    if (/balance|page|statement|account number|opening|closing|total/i.test(line)) continue;
 
     const dateMatch = line.match(dateRegex);
-    const amountMatch = line.match(amountRegex);
+    if (!dateMatch) continue;
 
-    if (dateMatch && amountMatch) {
-      const dateStr = dateMatch[1];
-      const amountVal = parseCleanNumber(amountMatch[1]);
-      if (!amountVal || amountVal === 0) continue;
+    const dateStr = dateMatch[1];
+    const lineWithoutDate = line.replace(dateMatch[0], "").trim();
 
-      let description = line
-        .replace(dateMatch[0], "")
-        .replace(amountMatch[0], "")
-        .replace(/[^a-zA-Z0-9\s\*&]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
+    const matches = lineWithoutDate.match(amountRegex);
+    if (!matches || matches.length === 0) continue;
 
-      if (!description || description.length < 2) {
-        description = "Bank Statement Line Item";
-      }
+    const rawAmountStr = matches[matches.length - 1]; // Use last matched number as amount
+    const amountVal = parseCleanNumber(rawAmountStr);
+    if (amountVal === null || amountVal === 0) continue;
 
-      const isCredit = /credit|cr|deposit|payroll|refund|income/i.test(line);
-      const isDebit = /debit|dr|withdrawal|pos|atm|transfer/i.test(line);
+    let description = lineWithoutDate
+      .replace(rawAmountStr, "")
+      .replace(/[^a-zA-Z0-9\s\*&]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-      let finalType: "expense" | "income" = "expense";
-      if (isCredit) finalType = "income";
-      else if (isDebit) finalType = "expense";
-      else if (amountVal > 0) finalType = "expense";
-
-      extracted.push({
-        date: dateStr,
-        amount: Math.abs(amountVal),
-        description,
-        type: finalType
-      });
+    if (!description || description.length < 2) {
+      description = "Bank Statement Line Item";
     }
+
+    const isCredit = /credit|cr|deposit|payroll|refund|income/i.test(line);
+    const isDebit = /debit|dr|withdrawal|pos|atm|transfer/i.test(line);
+
+    let type: "expense" | "income" = "expense";
+    if (isCredit || rawAmountStr.startsWith("-")) {
+      type = "income";
+    } else if (isDebit) {
+      type = "expense";
+    }
+
+    extracted.push({
+      date: dateStr,
+      amount: Math.abs(amountVal),
+      description,
+      type
+    });
   }
 
   return extracted;
@@ -221,7 +227,7 @@ export async function POST(req: Request) {
         pdfText = await file.text();
       }
 
-      const rows = extractTransactionsFromPdfText(pdfText);
+      const rows = extractTransactionsFromLineText(pdfText);
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
@@ -237,68 +243,114 @@ export async function POST(req: Request) {
           category: targetCat,
           confidence: catRes.confidence,
           amount: Math.abs(row.amount),
-          type: row.type || (row.amount < 0 ? "income" : "expense"),
+          type: row.type,
           isRecurring: catRes.isRecurring,
           selected: true,
         });
       }
     } else {
-      // CSV Parsing
-      const text = await file.text();
-      const parseResult: any = await new Promise((res) => {
+      // Robust Multi-Pass CSV Parsing
+      let text = await file.text();
+      text = text.replace(/^\uFEFF/, "").trim(); // Strip BOM marker
+
+      // Pass 1: Papa.parse headered
+      let parseResult: any = await new Promise((res) => {
         Papa.parse(text, {
           header: true,
-          skipEmptyLines: true,
+          skipEmptyLines: "greedy",
+          transformHeader: (h) => h.trim().replace(/^['"]|['"]$/g, ""),
           complete: (results) => res(results),
         });
       });
 
-      const data = parseResult.data as any[];
+      let rows = (parseResult.data || []) as any[];
+      let isUnheadered = false;
 
-      for (let i = 0; i < data.length; i++) {
-        const row = data[i];
-        const description =
-          findRowValue(row, [
-            "description", "narration", "particulars", "payee", "merchant",
-            "details", "name", "memo", "remarks", "summary", "transaction"
-          ]) || Object.values(row).find(v => typeof v === "string" && v.length > 3 && !v.match(/^\d{1,4}[\/\-\.]/));
+      // Pass 2: Fallback to unheadered parse if header parse produced no valid rows
+      if (rows.length === 0 || !rows.some(r => typeof r === "object" && Object.keys(r).length >= 2)) {
+        parseResult = await new Promise((res) => {
+          Papa.parse(text, {
+            header: false,
+            skipEmptyLines: "greedy",
+            complete: (results) => res(results),
+          });
+        });
+        rows = (parseResult.data || []) as any[];
+        isUnheadered = true;
+      }
 
-        if (!description || String(description).trim().length < 2) continue;
-        const cleanDesc = String(description).trim();
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row) continue;
 
-        const dateVal = findRowValue(row, [
-          "date", "dt", "txndate", "transactiondate", "postingdate", "valuedate", "timestamp", "time"
-        ]) || Object.values(row).find(v => typeof v === "string" && v.match(/\d{1,4}[\/\-\.]/));
-
-        const dateObj = parseRobustDate(String(dateVal || ""));
-
-        const debitVal = parseCleanNumber(findRowValue(row, ["debit", "withdrawal", "dr", "out", "paidout"]));
-        const creditVal = parseCleanNumber(findRowValue(row, ["credit", "deposit", "cr", "in", "paidin"]));
-        const rawAmount = findRowValue(row, ["amount", "amt", "val", "value", "sum", "price", "total"]);
-        const singleAmountVal = parseCleanNumber(rawAmount);
-
+        let cleanDesc = "";
+        let dateVal: any = null;
         let amount = 0;
         let isIncome = false;
 
-        if (creditVal !== null && creditVal > 0) {
-          amount = creditVal;
-          isIncome = true;
-        } else if (debitVal !== null && debitVal > 0) {
-          amount = debitVal;
-          isIncome = false;
-        } else if (singleAmountVal !== null) {
-          const categoryCol = String(findRowValue(row, ["category", "cat", "type"]) || "").toLowerCase();
-          if (categoryCol.includes("income") || categoryCol.includes("credit") || singleAmountVal < 0) {
-            isIncome = singleAmountVal < 0 || categoryCol.includes("income");
-            amount = Math.abs(singleAmountVal);
-          } else {
-            amount = Math.abs(singleAmountVal);
-            isIncome = false;
+        if (isUnheadered || Array.isArray(row)) {
+          const cells = Array.isArray(row) ? row : Object.values(row);
+          for (const cell of cells) {
+            if (cell === null || cell === undefined) continue;
+            const str = String(cell).trim();
+            if (!str) continue;
+
+            if (str.match(/^\d{1,4}[\/\-\.]\d{1,2}[\/\-\.]\d{1,4}/) && !dateVal) {
+              dateVal = str;
+            } else {
+              const num = parseCleanNumber(str);
+              if (num !== null && num !== 0 && amount === 0) {
+                amount = Math.abs(num);
+                if (num < 0 || /credit|cr|deposit|income/i.test(str)) {
+                  isIncome = true;
+                }
+              } else if (str.length >= 2 && !cleanDesc && !/^\d+$/.test(str) && !/date|amount|debit|credit|balance|description/i.test(str)) {
+                cleanDesc = str;
+              }
+            }
           }
-        } else continue;
+        } else {
+          // Object row with headers
+          const descRaw =
+            findRowValue(row, [
+              "description", "narration", "particulars", "payee", "merchant",
+              "details", "name", "memo", "remarks", "summary", "transaction",
+              "title", "label", "narrative", "expense", "item", "vendor", "store",
+              "company", "text", "line", "info", "note"
+            ]) || Object.values(row).find(v => typeof v === "string" && v.trim().length >= 2 && !v.match(/^\d{1,4}[\/\-\.]/));
 
-        if (amount === 0) continue;
+          if (descRaw) cleanDesc = String(descRaw).trim();
 
+          dateVal = findRowValue(row, [
+            "date", "dt", "txndate", "transactiondate", "postingdate", "valuedate", "timestamp", "time"
+          ]) || Object.values(row).find(v => typeof v === "string" && v.match(/\d{1,4}[\/\-\.]/));
+
+          const debitVal = parseCleanNumber(findRowValue(row, ["debit", "withdrawal", "dr", "out", "paidout"]));
+          const creditVal = parseCleanNumber(findRowValue(row, ["credit", "deposit", "cr", "in", "paidin"]));
+          const rawAmount = findRowValue(row, ["amount", "amt", "val", "value", "sum", "price", "total"]);
+          const singleAmountVal = parseCleanNumber(rawAmount);
+
+          if (creditVal !== null && creditVal > 0) {
+            amount = creditVal;
+            isIncome = true;
+          } else if (debitVal !== null && debitVal > 0) {
+            amount = debitVal;
+            isIncome = false;
+          } else if (singleAmountVal !== null) {
+            const categoryCol = String(findRowValue(row, ["category", "cat", "type"]) || "").toLowerCase();
+            if (categoryCol.includes("income") || categoryCol.includes("credit") || singleAmountVal < 0) {
+              isIncome = singleAmountVal < 0 || categoryCol.includes("income");
+              amount = Math.abs(singleAmountVal);
+            } else {
+              amount = Math.abs(singleAmountVal);
+              isIncome = false;
+            }
+          }
+        }
+
+        if (!cleanDesc || cleanDesc.length < 2 || amount === 0) continue;
+
+        const dateObj = parseRobustDate(String(dateVal || ""));
         const catRes = await categorizeTransactionDetailed(cleanDesc);
         const targetCat = isIncome ? "Income" : (findRowValue(row, ["category", "cat"]) || catRes.category);
 
@@ -314,6 +366,30 @@ export async function POST(req: Request) {
           isRecurring: catRes.isRecurring,
           selected: true,
         });
+      }
+
+      // Pass 3: If CSV parsing returned 0 items, use line-by-line fallback parser
+      if (previewList.length === 0) {
+        const lineRows = extractTransactionsFromLineText(text);
+        for (let i = 0; i < lineRows.length; i++) {
+          const row = lineRows[i];
+          const dateObj = parseRobustDate(row.date);
+          const catRes = await categorizeTransactionDetailed(row.description);
+          const targetCat = row.type === "income" ? "Income" : catRes.category;
+
+          previewList.push({
+            id: `line_${i}_${Date.now()}`,
+            date: dateObj.toISOString().split("T")[0],
+            description: row.description,
+            merchant: catRes.cleanMerchant || row.description,
+            category: targetCat,
+            confidence: catRes.confidence,
+            amount: Math.abs(row.amount),
+            type: row.type,
+            isRecurring: catRes.isRecurring,
+            selected: true,
+          });
+        }
       }
     }
 
