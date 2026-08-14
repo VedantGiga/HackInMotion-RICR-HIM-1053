@@ -108,7 +108,7 @@ export function OverviewSection() {
     <section
       id="how-it-works"
       ref={rootRef}
-      className="relative bg-white py-24 md:py-36 text-ink overflow-hidden"
+      className="relative bg-white py-24 md:py-36 text-ink"
     >
       {/* Background dot matrix field */}
       <div
@@ -138,7 +138,7 @@ export function OverviewSection() {
             return (
               <div
                 key={s.step}
-                className={`sticky rounded-[2.5rem] bg-gradient-to-br ${s.accentColor} text-white p-7 sm:p-10 shadow-2xl border border-white/15 relative overflow-hidden flex flex-col justify-between min-h-[400px] group transition-all duration-500`}
+                className={`sticky rounded-[2.5rem] bg-gradient-to-br ${s.accentColor} text-white p-7 sm:p-10 shadow-2xl border border-white/15 overflow-hidden flex flex-col justify-between min-h-[400px] group transition-all duration-500`}
                 style={{
                   top: `calc(110px + ${idx * 24}px)`,
                 }}
