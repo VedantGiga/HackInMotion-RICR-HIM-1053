@@ -103,11 +103,8 @@ export default function VerifyPage() {
         throw new Error(json.error || "Invalid verification code");
       }
       
-      // Force update the NextAuth session token to reflect the verified status
-      await update({ emailVerified: new Date().toISOString() });
-      
       setRedirecting(true);
-      router.push("/onboarding");
+      router.push(`/login?email=${encodeURIComponent(email)}&verified=true`);
     } catch (err: any) {
       setAuthError(err.message || "Invalid verification code. Please try again.");
     } finally {

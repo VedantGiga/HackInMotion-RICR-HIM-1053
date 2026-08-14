@@ -88,14 +88,7 @@ export default function SignUpPage() {
         throw new Error(json.message || json.error || "Failed to create an account.");
       }
 
-      // 2. Sign in via NextAuth Credentials
-      await signIn("credentials", {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
-
-      // 3. Send Verification Email
+      // 2. Send Verification Email
       const verifyRes = await fetch("/api/v1/auth/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -13,7 +13,7 @@ export async function PATCH(req: Request) {
 
     const userId = (session.user as any).id;
     const body = await req.json();
-    const { phone, currency } = body;
+    const { phone } = body;
 
     // Validate if the user exists
     const user = await prisma.user.findUnique({
@@ -33,14 +33,12 @@ export async function PATCH(req: Request) {
       where: { id: userId },
       data: { 
         ...(phone && { phone }),
-        ...(currency && { currency })
       },
       select: {
         id: true,
         email: true,
         name: true,
         phone: true,
-        currency: true,
       }
     });
 

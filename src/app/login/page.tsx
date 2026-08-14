@@ -40,6 +40,18 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const [verifiedSuccess, setVerifiedSuccess] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get("email");
+      const verified = params.get("verified");
+      if (email) setValue("email", email);
+      if (verified === "true") setVerifiedSuccess(true);
+    }
+  }, [setValue]);
+
   const onSubmit = async (data: LoginFormValues) => {
     setAuthError("");
     setLoading(true);
@@ -147,6 +159,12 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" suppressHydrationWarning>
+                {verifiedSuccess && (
+                  <div className="flex items-center gap-2 p-3.5 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-2xl font-semibold">
+                    <CheckCircle2 className="size-4 shrink-0 text-emerald-600" />
+                    <span>Email verified successfully! Please enter your password to log in.</span>
+                  </div>
+                )}
                 {authError && (
                   <div className="flex items-center gap-2 p-3 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg">
                     <AlertCircle className="size-4 shrink-0" />

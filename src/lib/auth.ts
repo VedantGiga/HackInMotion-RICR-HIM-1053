@@ -38,7 +38,6 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            currency: user.currency,
             emailVerified: user.emailVerified,
           };
         } catch (error) {
@@ -59,7 +58,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (token && session.user) {
         (session.user as any).id = token.id;
-        (session.user as any).currency = token.currency;
         (session.user as any).emailVerified = token.emailVerified;
       }
       return session;
@@ -67,16 +65,12 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
-        token.currency = (user as any).currency;
         token.emailVerified = (user as any).emailVerified;
       }
       
       if (trigger === "update" && session) {
         if (session.emailVerified !== undefined) {
           token.emailVerified = session.emailVerified;
-        }
-        if (session.currency !== undefined) {
-          token.currency = session.currency;
         }
       }
       return token;

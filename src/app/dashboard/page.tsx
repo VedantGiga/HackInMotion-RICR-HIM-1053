@@ -10,29 +10,21 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (status === "authenticated" && session?.user) {
-      const isLoginBypass = localStorage.getItem("koshin_login_bypass") === "true";
-      
-      if (!(session.user as any).emailVerified && !isLoginBypass) {
-        router.replace(`/verify?email=${encodeURIComponent(session.user.email || "")}`);
-        return;
-      }
-      
-      const hasOnboarded = localStorage.getItem("koshin_onboarded");
-      if (hasOnboarded !== "true") {
-        router.replace("/onboarding");
-      }
+    if (status === "unauthenticated") {
+      router.replace("/login");
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
   if (status === "loading") {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-ink"><div className="size-8 border-4 border-purple/30 border-t-purple rounded-full animate-spin" /></div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center text-ink">
+        <div className="size-8 border-4 border-purple/30 border-t-purple rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  // Prevent flash while redirecting
-  const isLoginBypass = typeof window !== "undefined" && localStorage.getItem("koshin_login_bypass") === "true";
-  if ((!(session?.user as any)?.emailVerified && !isLoginBypass) || (typeof window !== "undefined" && localStorage.getItem("koshin_onboarded") !== "true")) {
-    return <div className="min-h-screen bg-background flex items-center justify-center text-ink"><div className="size-8 border-4 border-purple/30 border-t-purple rounded-full animate-spin" /></div>;
+  if (status === "unauthenticated" || !session) {
+    return null;
   }
 
   return (
