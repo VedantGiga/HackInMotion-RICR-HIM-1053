@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
-
 import { getAuthenticatedUserId } from "@/lib/auth-helper";
 
 export async function GET(req: Request) {
@@ -88,31 +85,38 @@ export async function POST(req: Request) {
       return errorResponse("categoryId or categoryName is required", 400);
     }
 
-    const budget = await prisma.budget.upsert({
+    let budget = await prisma.budget.findFirst({
       where: {
-        userId_categoryId_month_year: {
-          userId,
-          categoryId,
-          month: currentMonth,
-          year: currentYear
-        }
-      },
-      update: {
-        limit: parseFloat(limit)
-      },
-      create: {
         userId,
         categoryId,
-        limit: parseFloat(limit),
         month: currentMonth,
         year: currentYear
       },
       include: { category: true }
     });
 
+    if (budget) {
+      budget = await prisma.budget.update({
+        where: { id: budget.id },
+        data: { limit: parseFloat(limit) },
+        include: { category: true }
+      });
+    } else {
+      budget = await prisma.budget.create({
+        data: {
+          userId,
+          categoryId,
+          limit: parseFloat(limit),
+          month: currentMonth,
+          year: currentYear
+        },
+        include: { category: true }
+      });
+    }
+
     return successResponse(budget, "Budget saved successfully", 201);
   } catch (error: any) {
     console.error("POST budget error:", error);
-    return errorResponse("Internal server error", 500);
+    return errorResponse(error?.message || "Internal server error", 500);
   }
 }
