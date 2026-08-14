@@ -359,6 +359,7 @@ export async function POST(req: Request) {
       amount: number;
       type: "expense" | "income";
       isRecurring: boolean;
+      account?: string;
       selected: boolean;
     }> = [];
 

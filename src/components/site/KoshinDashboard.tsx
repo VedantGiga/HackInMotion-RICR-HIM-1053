@@ -302,6 +302,7 @@ export function KoshinDashboard() {
     amount: number;
     type: "expense" | "income";
     isRecurring: boolean;
+    account?: string;
     selected: boolean;
   }>>([]);
   const [isImportingBatch, setIsImportingBatch] = useState(false);
@@ -338,6 +339,7 @@ export function KoshinDashboard() {
         confidence: item.confidence || 0.95,
         isRecurring: !!item.isRecurring,
         type: item.type || "expense",
+        account: item.account || "Main Bank",
         isUnused: !!item.isRecurring && /(gym|planet fitness|hulu|adobe|subscription)/i.test(item.merchant || item.description || "")
       }));
 

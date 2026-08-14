@@ -37,6 +37,7 @@ export async function GET(req: Request) {
         confidence: t.confidence || 0.95,
         isRecurring: t.isRecurring || false,
         category: t.category || { name: t.categoryName || "General Expense", type: t.type || "expense" },
+        account: t.account || "Main Bank",
       });
     });
 
@@ -60,7 +61,7 @@ export async function POST(req: Request) {
   try {
     const userId = await getAuthenticatedUserId();
     const body = await req.json();
-    const { amount, date, description, categoryName, isRecurring, merchant } = body;
+    const { amount, date, description, categoryName, isRecurring, merchant, account } = body;
 
     if (!amount || !description) {
       return errorResponse("Amount and description are required", 400);
@@ -83,6 +84,7 @@ export async function POST(req: Request) {
       confidence: catRes.confidence,
       isRecurring: isRecurring !== undefined ? isRecurring : catRes.isRecurring,
       type: isIncome ? "income" : "expense",
+      account: account || "Main Bank",
       createdAt: new Date().toISOString(),
     };
 
@@ -146,6 +148,7 @@ export async function POST(req: Request) {
           confidence: newStoredTx.confidence,
           isRecurring: newStoredTx.isRecurring,
           categoryId: category.id,
+          account: newStoredTx.account,
         },
       });
     } catch (dbErr) {
