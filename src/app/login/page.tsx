@@ -53,6 +53,7 @@ export default function LoginPage() {
   }, [setValue]);
 
   const onSubmit = async (data: LoginFormValues) => {
+    if (loading || redirecting) return;
     setAuthError("");
     setLoading(true);
     
@@ -69,15 +70,15 @@ export default function LoginPage() {
         return;
       }
 
-      if (typeof window !== "undefined") {
-        localStorage.setItem("koshin_onboarded", "true");
-        localStorage.setItem("koshin_login_bypass", "true");
-      }
       setRedirecting(true);
-      router.push("/dashboard");
+      if (typeof window !== "undefined") {
+        const hasOnboarded = localStorage.getItem("koshin_onboarded") === "true";
+        window.location.href = hasOnboarded ? "/dashboard" : "/onboarding";
+      }
     } catch (err: any) {
       setAuthError(err.message || "Invalid email or password. Please try again.");
       setLoading(false);
+      setRedirecting(false);
     }
   };
 

@@ -119,6 +119,12 @@ export default function SignUpPage() {
         }
       }
 
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("koshin_onboarded");
+        sessionStorage.setItem("koshin_signup_email", data.email);
+        sessionStorage.setItem("koshin_signup_pass", data.password);
+      }
+
       setRedirecting(true);
       router.push(`/verify?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {

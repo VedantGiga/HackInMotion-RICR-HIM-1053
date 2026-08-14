@@ -47,6 +47,7 @@ export default withAuth(
         return true;
       },
     },
+    secret: process.env.NEXTAUTH_SECRET || "koshin_super_secret_jwt_token_2026_vercel",
   }
 );
 

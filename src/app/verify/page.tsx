@@ -16,7 +16,7 @@ const verifySchema = z.object({
 
 type VerifyFormValues = z.infer<typeof verifySchema>;
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession, signOut, signIn } from "next-auth/react";
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -104,7 +104,24 @@ export default function VerifyPage() {
       }
       
       setRedirecting(true);
-      router.push(`/login?email=${encodeURIComponent(email)}&verified=true`);
+      if (typeof window !== "undefined") {
+        const signupEmail = sessionStorage.getItem("koshin_signup_email") || email;
+        const signupPass = sessionStorage.getItem("koshin_signup_pass");
+
+        if (signupEmail && signupPass) {
+          await signIn("credentials", {
+            email: signupEmail,
+            password: signupPass,
+            redirect: false,
+          });
+          sessionStorage.removeItem("koshin_signup_email");
+          sessionStorage.removeItem("koshin_signup_pass");
+        }
+        localStorage.removeItem("koshin_onboarded");
+        window.location.href = "/onboarding";
+      } else {
+        router.push("/onboarding");
+      }
     } catch (err: any) {
       setAuthError(err.message || "Invalid verification code. Please try again.");
     } finally {
