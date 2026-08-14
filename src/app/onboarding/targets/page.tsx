@@ -9,18 +9,19 @@ import { ArrowLeft, ArrowRight, CheckCircle2, ShieldAlert, PiggyBank, TrendingDo
 export default function TargetsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+  const [selectedGoal, setSelectedGoal] = useState<string | null>("save");
+  const [spendingBudget, setSpendingBudget] = useState("");
+  const [savingsTarget, setSavingsTarget] = useState("");
+  const [emergencyTarget, setEmergencyTarget] = useState("");
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     const ctx = gsap.context(() => {
-      // Progress bar animation (from 66% to 100%)
       gsap.fromTo(".progress-fill", 
         { width: "66%" }, 
         { width: "100%", duration: 1.5, ease: "power3.out", delay: 0.2 }
       );
       
-      // Staggered reveal for form elements
       gsap.fromTo(".reveal-elem", 
         { y: 20, opacity: 0 },
         { y: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power2.out", delay: 0.3 }
@@ -30,13 +31,53 @@ export default function TargetsPage() {
     return () => ctx.revert();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API transition to dashboard
-    setTimeout(() => {
-      router.push("/dashboard"); 
-    }, 1200);
+
+    try {
+      // 1. Save Spending Budget to DB
+      if (spendingBudget.trim()) {
+        await fetch("/api/v1/budgets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            categoryName: "General Expense",
+            limit: parseFloat(spendingBudget.replace(/[^0-9\.]/g, "")),
+          }),
+        }).catch(() => null);
+      }
+
+      // 2. Save Savings Target to DB Goal table
+      if (savingsTarget.trim()) {
+        await fetch("/api/v1/goals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "Monthly Savings Target",
+            targetAmount: parseFloat(savingsTarget.replace(/[^0-9\.]/g, "")),
+            currentAmount: 0,
+          }),
+        }).catch(() => null);
+      }
+
+      // 3. Save Emergency Fund Target if selected
+      if (selectedGoal === "emergency" && emergencyTarget.trim()) {
+        await fetch("/api/v1/goals", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "Emergency Reserve",
+            targetAmount: parseFloat(emergencyTarget.replace(/[^0-9\.]/g, "")),
+            currentAmount: 0,
+          }),
+        }).catch(() => null);
+      }
+    } catch (err) {
+      console.error("Error saving onboarding targets to DB:", err);
+    } finally {
+      router.push("/onboarding/processing");
+    }
   };
 
   const goals = [
@@ -47,7 +88,7 @@ export default function TargetsPage() {
   ];
 
   return (
-    <div ref={containerRef} className="relative h-screen w-full bg-offwhite text-ink overflow-hidden flex flex-col justify-between p-4 sm:p-6">
+    <div ref={containerRef} className="relative h-screen w-full bg-offwhite text-ink overflow-hidden flex flex-col justify-between p-4 sm:p-6 font-sans">
       {/* Top Navigation & Progress */}
       <header className="w-full max-w-4xl mx-auto flex flex-col gap-2 shrink-0">
         <div className="flex items-center justify-between w-full">
@@ -75,7 +116,7 @@ export default function TargetsPage() {
               Set your financial targets
             </h1>
             <p className="reveal-elem text-xs sm:text-sm text-ink/60">
-              Set a few simple targets so Koshin can track your progress and give you actionable insights.
+              Set a few simple targets so Koshin can track your progress in SQLite and give actionable insights.
             </p>
           </div>
 
@@ -86,10 +127,12 @@ export default function TargetsPage() {
               <div className="reveal-elem space-y-1">
                 <label className="text-xs font-bold text-ink">Monthly Spending Budget</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">₹</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">$</span>
                   <input 
                     type="text" 
-                    placeholder="30,000"
+                    placeholder="3,000"
+                    value={spendingBudget}
+                    onChange={(e) => setSpendingBudget(e.target.value)}
                     className="w-full rounded-xl border border-hairline bg-white py-2.5 pr-3 pl-7 text-xs text-ink font-semibold placeholder-ink/30 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors"
                   />
                 </div>
@@ -98,10 +141,12 @@ export default function TargetsPage() {
               <div className="reveal-elem space-y-1">
                 <label className="text-xs font-bold text-ink">Monthly Savings Target</label>
                 <div className="relative">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">₹</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">$</span>
                   <input 
                     type="text" 
-                    placeholder="10,000"
+                    placeholder="1,000"
+                    value={savingsTarget}
+                    onChange={(e) => setSavingsTarget(e.target.value)}
                     className="w-full rounded-xl border border-hairline bg-white py-2.5 pr-3 pl-7 text-xs text-ink font-semibold placeholder-ink/30 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors"
                   />
                 </div>
@@ -145,12 +190,14 @@ export default function TargetsPage() {
             {/* Emergency Fund Conditional Input */}
             {selectedGoal === "emergency" && (
               <div className="reveal-elem p-4 rounded-xl bg-white border border-hairline space-y-1 transition-all duration-500 ease-out shadow-sm">
-                <label className="text-xs font-bold text-ink">Emergency Fund Target</label>
+                <label className="text-xs font-bold text-ink">Emergency Reserve Target</label>
                 <div className="relative mt-1">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">₹</span>
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/40 font-bold text-xs">$</span>
                   <input 
                     type="text" 
-                    placeholder="1,00,000"
+                    placeholder="10,000"
+                    value={emergencyTarget}
+                    onChange={(e) => setEmergencyTarget(e.target.value)}
                     className="w-full rounded-xl border border-hairline bg-offwhite py-2 pr-3 pl-7 text-xs text-ink font-semibold placeholder-ink/30 focus:border-purple focus:outline-none focus:ring-1 focus:ring-purple transition-colors"
                   />
                 </div>

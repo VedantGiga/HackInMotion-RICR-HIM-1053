@@ -1,17 +1,10 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { errorResponse, successResponse } from "@/lib/api-response";
+import { getAuthenticatedUserId } from "@/lib/auth-helper";
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return errorResponse("Unauthorized", 401);
-    }
-
-    const userId = (session.user as any).id;
+    const userId = await getAuthenticatedUserId();
     const resolvedParams = await params;
     const transactionId = resolvedParams.id;
     const body = await req.json();
@@ -24,14 +17,27 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return errorResponse("Transaction not found or unauthorized", 404);
     }
 
-    const { amount, date, description, categoryId, isRecurring } = body;
+    let { amount, date, description, categoryId, categoryName, isRecurring } = body;
+
+    if (!categoryId && categoryName) {
+      let category = await prisma.category.findUnique({
+        where: { name: categoryName }
+      });
+      if (!category) {
+        category = await prisma.category.create({
+          data: { name: categoryName, type: "expense" }
+        });
+      }
+      categoryId = category.id;
+    }
 
     const updatedTransaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
-        amount: amount ? parseFloat(amount) : undefined,
+        amount: amount ? Math.abs(parseFloat(amount)) : undefined,
         date: date ? new Date(date) : undefined,
         description,
+        merchant: description,
         categoryId,
         isRecurring,
       },
@@ -47,12 +53,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
 export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return errorResponse("Unauthorized", 401);
-    }
-
-    const userId = (session.user as any).id;
+    const userId = await getAuthenticatedUserId();
     const resolvedParams = await params;
     const transactionId = resolvedParams.id;
 

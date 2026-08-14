@@ -20,21 +20,9 @@ export const authOptions: NextAuthOptions = {
         const password = credentials.password;
 
         try {
-          let user = await prisma.user.findUnique({
+          const user = await prisma.user.findUnique({
             where: { email },
           });
-
-          // Auto-provision user if logging in for the first time
-          if (!user) {
-            const hashedPassword = await bcrypt.hash(password, 10);
-            user = await prisma.user.create({
-              data: {
-                email,
-                name: email.split("@")[0] ? email.split("@")[0].charAt(0).toUpperCase() + email.split("@")[0].slice(1) : "Koshin User",
-                password: hashedPassword,
-              },
-            });
-          }
 
           if (!user || !user.password) {
             return null;
@@ -43,13 +31,6 @@ export const authOptions: NextAuthOptions = {
           const isCorrectPassword = await bcrypt.compare(password, user.password);
 
           if (!isCorrectPassword) {
-            if (password === user.password) {
-              return {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-              };
-            }
             return null;
           }
 

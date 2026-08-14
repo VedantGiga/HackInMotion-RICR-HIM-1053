@@ -5,8 +5,8 @@ export default withAuth({
     authorized: ({ req, token }) => {
       const { pathname } = req.nextUrl;
       
-      // Protect all /api/v1 routes except auth routes (register, etc)
-      if (pathname.startsWith("/api/v1") && !pathname.startsWith("/api/v1/auth/register")) {
+      // Protect all /api/v1 routes except auth routes (register, send-verification, verify, etc)
+      if (pathname.startsWith("/api/v1") && !pathname.startsWith("/api/v1/auth/")) {
         return token !== null;
       }
       

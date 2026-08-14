@@ -42,9 +42,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      code,
       emailSent: emailResult.success,
-      message: "Verification code generated",
+      message: "Verification code sent to email",
     });
   } catch (error: any) {
     console.error("Failed to send verification email:", error);

@@ -42,6 +42,8 @@ export async function POST(req: Request) {
     const catRes = await categorizeTransactionDetailed(description);
     const targetCategory = categoryName || catRes.category;
 
+    const isIncome = targetCategory.toLowerCase() === "income" || parseFloat(amount) < 0 || body.type === "income";
+
     let category = await prisma.category.findUnique({
       where: { name: targetCategory }
     });
@@ -50,7 +52,7 @@ export async function POST(req: Request) {
       category = await prisma.category.create({
         data: {
           name: targetCategory,
-          type: parseFloat(amount) < 0 ? "income" : "expense"
+          type: isIncome ? "income" : "expense"
         }
       });
     }
