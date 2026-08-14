@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Trash2, Edit2, X, Loader2, Search, Filter, ArrowUpRight, ArrowDownLeft, Sparkles, Tag, CheckCircle2 } from "lucide-react";
+import { Trash2, Edit2, X, Loader2, Search, ArrowUpRight, ArrowDownLeft, Sparkles, Tag } from "lucide-react";
 import { Transaction, getCatConfig } from "@/components/site/KoshinDashboard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { getCurrencySymbol } from "@/lib/utils";
@@ -24,7 +24,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
   const [editCategory, setEditCategory] = useState("Food & Dining");
   const [editDate, setEditDate] = useState("");
   const [editIsRecurring, setEditIsRecurring] = useState(false);
-  const [editAccount, setEditAccount] = useState("Main Bank");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Filtered transactions
@@ -77,7 +76,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
     setEditCategory(tx.category || "Food & Dining");
     setEditDate(tx.date || new Date().toISOString().split("T")[0]);
     setEditIsRecurring(tx.isRecurring || false);
-    setEditAccount(tx.account || "Main Bank");
   };
 
   const handleSaveEdit = async (e: React.FormEvent) => {
@@ -95,7 +93,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
           categoryName: editCategory,
           date: editDate,
           isRecurring: editIsRecurring,
-          account: editAccount,
         }),
       });
 
@@ -106,12 +103,10 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
               ? {
                   ...t,
                   merchant: editDesc,
-                  description: editDesc,
                   amount: Math.abs(parseFloat(editAmount)),
                   category: editCategory,
                   date: editDate,
                   isRecurring: editIsRecurring,
-                  account: editAccount,
                 }
               : t
           )
@@ -138,7 +133,7 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search merchant, description, or category..."
+            placeholder="Search merchant or category..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-xl bg-offwhite border border-hairline text-xs font-semibold text-ink placeholder:text-muted-foreground outline-none focus:border-purple focus:ring-1 focus:ring-purple transition-all"
@@ -164,7 +159,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
             <span>-{curr}{totalExpense.toFixed(2)}</span>
           </div>
         </div>
-<<<<<<< HEAD
       </div>
 
       {/* CATEGORY PILL FILTER SCROLLER */}
@@ -303,79 +297,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                           className={`py-4 px-6 text-right font-extrabold text-sm whitespace-nowrap ${
                             isIncome ? "text-emerald-600" : "text-ink"
                           }`}
-=======
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-hairline bg-offwhite/50">
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Date</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Merchant / Description</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Account</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Category</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">AI Confidence</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Type</th>
-                <th className="py-4 px-6 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-right">Amount</th>
-                <th className="py-4 px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((tx) => {
-                const cfg = getCatConfig(tx.category);
-                const Icon = cfg.icon;
-                return (
-                  <tr key={tx.id} className="border-b border-hairline hover:bg-offwhite/80 transition-colors last:border-0">
-                    <td className="py-4 px-6 text-[13px] font-medium text-muted-foreground whitespace-nowrap">{tx.date}</td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-3">
-                        <div className={`size-8 rounded-xl ${cfg.bg} border ${cfg.border} flex items-center justify-center shrink-0`}>
-                          <Icon className={`size-4 ${cfg.color}`} />
-                        </div>
-                        <div>
-                          <div className="font-bold text-ink text-[14px]">{tx.merchant}</div>
-                          {tx.isRecurring && (
-                            <span className="mt-1 inline-block text-[10px] font-bold text-cyan-700 bg-cyan/10 border border-cyan/20 px-2 py-0.5 rounded-md">Recurring Bill</span>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className="px-2.5 py-1 rounded-md bg-gray-100 text-gray-700 text-[11px] font-bold border border-gray-200 whitespace-nowrap">
-                        {tx.account || "Main Bank"}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2.5 py-1 rounded-md ${cfg.bg} ${cfg.color} text-[12px] font-bold border ${cfg.border}`}>
-                        {tx.category}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-1.5 w-12 bg-offwhite rounded-full overflow-hidden">
-                          <div className="h-full bg-cyan rounded-full" style={{ width: `${Math.round((tx.confidence || 0.95) * 100)}%` }} />
-                        </div>
-                        <span className="font-bold text-[12px] text-ink">{Math.round((tx.confidence || 0.95) * 100)}%</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase border ${
-                        tx.type === 'income' ? 'bg-purple/10 text-purple border-purple/20' : 'bg-pinkish/10 text-pinkish border-pinkish/20'
-                      }`}>
-                        {tx.type}
-                      </span>
-                    </td>
-                    <td className={`py-4 px-6 text-right font-bold text-[15px] whitespace-nowrap ${
-                      tx.type === 'income' ? 'text-emerald-600' : 'text-ink'
-                    }`}>
-                      {tx.type === 'income' ? '+' : '-'}{curr}{tx.amount.toFixed(2)}
-                    </td>
-                    <td className="py-4 px-4 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        <button
-                          onClick={() => handleOpenEdit(tx)}
-                          className="p-1.5 rounded-lg text-muted-foreground hover:text-purple hover:bg-purple/10 transition-colors cursor-pointer"
-                          title="Edit line item"
->>>>>>> a418101bd89e5194345a6272bb70febd1d842bb8
                         >
                           {isIncome ? "+" : "-"}{curr}
                           {tx.amount.toFixed(2)}
@@ -433,7 +354,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                 </button>
               </div>
 
-<<<<<<< HEAD
               <form onSubmit={handleSaveEdit} className="space-y-4 text-xs">
                 <div className="space-y-1">
                   <label className="font-bold text-ink">Merchant / Description</label>
@@ -445,31 +365,6 @@ export function TransactionTable({ transactions, onDeleteTransaction }: Transact
                     className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite text-ink font-semibold"
                   />
                 </div>
-=======
-                <div className="space-y-1">
-                  <label className="font-bold text-ink">Account</label>
-                  <input
-                    type="text"
-                    required
-                    value={editAccount}
-                    onChange={(e) => setEditAccount(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-hairline outline-none focus:border-purple bg-offwhite text-ink font-semibold"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
-                    id="editRecurring"
-                    checked={editIsRecurring}
-                    onChange={(e) => setEditIsRecurring(e.target.checked)}
-                    className="rounded border-hairline text-purple focus:ring-purple"
-                  />
-                  <label htmlFor="editRecurring" className="text-xs font-semibold text-ink cursor-pointer">
-                    Is Recurring Monthly Bill?
-                  </label>
-                </div>
->>>>>>> a418101bd89e5194345a6272bb70febd1d842bb8
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">

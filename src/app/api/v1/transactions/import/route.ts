@@ -318,7 +318,6 @@ export async function POST(req: Request) {
                 merchant: item.merchant || item.description,
                 confidence: item.confidence || 0.95,
                 isRecurring: !!item.isRecurring,
-                account: item.account || "Main Bank",
                 categoryId: categoryId || null,
               },
             });

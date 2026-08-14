@@ -148,7 +148,6 @@ export async function POST(req: Request) {
           confidence: newStoredTx.confidence,
           isRecurring: newStoredTx.isRecurring,
           categoryId: category.id,
-          account: newStoredTx.account,
         },
       });
     } catch (dbErr) {
