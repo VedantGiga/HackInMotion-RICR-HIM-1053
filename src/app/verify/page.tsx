@@ -16,11 +16,11 @@ const verifySchema = z.object({
 
 type VerifyFormValues = z.infer<typeof verifySchema>;
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 export default function VerifyPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const { status, data: session } = useSession();
   
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -290,9 +290,18 @@ export default function VerifyPage() {
         </div>
 
         {/* Back navigation */}
-        <Link href="/signup" className="absolute top-8 right-6 sm:right-12 p-2 rounded-lg hover:bg-offwhite text-muted-foreground hover:text-ink transition-all flex items-center gap-2 text-sm font-bold">
+        <button 
+          type="button" 
+          onClick={() => {
+            const params = new URLSearchParams();
+            if (session?.user?.email) params.set("email", session.user.email);
+            if (session?.user?.name) params.set("name", session.user.name);
+            signOut({ callbackUrl: `/signup?${params.toString()}` });
+          }}
+          className="absolute top-8 right-6 sm:right-12 p-2 rounded-lg hover:bg-offwhite text-muted-foreground hover:text-ink transition-all flex items-center gap-2 text-sm font-bold"
+        >
           <ArrowLeft className="size-4" /> Change Email
-        </Link>
+        </button>
       </div>
     </div>
   );

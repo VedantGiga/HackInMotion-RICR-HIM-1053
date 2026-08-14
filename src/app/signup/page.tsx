@@ -44,6 +44,7 @@ export default function SignUpPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
@@ -51,6 +52,16 @@ export default function SignUpPage() {
       agreed: false,
     },
   });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get("email");
+      const name = params.get("name");
+      if (email) setValue("email", email);
+      if (name) setValue("name", name);
+    }
+  }, [setValue]);
 
   const onSubmit = async (data: SignUpFormValues) => {
     setAuthError("");
@@ -74,7 +85,7 @@ export default function SignUpPage() {
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.error || "Failed to create an account.");
+        throw new Error(json.message || json.error || "Failed to create an account.");
       }
 
       // 2. Sign in via NextAuth Credentials
